@@ -60,6 +60,8 @@ let accumulatedChatTokens = 0;
 // 모달 및 타이머 제어
 let authTimerInterval: any = null;
 let authTimerSeconds = 180;
+let codefJti = "";
+let codefTwoWayInfo: any = null;
 
 // 실습 수식 도출용 체크 상태
 let checklistState = {
@@ -1011,7 +1013,7 @@ function setupEventListeners() {
   });
 
   // 모달 - 간편인증 발송 요청
-  $("btn-modal-request-auth")?.addEventListener("click", () => {
+  $("btn-modal-request-auth")?.addEventListener("click", async () => {
     const errorBanner = $("modal-error-banner");
     if (errorBanner) errorBanner.classList.add("hidden");
 
@@ -1042,7 +1044,48 @@ function setupEventListeners() {
       return;
     }
 
-    startAuthCountdown();
+    // PUSH 발송을 위한 버튼 로더화 및 비활성화
+    const reqBtn = $("btn-modal-request-auth") as HTMLButtonElement | null;
+    if (reqBtn) {
+      reqBtn.disabled = true;
+      reqBtn.innerText = "간편인증 요청 중...";
+    }
+
+    const telecomSelect = $("modal-input-telecom") as HTMLSelectElement;
+    const telecom = telecomSelect ? telecomSelect.value : "skt";
+
+    const payload = {
+      userName,
+      identity: birthDate,
+      phoneNo,
+      telecom,
+      loginType2: authProvider
+    };
+
+    try {
+      const res = await fetch("/api/health/nhis-sync-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const body = await res.json();
+      
+      if (body.result?.code === "CF-03002") {
+        codefJti = body.data.jti;
+        codefTwoWayInfo = body.data.twoWayInfo;
+        startAuthCountdown();
+      } else {
+        throw new Error(body.result?.message || "간편인증 PUSH 전송 중 알 수 없는 오류가 발생했습니다.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      showModalError(err.message || "서버 통신 중 장애가 발생했습니다. 다시 시도해 주세요.");
+    } finally {
+      if (reqBtn) {
+        reqBtn.disabled = false;
+        reqBtn.innerText = "간편인증";
+      }
+    }
   });
 
   // 모달 - 인증 요청 취소
@@ -1422,20 +1465,19 @@ async function sendNhisSyncRequest() {
     phoneNo,
     telecom,
     loginType2: authProvider,
-    agree1: true,
-    agree2: true,
-    agree3: true
+    jti: codefJti,
+    twoWayInfo: codefTwoWayInfo
   };
 
   try {
-    const res = await fetch("/api/health/nhis-sync", {
+    const res = await fetch("/api/health/nhis-sync-confirm", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
     const body = await res.json();
-    if (!res.ok) {
+    if (!res.ok || body.result?.code !== "CF-00000") {
       throw new Error(body.result?.message || "국민건강보험 공공 API를 동기화하는 도중 장애가 일어났습니다.");
     }
 
@@ -1644,12 +1686,12 @@ function renderConsultingTab() {
   
   const isFemale = (gender === "F");
   const productName = isFemale 
-    ? "무배당 한화 시그니처 여성 건강보험 2.0"
-    : "무배당 한화 H-PLUS 건강보험";
+    ? "한화 시그니처 여성 건강보험4.0[HOT]"
+    : "한화 더건강한 한아름종합보험 무배당[NEW]";
     
   const productDescription = isFemale
-    ? "여성의 생애 주기별 특화 보장(유방암, 갑상선암, 난소암 및 여성 특정 임상질환 고액 케어)에 혈압, 당뇨 등 대사증후군 집중 탐지 가이드를 융합한 한화의 여성 시그니처 대표 건강보험 상품입니다."
-    : "남성 3대 만성 질환 및 심혈관, 뇌혈관 대사성 고위험군 집중 케정과 건강검진 연계 보장을 안전하게 하나로 합친 남성 맞춤형 고품격 건강보험 보장형 상품입니다.";
+    ? "여성의 생애 주기별 특화 보장(유방암, 갑상선암, 자궁암, 생식기암) 및 난임/출산/산후조리 집중 케어와 AMH 등급 할인을 융합한 한화의 대표 여성 시그니처 건강보험 상품입니다."
+    : "3대 만성 질환(암, 뇌혈관, 허혈성 심장질환)과 수술비를 폭넓게 보장하며 3N5 무사고 할인 특약을 통해 가입 장벽과 보험료를 혁신적으로 낮춘 대표 종합 건강보험입니다.";
 
   const coverages = [
     { id: "cov-cancer", name: "일반암 진단비 (표적항암 허가치료 포함 보강)", amount: "5,000만원", premium: 22400 },
