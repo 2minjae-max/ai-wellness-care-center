@@ -1,0 +1,84 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/public/static/pretendard.min.css");
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Pretendard", "Noto Sans KR", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Pretendard", "Noto Sans KR", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-hanwha-orange: #f37321;
+  --color-hanwha-orange-hover: #dd6216;
+  --color-hanwha-orange-light: #fff5ee;
+  --color-hanwha-navy: #353968;
+  --color-hanwha-light-grey: #efeee8;
+  --color-hanwha-black: #000000;
+  --color-hanwha-charcoal: #231f20;
+  --color-hanwha-gray-dark: #333333;
+  --color-hanwha-gray-medium: #767676;
+  --color-hanwha-gray-light: #f4f5f7;
+  --color-hanwha-gray-bg: #f8f9fa;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
+  20%, 40%, 60%, 80% { transform: translateX(6px); }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+main:nth-of-type(1) > section#dashboard-container:nth-of-type(3) > div#section-consulting:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1) > div:nth-of-type(2) {
+  display: none;
+}
+main:nth-of-type(1) > section#dashboard-container:nth-of-type(3) > div#section-consulting:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > span:nth-of-type(1) {
+  display: none;
+}
+main:nth-of-type(1) > section#dashboard-container:nth-of-type(3) > div#section-consulting:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > span:nth-of-type(1) {
+  display: none;
+}
+
+main:nth-of-type(1) > section#dashboard-container:nth-of-type(3) > div#section-consulting:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(1) > div:nth-of-type(2) {
+  display: none;
+}
+main:nth-of-type(1) > section#dashboard-container:nth-of-type(3) > div#section-consulting:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(3) > td:nth-of-type(1) > div:nth-of-type(2) {
+  display: none;
+}
+main:nth-of-type(1) > section#dashboard-container:nth-of-type(3) > div#section-consulting:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(4) > td:nth-of-type(1) > div:nth-of-type(2) {
+  display: none;
+}
+main:nth-of-type(1) > section#dashboard-container:nth-of-type(3) > div#section-consulting:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(5) > td:nth-of-type(1) > div:nth-of-type(2) {
+  display: none;
+}
+
+main:nth-of-type(1) {
+  max-width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+main:nth-of-type(1) > section#dashboard-container:nth-of-type(3) > div#section-consulting:nth-of-type(3) > div:nth-of-type(1) {
+  max-width: 100%;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  margin-left: 0;
+  margin-right: 0;
+}main:nth-of-type(1) > section#dashboard-container:nth-of-type(3) > div#section-consulting:nth-of-type(3) > div:nth-of-type(1) table td:nth-of-type(1) {
+  width: 50%;
+}
+
+main:nth-of-type(1) > section#dashboard-container:nth-of-type(3) > div#section-consulting:nth-of-type(3) > div:nth-of-type(1) table td:nth-of-type(2),
+main:nth-of-type(1) > section#dashboard-container:nth-of-type(3) > div#section-consulting:nth-of-type(3) > div:nth-of-type(1) table td:nth-of-type(3) {
+  padding-left: 0.25rem;
+}
+
+
+main:nth-of-type(1) > section#dashboard-container:nth-of-type(3) > div#section-consulting:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > span:nth-of-type(1),
+main:nth-of-type(1) > section#dashboard-container:nth-of-type(3) > div#section-consulting:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > h4:nth-of-type(1) {
+  white-space: normal;
+}
+

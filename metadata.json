@@ -1,0 +1,6 @@
+{
+  "name": "AI Wellness Care Center",
+  "description": "국민건강보험공단 데이터와 PDF 검진 자료를 결합 분석하고, AI 우수 가이드라인을 통해 주의사항, 행동 지침, 맞춤 영양/운동 처방 및 내년 추천 검진 항목을 제시하는 고객 최적화 모바일 헬스케어 대시보드입니다.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
