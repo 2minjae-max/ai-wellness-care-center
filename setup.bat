@@ -1,10 +1,10 @@
 @echo off
 :: 한글 깨짐 방지를 위해 UTF-8 코드페이지 설정
 chcp 65001 > nul
-title 한화손보 Smart AI Health Care Center - 원클릭 자동 환경설정 도구
+title 한화손보 AI Health Care Center - 원클릭 자동 환경설정 도구
 
 echo =======================================================================
-echo    한화손보 Smart AI Health Care Center - 원클릭 자동 셋업 및 가동 도구
+echo    한화손보 AI Health Care Center - 원클릭 자동 셋업 및 가동 도구
 echo =======================================================================
 echo.
 echo 이 스크립트는 새로운 PC에서 개발 환경을 1초 만에 안전하게 구축하고
