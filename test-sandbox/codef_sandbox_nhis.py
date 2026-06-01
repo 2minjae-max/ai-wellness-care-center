@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-한화손보 Smart AI Health Care Center - CODEF API Direct Sandbox Connection Code
+한화손보 Smart AI Health Care Center - CODEF API Direct Sandbox Connection Code (테스트 격리 폴더)
 
 이 파이썬 스크립트는 중개 서버를 거치지 않고, Python의 easycodefpy 라이브러리를 직접 사용해
 CODEF의 공식 샌드박스 서버와 통신하여 국민건강보험공단 건강검진 내역 조회 API를 직접 호출하는 예제입니다.
