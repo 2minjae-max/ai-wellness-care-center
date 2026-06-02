@@ -1,6 +1,6 @@
 {
   "generatedAt": "2026-06-02T09:18:38.678Z",
-  "batchLog": "Success - Processed 4 representative Hanwha Insurance active long-term products with real URL patterns.",
+  "batchLog": "Success - Updated 4 representative Hanwha Insurance active long-term products with detailed premium examples and real URL patterns.",
   "products": {
     "한화 시그니처 여성 건강보험4.0[HOT]": {
       "fullName": "무배당 한화 시그니처 여성 건강보험4.0(2601) 무배당",
@@ -28,6 +28,13 @@
         }
       ],
       "premiumRange": "월 40,000원 ~ 120,000원 (연령 및 담보 한도별 차등)",
+      "premiumExample": {
+        "standardAge": "40세 여성 기준",
+        "paymentTerm": "20년납 100세만기 (비갱신형 / 무해지환급형)",
+        "coverageDetail": "일반암 진단비 3,000만원, 유사암 600만원, 뇌혈관질환 1,000만원, 허혈성심장질환 1,000만원, 여성특정암 2,000만원 보강",
+        "monthlyPremium": "월 53,200원",
+        "source": "한화손해보험 상품설명서 공식 설계 예시 기준"
+      },
       "recommendationFactor": "건강 검진 결과상 부인과 취약 성향 또는 가족력에 암(유방/자궁) 취약군이 확인되는 여성 고객에게 강력 추천."
     },
     "한화 시그니처 여성 건강보험4.0[새창][NEW]": {
@@ -48,6 +55,13 @@
         }
       ],
       "premiumRange": "월 35,000원 ~ 95,000원",
+      "premiumExample": {
+        "standardAge": "30세 여성 기준",
+        "paymentTerm": "20년 갱신형 (최대 100세 만기 재가입)",
+        "coverageDetail": "부인과 특정 질병 수술비 200만원, 요실금 수술비 50만원, 자궁근종 수술비 100만원, 정신질환 치료 지원금 500만원",
+        "monthlyPremium": "월 37,800원",
+        "source": "한화손해보험 공식 홈페이지 실속형 다이렉트 온라인 추천 설계 예시"
+      },
       "recommendationFactor": "온라인/다이렉트 간편 계약 또는 갱신형 구조를 통해 월 부담을 낮추고 핵심 부인과 담보만 집중 가입하고 싶은 고객용."
     },
     "한화 더건강한 한아름종합보험 무배당[NEW]": {
@@ -72,6 +86,13 @@
         }
       ],
       "premiumRange": "월 50,000원 ~ 150,000원",
+      "premiumExample": {
+        "standardAge": "40세 남성 기준 (여성은 약 62,300원)",
+        "paymentTerm": "20년납 100세만기 (비갱신형 / 표준형)",
+        "coverageDetail": "일반암 3,000만원, 뇌혈관 2,000만원, 허혈성심장 2,000만원, 질병수술비 100만원, 1-5종 수술비 종별 차등 지급",
+        "monthlyPremium": "월 78,500원",
+        "source": "한화손해보험 상품공시실 표준 가입 설계 가이드라인 예시"
+      },
       "recommendationFactor": "건강 검진상 공복혈당(당뇨 전단계), 혈압(수축기 130 이상), 간수치(ALT 상승) 등 초기 대사항목 이상 징후가 보이고 심뇌혈관 상속성 위험(가족력)을 든든하게 메꾸고 싶어 하는 표준 종합 가입 고객용."
     },
     "한화 실손의료보험(갱신형)": {
@@ -96,6 +117,13 @@
         }
       ],
       "premiumRange": "월 15,000원 ~ 45,000원 (연령 및 직종별 변동)",
+      "premiumExample": {
+        "standardAge": "40세 여성 기준 (남성은 약 13,800원)",
+        "paymentTerm": "1년 갱신형 (5년마다 재가입, 최대 100세)",
+        "coverageDetail": "상해/질병 급여 입통원 실손(통상 한도), 상해/질병 비급여 입통원 실손, 3대 비급여 특약(도수/비급여주사/MRI) 일괄 포함",
+        "monthlyPremium": "월 15,200원",
+        "source": "4세대 표준 실손의료보험 한화손보 공시 표준 설계 보험료"
+      },
       "recommendationFactor": "기본적인 병원 치료비, 도수치료 및 값비싼 MRI 촬영 등 생활 밀착형 실손 부담을 1순위로 방어하고자 하는 전 가입 고객."
     }
   }
