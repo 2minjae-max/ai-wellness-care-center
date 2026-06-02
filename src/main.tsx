@@ -3,9 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import * as step1Info from "./views/step1Info";
+import * as step2Family from "./views/step2Family";
+import * as step3Auth from "./views/step3Auth";
+import * as step4Dashboard from "./views/step4Dashboard";
+import { Step1Context } from "./views/step1Info";
+import { Step2Context } from "./views/step2Family";
+import { Step3Context } from "./views/step3Auth";
+import { DashboardContext } from "./views/step4Dashboard";
 import "./index.css";
 import { samplePersonas, samplePDFPresets } from "./data";
 import { NHISData, UploadedPDFReport, AIAnalysisResult, ChatMessage } from "./types";
+import { drawSparkline } from "./utils/chartHelper";
+import { validateBirthDate as validateBirthDateHelper, clearInputErrors as clearInputErrorsHelper, triggerInputError as triggerInputErrorHelper } from "./utils/formHelper";
 
 // --- 글로벌 애플리케이션 상태 관리 (Vanilla State) ---
 let currentStep: "auth" | "loading" | "dashboard" = "auth";
@@ -42,6 +52,20 @@ let uploadedFiles: Array<{
     cdRatio?: number; 
     retinaMsg?: string; 
     year?: number;
+    // 신규 추가 지표들 (개선된 파서에서 추출)
+    ast?: number;         // 간기능 AST (SGOT)
+    alt?: number;         // 간기능 ALT (SGPT)
+    rGtp?: number;        // 감마 GTP
+    creatinine?: number;  // 크레아티닌
+    egfr?: number;        // 사구체여과율
+    hemoglobin?: number;  // 혈색소
+    hdlCholesterol?: number; // HDL 콜레스테롤
+    ldlCholesterol?: number; // LDL 콜레스테롤
+    triglycerides?: number;  // 중성지방
+    height?: number;      // 신장(키)
+    weight?: number;      // 체중
+    waist?: number;       // 허리둘레
+    urineProtein?: string; // 요단백
   } | null; 
 }> = [];
 let isStep1Completed = false;
@@ -50,6 +74,11 @@ let isStep2Completed = false;
 // 결과 분석 데이터 보관
 let analysisResult: AIAnalysisResult | null = null;
 let isSimulated = true;
+let prescriptionData: any = null; // 처방전 비전 분석 데이터 글로벌 상태 보관
+
+// 다른 설계서 비교 분석 상태 보관 및 캐싱
+let isComparisonCompleted = false;
+let comparisonResultHtml = "";
 
 // 챗보 대화 상태 보관
 let chatMessages: ChatMessage[] = [];
@@ -111,15 +140,90 @@ window.addEventListener("DOMContentLoaded", () => {
   initApp();
 });
 
+// --- Step 1과 상호작용하기 위한 상태 제어 컨텍스트 객체 정의 ---
+const step1Ctx: Step1Context = {
+  getUserName: () => userName,
+  setUserName: (name) => { userName = name; },
+  getBirthDate: () => birthDate,
+  setBirthDate: (birth) => { birthDate = birth; },
+  getGender: () => gender,
+  setGender: (g) => { gender = g; },
+  setNhisRecords: (records) => { nhisRecords = records; },
+  setFatherFactors: (factors) => { fatherFactors = factors; },
+  setMotherFactors: (factors) => { motherFactors = factors; },
+  logAccessEvent: (action, details) => { logAccessEvent(action, details); }
+};
+
+// --- Step 2와 상호작용하기 위한 상태 제어 컨텍스트 객체 정의 ---
+const step2Ctx: Step2Context = {
+  getFatherFactors: () => fatherFactors,
+  setFatherFactors: (factors) => { fatherFactors = factors; },
+  getMotherFactors: () => motherFactors,
+  setMotherFactors: (factors) => { motherFactors = factors; }
+};
+
+// --- Step 3과 상호작용하기 위한 상태 제어 컨텍스트 객체 정의 ---
+const step3Ctx: Step3Context = {
+  getUserName: () => userName,
+  getBirthDate: () => birthDate,
+  getAuthProvider: () => authProvider,
+  getCodefJti: () => codefJti,
+  setCodefJti: (jti) => { codefJti = jti; },
+  getCodefTwoWayInfo: () => codefTwoWayInfo,
+  setCodefTwoWayInfo: (info) => { codefTwoWayInfo = info; },
+  getNhisRecords: () => nhisRecords,
+  setNhisRecords: (records) => { nhisRecords = records; },
+  setIsStep1Completed: (completed) => { isStep1Completed = completed; },
+  updateAuthProgress: () => { updateAuthProgress(); },
+  logAccessEvent: (action, details) => { logAccessEvent(action, details); }
+};
+
+// --- Step 4(대시보드/챗봇)와 상호작용하기 위한 상태 제어 컨텍스트 객체 정의 ---
+const dashboardCtx: DashboardContext = {
+  getNhisRecords: () => nhisRecords,
+  getUserName: () => userName,
+  getChatMessages: () => chatMessages,
+  setChatMessages: (msgs) => { chatMessages = msgs; },
+  isChatLoading: () => isChatLoading,
+  setChatLoading: (loading) => { isChatLoading = loading; },
+  getAccumulatedChatCostKrw: () => accumulatedChatCostKrw,
+  setAccumulatedChatCostKrw: (cost) => { accumulatedChatCostKrw = cost; },
+  getAccumulatedChatTokens: () => accumulatedChatTokens,
+  setAccumulatedChatTokens: (tokens) => { accumulatedChatTokens = tokens; },
+  getUploadedFiles: () => uploadedFiles,
+  getAnalysisResult: () => analysisResult,
+  isStep1Completed: () => isStep1Completed,
+  isStep2Completed: () => isStep2Completed,
+  getPrescriptionData: () => prescriptionData,
+  setPrescriptionData: (data) => { prescriptionData = data; },
+  uploadPrescriptionImage: async (file: File) => {
+    const formData = new FormData();
+    formData.append("prescriptionImage", file);
+    const res = await fetch("/api/health/analyze-prescription", {
+      method: "POST",
+      body: formData
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "처방전 이미지 분석에 실패했습니다.");
+    }
+    return res.json();
+  },
+  triggerRecalculateAnalysis: () => {
+    triggerAIAnalysis();
+  }
+};
+
 function initApp() {
-  renderPersonaPresets();
+  step1Info.renderPersonaPresets(step1Ctx);
   renderPDFPresets();
   setupEventListeners();
-  updateGenderButtons();
+  step1Info.updateGenderButtons(step1Ctx);
   updateStepView();
   updateAuthProgress();
   setupProviderDetailsHandlers();
   setupConsentDetailsHandlers();
+  setupConsentCheckboxes();
 
   // 🕒 한국 표준시(KST) 기반으로 현재 일시 렌더링
   const dDate = $("rendered-current-date");
@@ -271,111 +375,17 @@ function updateGenderButtons() {
 // ========================================================
 // 생년월일 (YYMMDD) 디테일 유효성 체크 함수
 function validateBirthDate(birth: string): { valid: boolean; errorMsg?: string } {
-  if (!birth || birth.trim() === "") {
-    return { valid: false, errorMsg: "생년월일을 입력해주세요." };
-  }
-  if (birth.length !== 6 || isNaN(Number(birth))) {
-    return { valid: false, errorMsg: "생년월일 6자리를 정확하게 입력해주세요. (예: 840323)" };
-  }
-
-  const yearStr = birth.substring(0, 2);
-  const monthStr = birth.substring(2, 4);
-  const dayStr = birth.substring(4, 6);
-
-  const yearNum = parseInt(yearStr, 10);
-  const month = parseInt(monthStr, 10);
-  const day = parseInt(dayStr, 10);
-
-  if (month < 1 || month > 12) {
-    return { valid: false, errorMsg: `올바른 월이 아닙니다. (${monthStr}월)` };
-  }
-
-  // 가상의 세기 구분 (40년 이상이면 1900년대, 40년 미만이면 2000년대 간주)
-  const fullYear = yearNum >= 40 ? 1900 + yearNum : 2000 + yearNum;
-  const isLeapYear = (fullYear % 4 === 0 && fullYear % 100 !== 0) || (fullYear % 400 === 0);
-  const daysInMonth = [
-    31, // 1월
-    isLeapYear ? 29 : 28, // 2월
-    31, // 3월
-    30, // 4월
-    31, // 5월
-    30, // 6월
-    31, // 7월
-    31, // 8월
-    30, // 9월
-    31, // 10월
-    30, // 11월
-    31  // 12월
-  ];
-
-  const maxDay = daysInMonth[month - 1];
-  if (day < 1 || day > maxDay) {
-    return { valid: false, errorMsg: `존재하지 않는 날짜입니다. (${month}월은 ${maxDay}일까지 존재합니다.)` };
-  }
-
-  return { valid: true };
+  return validateBirthDateHelper(birth);
 }
 
 // 에러 스타일 및 애니메이션 초기화용 헬퍼
 function clearInputErrors() {
-  const nameInput = document.getElementById("input-username") as HTMLInputElement | null;
-  const birthInput = document.getElementById("input-birth") as HTMLInputElement | null;
-  const phoneInput = document.getElementById("modal-input-phone") as HTMLInputElement | null;
-  const nameError = document.getElementById("error-username");
-  const birthError = document.getElementById("error-birth");
-  const phoneError = document.getElementById("error-modal-phone");
-
-  if (nameInput) {
-    nameInput.classList.remove("border-red-500", "focus:ring-red-500", "animate-shake");
-    nameInput.classList.add("border-slate-200", "focus:ring-[#f37321]");
-  }
-  if (birthInput) {
-    birthInput.classList.remove("border-red-500", "focus:ring-red-500", "animate-shake");
-    birthInput.classList.add("border-slate-200", "focus:ring-[#f37321]");
-  }
-  if (phoneInput) {
-    phoneInput.classList.remove("border-red-500", "focus:ring-red-500", "animate-shake");
-    phoneInput.classList.add("border-slate-200", "focus:ring-[#f37321]");
-  }
-  if (nameError) {
-    nameError.classList.add("hidden");
-    nameError.innerText = "";
-  }
-  if (birthError) {
-    birthError.classList.add("hidden");
-    birthError.innerText = "";
-  }
-  if (phoneError) {
-    phoneError.classList.add("hidden");
-    phoneError.innerText = "";
-  }
+  clearInputErrorsHelper();
 }
 
 // 개별 필드 에러 효과 및 텍스트박스 흔들림 트리거 헬퍼
 function triggerInputError(inputEl: HTMLInputElement, errorEl: HTMLElement, message: string) {
-  clearInputErrors();
-
-  if (errorEl) {
-    errorEl.innerText = message;
-    errorEl.classList.remove("hidden");
-  }
-
-  if (inputEl) {
-    inputEl.classList.remove("border-slate-200", "focus:ring-[#f37321]");
-    inputEl.classList.add("border-red-500", "focus:ring-red-500");
-    
-    // 흔들기 애니메이션 트리거 (Reflow 강제)
-    inputEl.classList.remove("animate-shake");
-    void inputEl.offsetWidth; 
-    inputEl.classList.add("animate-shake");
-
-    inputEl.addEventListener("animationend", function handler() {
-      inputEl.classList.remove("animate-shake");
-      inputEl.removeEventListener("animationend", handler);
-    });
-
-    inputEl.focus();
-  }
+  triggerInputErrorHelper(inputEl, errorEl, message);
 }
 
 function setupEventListeners() {
@@ -563,22 +573,214 @@ function setupEventListeners() {
     });
   }
 
+  /**
+   * PDF에서 텍스트를 추출하는 함수 (좌표 기반 정렬 + 암호 해제 지원)
+   * ──────────────────────────────────────────────────────────────
+   * 
+   * [암호화된 PDF 자동 해제 로직]
+   *   1단계: 암호 없이 열기 시도
+   *   2단계: 실패 시 → 전역 birthDate에서 6자리/8자리 등 여러 포맷으로 자동 시도
+   *         (국민건강보험 검진 결과 PDF는 생년월일 6자리로 암호 보호)
+   *   3단계: 그래도 실패 → 사용자에게 비밀번호 입력 안내 (prompt)
+   * 
+   * [좌표 기반 텍스트 정렬]
+   *   - 각 텍스트 아이템의 y좌표(transform[5])를 기준으로 같은 행을 그룹화
+   *   - 같은 행 내에서 x좌표(transform[4]) 순서로 정렬
+   *   - 인접 텍스트 아이템 간의 x좌표 간격이 크면 탭(구분자) 삽입
+   *   → 실제 PDF 테이블 레이아웃이 텍스트로 충실히 복원됩니다.
+   */
   async function extractTextFromPdf(file: File): Promise<string> {
     await loadPdfJs();
     const pdfjsLib = (window as any).pdfjsLib;
     const arrayBuffer = await file.arrayBuffer();
-    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-    const pdf = await loadingTask.promise;
+
+    // ────────────────────────────────────────────────────
+    // PDF 문서 열기 (암호 해제 자동 시도 포함)
+    // ────────────────────────────────────────────────────
+    let pdf: any = null;
+
+    /**
+     * 생년월일로부터 가능한 비밀번호 후보 목록을 생성합니다.
+     * 예: birthDate = "19900101" 또는 "900101"
+     * → ["900101", "19900101", "0101"] 등 다양한 포맷 시도
+     */
+    function generateBirthPasswordCandidates(birth: string): string[] {
+      const candidates: string[] = [];
+      // 원본 값 그대로
+      if (birth) candidates.push(birth);
+
+      // 숫자만 추출 (하이픈, 점 등 제거)
+      const digits = birth.replace(/\D/g, "");
+      if (digits && !candidates.includes(digits)) candidates.push(digits);
+
+      if (digits.length === 8) {
+        // "19900101" → "900101" (뒤 6자리)
+        const sixDigit = digits.substring(2);
+        if (!candidates.includes(sixDigit)) candidates.push(sixDigit);
+        // "19900101" → "0101" (월일 4자리)
+        const fourDigit = digits.substring(4);
+        if (!candidates.includes(fourDigit)) candidates.push(fourDigit);
+      } else if (digits.length === 6) {
+        // "900101" → 그대로 사용 (이미 추가됨)
+        // "900101" → "19900101" (앞에 19 추가 시도)
+        const expanded = (parseInt(digits.substring(0, 2)) >= 50 ? "19" : "20") + digits;
+        if (!candidates.includes(expanded)) candidates.push(expanded);
+      }
+      return candidates;
+    }
+
+    /**
+     * 특정 암호로 PDF를 열기 시도하는 내부 함수
+     * 성공 시 PDF 객체 반환, 실패 시 null 반환
+     */
+    async function tryOpenPdf(password?: string): Promise<any> {
+      try {
+        const options: any = { data: arrayBuffer.slice(0) };
+        if (password !== undefined) options.password = password;
+        const loadingTask = pdfjsLib.getDocument(options);
+        return await loadingTask.promise;
+      } catch (err: any) {
+        // 암호 관련 에러인지 확인
+        if (err?.name === "PasswordException" || 
+            err?.message?.includes("password") || 
+            err?.message?.includes("Password")) {
+          return null; // 암호 에러 → null 반환 (재시도 가능)
+        }
+        throw err; // 다른 에러는 그대로 throw
+      }
+    }
+
+    // 1단계: 암호 없이 시도
+    pdf = await tryOpenPdf();
+
+    // 2단계: 실패 시 → 생년월일 기반 비밀번호 자동 시도
+    if (!pdf && birthDate) {
+      const candidates = generateBirthPasswordCandidates(birthDate);
+      console.log(`[PDF] 암호화 PDF 감지 → 생년월일 기반 ${candidates.length}개 비밀번호 자동 시도 중...`);
+      
+      for (const pwd of candidates) {
+        pdf = await tryOpenPdf(pwd);
+        if (pdf) {
+          console.log(`[PDF] ✅ 생년월일 기반 비밀번호(${pwd.substring(0, 2)}****)로 PDF 잠금 해제 성공!`);
+          break;
+        }
+      }
+    }
+
+    // 3단계: 여전히 실패 → 사용자에게 비밀번호 직접 입력 요청
+    if (!pdf) {
+      let userAttempts = 0;
+      const MAX_ATTEMPTS = 3;
+
+      while (!pdf && userAttempts < MAX_ATTEMPTS) {
+        userAttempts++;
+        const userPassword = prompt(
+          `🔒 암호화된 PDF 파일입니다.\n\n` +
+          `국민건강보험 건강검진 결과 통보서는 보통\n` +
+          `생년월일 6자리(예: 900101)로 암호가 설정되어 있습니다.\n\n` +
+          `비밀번호를 입력해 주세요 (${userAttempts}/${MAX_ATTEMPTS} 시도):`
+        );
+
+        if (userPassword === null) {
+          // 사용자가 취소 버튼 클릭
+          throw new Error("PDF 비밀번호 입력이 취소되었습니다. 암호가 해제된 PDF를 다시 업로드해 주세요.");
+        }
+
+        if (userPassword.trim()) {
+          pdf = await tryOpenPdf(userPassword.trim());
+          if (pdf) {
+            console.log(`[PDF] ✅ 사용자 입력 비밀번호로 PDF 잠금 해제 성공!`);
+          } else if (userAttempts < MAX_ATTEMPTS) {
+            alert(`❌ 비밀번호가 일치하지 않습니다. 다시 시도해 주세요. (${MAX_ATTEMPTS - userAttempts}회 남음)`);
+          }
+        }
+      }
+
+      if (!pdf) {
+        throw new Error(
+          "PDF 비밀번호 해제에 실패했습니다 (3회 초과).\n" +
+          "① 생년월일 6자리를 정확히 입력했는지 확인하세요.\n" +
+          "② 건강보험공단 앱에서 '비밀번호 없이 저장'으로 다시 다운로드해 보세요."
+        );
+      }
+    }
+
+    // ────────────────────────────────────────────────────
+    // PDF 텍스트 좌표 기반 추출 (기존 로직)
+    // ────────────────────────────────────────────────────
     let fullText = "";
+
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
-      const pageText = textContent.items.map((item: any) => item.str).join(" ");
-      fullText += pageText + "\n";
+
+      // 1단계: 빈 문자열이 아닌 텍스트 아이템만 추출하고 좌표를 보존
+      const items: Array<{ str: string; x: number; y: number; width: number }> = [];
+      for (const item of textContent.items) {
+        if (!item.str || item.str.trim() === "") continue;
+        // transform 배열: [scaleX, skewX, skewY, scaleY, translateX, translateY]
+        const x = item.transform ? item.transform[4] : 0;
+        const y = item.transform ? item.transform[5] : 0;
+        const width = item.width || item.str.length * 5; // 폭 추정
+        items.push({ str: item.str, x, y, width });
+      }
+
+      // 2단계: y좌표 기준으로 같은 행 그룹화 (y좌표 차이 3pt 이하 = 같은 행)
+      const ROW_TOLERANCE = 3;
+      const rows: Map<number, typeof items> = new Map();
+
+      for (const item of items) {
+        let matchedRowY: number | null = null;
+        for (const rowY of rows.keys()) {
+          if (Math.abs(rowY - item.y) <= ROW_TOLERANCE) {
+            matchedRowY = rowY;
+            break;
+          }
+        }
+        if (matchedRowY !== null) {
+          rows.get(matchedRowY)!.push(item);
+        } else {
+          rows.set(item.y, [item]);
+        }
+      }
+
+      // 3단계: 행을 y좌표 내림차순(위에서 아래로)으로 정렬
+      const sortedRowKeys = Array.from(rows.keys()).sort((a, b) => b - a);
+
+      // 4단계: 각 행 내 아이템을 x좌표 오름차순으로 정렬 후 텍스트 조합
+      const GAP_THRESHOLD = 15;
+      for (const rowY of sortedRowKeys) {
+        const rowItems = rows.get(rowY)!;
+        rowItems.sort((a, b) => a.x - b.x);
+
+        let lineText = "";
+        for (let j = 0; j < rowItems.length; j++) {
+          if (j > 0) {
+            const prevEnd = rowItems[j - 1].x + rowItems[j - 1].width;
+            const gap = rowItems[j].x - prevEnd;
+            lineText += gap > GAP_THRESHOLD ? "\t" : (gap > 1 ? " " : "");
+          }
+          lineText += rowItems[j].str;
+        }
+        fullText += lineText.trim() + "\n";
+      }
+      fullText += "\n"; // 페이지 구분
     }
     return fullText;
   }
 
+  /**
+   * PDF/텍스트에서 건강 검진 지표를 정규식으로 추출하는 핵심 파서
+   * ──────────────────────────────────────────────────────────
+   * 
+   * [개선 포인트]
+   * 1. 줄 단위 매칭 우선 → 좌표 기반 텍스트 추출(extractTextFromPdf 개선)과 시너지
+   * 2. 혈압 패턴: 날짜(2025/01), 페이지(1/3) 오매칭 방지
+   * 3. 총콜레스테롤: HDL/LDL 앞에 있으면 제외
+   * 4. 혈당: "당뇨"/"혈당" 단독 키워드 제거 → "공복혈당", "식전혈당" 등 정밀 매칭
+   * 5. 추가 지표(AST, ALT, r-GTP, 크레아티닌, eGFR, 헤모글로빈, HDL, LDL, 중성지방, 신장, 체중, 허리둘레)
+   * 6. hasAnyMetric → !== undefined 방식으로 0값 누락 방지
+   */
   function parseHealthMetrics(text: string, filename: string): { 
     systolicBP?: number; 
     diastolicBP?: number; 
@@ -594,97 +796,352 @@ function setupEventListeners() {
   } | null {
     if (!text) return null;
     const norm = text.toLowerCase();
-    const cleanText = text.replace(/\s+/g, " ");
     const metrics: any = {};
 
-    // 0. 연도 추출 (파일명에서 먼저 찾고, 없으면 텍스트 안에서 2010년~2026년 사이의 연도를 자동 발췌)
+    // ────────────────────────────────────────────────────
+    // 유틸: 줄 단위 분리 (좌표 기반 추출의 각 행이 하나의 줄)
+    // ────────────────────────────────────────────────────
+    const lines = text.split(/\n/).map(l => l.trim()).filter(l => l.length > 0);
+    
+    // 전체 텍스트를 공백 정규화한 버전 (폴백 매칭용)
+    const cleanText = text.replace(/\s+/g, " ");
+
+    // ────────────────────────────────────────────────────
+    // 유틸: 줄에서 숫자 추출하는 헬퍼 함수
+    // ────────────────────────────────────────────────────
+    function findValueInLine(line: string, pattern: RegExp): number | null {
+      const m = pattern.exec(line);
+      if (m) return parseFloat(m[1]);
+      return null;
+    }
+
+    // 특정 키워드가 포함된 줄을 찾아 수치를 추출하는 헬퍼
+    function findMetricByKeyword(keywords: string[], valuePattern: RegExp, min: number, max: number): number | null {
+      // 1차: 줄 단위 매칭 (좌표 기반 추출에서 같은 행에 키워드+수치가 있는 경우)
+      for (const line of lines) {
+        const lineLower = line.toLowerCase().replace(/\s+/g, "");
+        const matched = keywords.some(kw => lineLower.includes(kw.replace(/\s+/g, "")));
+        if (matched) {
+          const val = findValueInLine(line, valuePattern);
+          if (val !== null && val >= min && val <= max) return val;
+        }
+      }
+      // 2차: 전체 텍스트에서 정규식 매칭 (줄 구분 없이 폴백)
+      return null;
+    }
+
+    // ────────────────────────────────────────────────────
+    // 0. 연도 추출
+    // ────────────────────────────────────────────────────
     let year = new Date().getFullYear();
     const fileYearMatch = filename.match(/(20\d{2})/);
     if (fileYearMatch) {
       year = parseInt(fileYearMatch[1]);
     } else {
-      const textYears = text.match(/(20[12]\d)/g);
-      if (textYears && textYears.length > 0) {
-        const validYears = textYears.map(y => parseInt(y)).filter(y => y >= 2010 && y <= new Date().getFullYear() + 2);
-        if (validYears.length > 0) {
-          year = validYears[0];
+      // 텍스트에서 "검진일", "검사일", "발급일" 근처 연도 우선
+      for (const line of lines) {
+        if (/검진일|검사일|발급일|검진.*일자|수검일/.test(line)) {
+          const ym = line.match(/(20\d{2})/);
+          if (ym) { year = parseInt(ym[1]); break; }
+        }
+      }
+      // 못 찾았으면 텍스트 전체에서 찾기
+      if (year === new Date().getFullYear()) {
+        const textYears = text.match(/(20[12]\d)/g);
+        if (textYears && textYears.length > 0) {
+          const validYears = textYears.map(y => parseInt(y)).filter(y => y >= 2010 && y <= new Date().getFullYear() + 2);
+          if (validYears.length > 0) year = validYears[0];
         }
       }
     }
     metrics.year = year;
 
-    // 1. 혈압 매칭 (수축기 / 이완기)
-    // 예: 120/80 또는 130 - 85
-    const bpMatch = /(\d{2,3})\s*[\/\-]\s*(\d{2,3})/.exec(cleanText);
-    if (bpMatch) {
-      const sys = parseInt(bpMatch[1]);
-      const dia = parseInt(bpMatch[2]);
-      if (sys >= 70 && sys <= 210 && dia >= 35 && dia <= 135) {
-        metrics.systolicBP = sys;
-        metrics.diastolicBP = dia;
+    // ────────────────────────────────────────────────────
+    // 1. 혈압 매칭 (수축기 / 이완기) — 개선된 로직
+    // ────────────────────────────────────────────────────
+
+    // 1-A: 줄 단위로 "혈압" 관련 키워드가 있는 줄에서 "수축기/이완기" 또는 "숫자/숫자" 패턴 찾기
+    const bpKeywords = ["혈압", "blood pressure", "bp"];
+    for (const line of lines) {
+      const lineLower = line.toLowerCase().replace(/\s+/g, "");
+      if (!bpKeywords.some(kw => lineLower.includes(kw.replace(/\s+/g, "")))) continue;
+
+      // "135/85" 또는 "135 / 85" 패턴 (혈압 키워드가 있는 줄에서만!)
+      const bpSlashMatch = /(\d{2,3})\s*[\/]\s*(\d{2,3})/.exec(line);
+      if (bpSlashMatch) {
+        const s = parseInt(bpSlashMatch[1]), d = parseInt(bpSlashMatch[2]);
+        if (s >= 80 && s <= 210 && d >= 40 && d <= 130) {
+          metrics.systolicBP = s;
+          metrics.diastolicBP = d;
+          break;
+        }
       }
     }
-    
-    // 개별 키워드 매칭 - 공백 문자가 사이사이에 섞여있어도 인덱싱되게 변형
-    if (!metrics.systolicBP) {
-      const sysMatch = /(?:수\s*축\s*기|최\s*고\s*혈\s*압|최\s*고|s\s*y\s*s|b\s*p\s*[\s_-]*s\s*y\s*s)\s*(?:혈\s*압)?\s*[:=\s\-]*\s*(\d{2,3})/i.exec(cleanText);
+
+    // 1-B: "수축기" / "이완기" 개별 키워드 줄 단위 매칭
+    if (metrics.systolicBP === undefined) {
+      const sysVal = findMetricByKeyword(
+        ["수축기", "최고혈압", "수축기혈압", "systolic"],
+        /(\d{2,3})/,
+        80, 210
+      );
+      if (sysVal !== null) metrics.systolicBP = sysVal;
+    }
+    if (metrics.diastolicBP === undefined) {
+      const diaVal = findMetricByKeyword(
+        ["이완기", "최저혈압", "이완기혈압", "diastolic"],
+        /(\d{2,3})/,
+        40, 130
+      );
+      if (diaVal !== null) metrics.diastolicBP = diaVal;
+    }
+
+    // 1-C: 폴백 — 전체 텍스트에서 "혈압" 키워드 근처의 숫자/숫자 패턴
+    if (metrics.systolicBP === undefined) {
+      const sysMatch = /(?:수\s*축\s*기|최\s*고\s*혈\s*압)\s*(?:혈\s*압)?\s*[:\s\-=\t]*\s*(\d{2,3})/i.exec(cleanText);
       if (sysMatch) {
-        metrics.systolicBP = parseInt(sysMatch[1]);
+        const v = parseInt(sysMatch[1]);
+        if (v >= 80 && v <= 210) metrics.systolicBP = v;
       }
     }
-    if (!metrics.diastolicBP) {
-      const diaMatch = /(?:이\s*완\s*기|최\s*저\s*혈\s*압|최\s*저|d\s*i\s*a|b\s*p\s*[\s_-]*d\s*i\s*a)\s*(?:혈\s*압)?\s*[:=\s\-]*\s*(\d{2,3})/i.exec(cleanText);
+    if (metrics.diastolicBP === undefined) {
+      const diaMatch = /(?:이\s*완\s*기|최\s*저\s*혈\s*압)\s*(?:혈\s*압)?\s*[:\s\-=\t]*\s*(\d{2,3})/i.exec(cleanText);
       if (diaMatch) {
-        metrics.diastolicBP = parseInt(diaMatch[1]);
+        const v = parseInt(diaMatch[1]);
+        if (v >= 40 && v <= 130) metrics.diastolicBP = v;
       }
     }
 
-    // 2. 공복 식전 혈당
-    const glucoseMatch = /(?:공\s*복\s*(?:식\s*전)?\s*혈\s*당|식\s*전\s*혈\s*당|g\s*l\s*u\s*c\s*o\s*s\s*e|당\s*뇨|혈\s*당)\s*[:=\s\-]*\s*(\d{2,3})/i.exec(cleanText);
-    if (glucoseMatch) {
-      const val = parseInt(glucoseMatch[1]);
-      if (val >= 40 && val <= 400) {
-        metrics.fastingGlucose = val;
+    // ────────────────────────────────────────────────────
+    // 2. 공복 혈당 — "공복", "식전" 키워드 필수
+    // ────────────────────────────────────────────────────
+    const glucoseVal = findMetricByKeyword(
+      ["공복혈당", "공복 혈당", "식전혈당", "식전 혈당", "공복 식전", "fasting glucose", "fasting blood sugar"],
+      /(\d{2,3})/,
+      40, 400
+    );
+    if (glucoseVal !== null) {
+      metrics.fastingGlucose = glucoseVal;
+    } else {
+      // 폴백: 전체 텍스트에서 정밀 매칭 (공복/식전 키워드 필수)
+      const gm = /(?:공\s*복\s*(?:식\s*전)?\s*혈\s*당|식\s*전\s*혈\s*당|fasting\s*(?:blood\s*)?(?:glucose|sugar))\s*[:\s\-=\t]*\s*(\d{2,3})/i.exec(cleanText);
+      if (gm) {
+        const v = parseInt(gm[1]);
+        if (v >= 40 && v <= 400) metrics.fastingGlucose = v;
       }
     }
 
-    // 3. 총 콜레스테롤
-    const cholValueMatch = /(?:총\s*)?콜\s*레\s*스\s*테\s*롤\s*[:=\s\-]*\s*(\d{2,3})/i.exec(cleanText) || /t(?:otal)?[\s_-]*chol(?:esterol)?\s*[:=\s\-]*\s*(\d{2,3})/i.exec(cleanText);
-    if (cholValueMatch) {
-      const val = parseInt(cholValueMatch[1]);
-      if (val >= 80 && val <= 500) {
-        metrics.totalCholesterol = val;
+    // ────────────────────────────────────────────────────
+    // 3. 총 콜레스테롤 — HDL/LDL/중성지방 구분
+    // ────────────────────────────────────────────────────
+    // 줄 단위: "총콜레스테롤" 또는 "total cholesterol"이 있는 줄 우선
+    const cholVal = findMetricByKeyword(
+      ["총콜레스테롤", "총 콜레스테롤", "total cholesterol", "t-cholesterol", "t-chol"],
+      /(\d{2,3})/,
+      80, 500
+    );
+    if (cholVal !== null) {
+      metrics.totalCholesterol = cholVal;
+    } else {
+      // 폴백: "총" 키워드가 있으면서 "콜레스테롤" 매칭 (HDL/LDL 제외)
+      // "총콜레스테롤" 또는 "(총)콜레스테롤" 패턴
+      const cm = /(?:총\s*)콜\s*레\s*스\s*테\s*롤\s*[:\s\-=\t]*\s*(\d{2,3})/i.exec(cleanText);
+      if (cm) {
+        const v = parseInt(cm[1]);
+        if (v >= 80 && v <= 500) metrics.totalCholesterol = v;
+      }
+      // 그래도 못 찾으면 "콜레스테롤" 단독 (단, HDL/LDL이 아닌 것만)
+      if (metrics.totalCholesterol === undefined) {
+        for (const line of lines) {
+          const ll = line.toLowerCase();
+          if (ll.includes("콜레스테롤") && !ll.includes("hdl") && !ll.includes("ldl") && !ll.includes("중성")) {
+            const vm = /(\d{2,3})/.exec(line);
+            if (vm) {
+              const v = parseInt(vm[1]);
+              if (v >= 80 && v <= 500) { metrics.totalCholesterol = v; break; }
+            }
+          }
+        }
       }
     }
 
+    // ────────────────────────────────────────────────────
     // 4. 체질량지수 (BMI)
-    const bmiMatch = /(?:b\s*m\s*i|체\s*질\s*량\s*지\s*수|체\s*질\s*량)\s*[:=\s\-]*\s*(\d{1,2}(?:\.\d+)?)/i.exec(cleanText);
-    if (bmiMatch) {
-      const val = parseFloat(bmiMatch[1]);
-      if (val >= 10 && val <= 50) {
-        metrics.bmi = val;
+    // ────────────────────────────────────────────────────
+    const bmiVal2 = findMetricByKeyword(
+      ["bmi", "체질량지수", "체질량 지수", "체질량"],
+      /(\d{1,2}(?:\.\d+)?)/, 10, 50
+    );
+    if (bmiVal2 !== null) {
+      metrics.bmi = bmiVal2;
+    } else {
+      const bm = /(?:b\s*m\s*i|체\s*질\s*량\s*(?:지\s*수)?)\s*[:\s\-=\t]*\s*(\d{1,2}(?:\.\d+)?)/i.exec(cleanText);
+      if (bm) {
+        const v = parseFloat(bm[1]);
+        if (v >= 10 && v <= 50) metrics.bmi = v;
       }
     }
 
-    // 5. 시그널 추가 파생
-    if (norm.includes("지방간") || norm.includes("fatty liver")) {
-      metrics.fattyLiver = "Mild";
+    // ────────────────────────────────────────────────────
+    // 5. 추가 핵심 지표들 (기존 + 신규)
+    // ────────────────────────────────────────────────────
+
+    // 5-1. 지방간 소견
+    if (norm.includes("지방간") || norm.includes("fatty liver") || norm.includes("bright liver")) {
+      metrics.fattyLiver = norm.includes("중등도") || norm.includes("moderate") ? "Moderate" : "Mild";
     }
-    const hbaMatch = /(?:당\s*화\s*혈\s*색\s*소)\s*[:=\s\-]*\s*(\d+(?:\.\d+)?)/i.exec(cleanText) || /hba1c\s*[:=\s\-]*\s*(\d+(?:\.\d+)?)/i.exec(cleanText);
-    if (hbaMatch) metrics.hba1c = parseFloat(hbaMatch[1]);
 
-    const homaMatch = /homa[-_\s]*ir\s*[:=\s\-]*\s*(\d+(?:\.\d+)?)/i.exec(cleanText) || /(?:인\s*슐\s*린\s*저\s*항\s*성)\s*[:=\s\-]*\s*(\d+(?:\.\d+)?)/i.exec(cleanText);
-    if (homaMatch) metrics.homaIr = parseFloat(homaMatch[1]);
+    // 5-2. 당화혈색소(HbA1c)
+    const hba1cVal = findMetricByKeyword(
+      ["당화혈색소", "hba1c", "hemoglobin a1c", "glycated"],
+      /(\d+(?:\.\d+)?)/, 3.0, 15.0
+    );
+    if (hba1cVal !== null) {
+      metrics.hba1c = hba1cVal;
+    } else {
+      const hm = /(?:당\s*화\s*혈\s*색\s*소|hba1c)\s*[:\s\-=\t]*\s*(\d+(?:\.\d+)?)/i.exec(cleanText);
+      if (hm) metrics.hba1c = parseFloat(hm[1]);
+    }
 
-    const cdMatch = /(?:함\s*몰\s*비)\s*[:=\s\-]*\s*(\d+(?:\.\d+)?)/i.exec(cleanText) || /c\/d\s*ratio\s*[:=\s\-]*\s*(\d+(?:\.\d+)?)/i.exec(cleanText);
-    if (cdMatch) metrics.cdRatio = parseFloat(cdMatch[1]);
+    // 5-3. HOMA-IR 인슐린저항성
+    const homaVal = findMetricByKeyword(
+      ["homa-ir", "homa ir", "인슐린저항성", "인슐린 저항성"],
+      /(\d+(?:\.\d+)?)/, 0.1, 20.0
+    );
+    if (homaVal !== null) {
+      metrics.homaIr = homaVal;
+    } else {
+      const hom = /homa[-_\s]*ir\s*[:\s\-=\t]*\s*(\d+(?:\.\d+)?)/i.exec(cleanText);
+      if (hom) metrics.homaIr = parseFloat(hom[1]);
+    }
 
-    if (norm.includes("망막") || norm.includes("황반") || norm.includes("안저")) {
+    // 5-4. C/D Ratio (함몰비)
+    const cdVal = findMetricByKeyword(
+      ["함몰비", "c/d ratio", "c/d"],
+      /(\d+(?:\.\d+)?)/, 0.01, 1.0
+    );
+    if (cdVal !== null) {
+      metrics.cdRatio = cdVal;
+    } else {
+      const cdm = /(?:함\s*몰\s*비|c\/d\s*ratio)\s*[:\s\-=\t]*\s*(\d+(?:\.\d+)?)/i.exec(cleanText);
+      if (cdm) metrics.cdRatio = parseFloat(cdm[1]);
+    }
+
+    // 5-5. 안저/망막 소견
+    if (norm.includes("망막") || norm.includes("황반") || norm.includes("안저") || norm.includes("fundus")) {
       metrics.retinaMsg = "주의";
     }
 
-    // 최소 한 개의 의미있는 메트릭이나 추가 메디컬 수치가 관학되었으면 유효 판단 반환
-    const hasAnyMetric = metrics.systolicBP || metrics.fastingGlucose || metrics.totalCholesterol || metrics.bmi || metrics.fattyLiver || metrics.hba1c || metrics.homaIr || metrics.cdRatio;
+    // 5-6. 간기능 AST (SGOT)
+    const astVal = findMetricByKeyword(
+      ["ast", "sgot", "ast(got)", "ast (got)"],
+      /(\d{1,4})/, 1, 2000
+    );
+    if (astVal !== null) metrics.ast = astVal;
+
+    // 5-7. 간기능 ALT (SGPT)
+    const altVal = findMetricByKeyword(
+      ["alt", "sgpt", "alt(gpt)", "alt (gpt)"],
+      /(\d{1,4})/, 1, 2000
+    );
+    if (altVal !== null) metrics.alt = altVal;
+
+    // 5-8. 감마 GTP (r-GTP)
+    const rgtpVal = findMetricByKeyword(
+      ["r-gtp", "γ-gtp", "감마gtp", "감마 gtp", "ggt"],
+      /(\d{1,4})/, 1, 2000
+    );
+    if (rgtpVal !== null) metrics.rGtp = rgtpVal;
+
+    // 5-9. 크레아티닌
+    const crVal = findMetricByKeyword(
+      ["크레아티닌", "creatinine"],
+      /(\d+(?:\.\d+)?)/, 0.1, 20.0
+    );
+    if (crVal !== null) metrics.creatinine = crVal;
+
+    // 5-10. 사구체여과율 (eGFR)
+    const egfrVal = findMetricByKeyword(
+      ["사구체여과율", "egfr", "gfr"],
+      /(\d{1,3})/, 5, 200
+    );
+    if (egfrVal !== null) metrics.egfr = egfrVal;
+
+    // 5-11. 혈색소 (헤모글로빈)
+    const hbVal = findMetricByKeyword(
+      ["혈색소", "헤모글로빈", "hemoglobin"],
+      /(\d+(?:\.\d+)?)/, 3.0, 25.0
+    );
+    if (hbVal !== null) metrics.hemoglobin = hbVal;
+
+    // 5-12. HDL 콜레스테롤
+    const hdlVal = findMetricByKeyword(
+      ["hdl콜레스테롤", "hdl 콜레스테롤", "hdl-c", "hdl"],
+      /(\d{2,3})/, 10, 150
+    );
+    if (hdlVal !== null) metrics.hdlCholesterol = hdlVal;
+
+    // 5-13. LDL 콜레스테롤
+    const ldlVal = findMetricByKeyword(
+      ["ldl콜레스테롤", "ldl 콜레스테롤", "ldl-c", "ldl"],
+      /(\d{2,3})/, 20, 400
+    );
+    if (ldlVal !== null) metrics.ldlCholesterol = ldlVal;
+
+    // 5-14. 중성지방 (트리글리세리드)
+    const tgVal = findMetricByKeyword(
+      ["중성지방", "triglyceride", "트리글리세리드", "tg"],
+      /(\d{2,4})/, 20, 2000
+    );
+    if (tgVal !== null) metrics.triglycerides = tgVal;
+
+    // 5-15. 신장 (키)
+    const heightVal = findMetricByKeyword(
+      ["신장", "키", "height"],
+      /(\d{2,3}(?:\.\d+)?)/, 100, 250
+    );
+    if (heightVal !== null) metrics.height = heightVal;
+
+    // 5-16. 체중
+    const weightVal = findMetricByKeyword(
+      ["체중", "몸무게", "weight"],
+      /(\d{2,3}(?:\.\d+)?)/, 20, 300
+    );
+    if (weightVal !== null) metrics.weight = weightVal;
+
+    // 5-17. 허리둘레
+    const waistVal = findMetricByKeyword(
+      ["허리둘레", "복부둘레", "waist"],
+      /(\d{2,3}(?:\.\d+)?)/, 40, 200
+    );
+    if (waistVal !== null) metrics.waist = waistVal;
+
+    // 5-18. 요단백
+    for (const line of lines) {
+      const ll = line.toLowerCase();
+      if (ll.includes("요단백") || ll.includes("urine protein") || ll.includes("소변단백")) {
+        if (ll.includes("양성") || /\(\+\)|\+\s/.test(line)) {
+          metrics.urineProtein = "양성(+)";
+        } else if (ll.includes("음성") || /\(-\)|\-\s/.test(line)) {
+          metrics.urineProtein = "음성(-)";
+        } else {
+          metrics.urineProtein = "확인필요";
+        }
+        break;
+      }
+    }
+
+    // ────────────────────────────────────────────────────
+    // 6. 최소 1개 이상의 유효 지표가 있는지 판단 (0도 유효한 값으로 인정)
+    // ────────────────────────────────────────────────────
+    const metricKeys = [
+      "systolicBP", "diastolicBP", "fastingGlucose", "totalCholesterol", "bmi",
+      "fattyLiver", "hba1c", "homaIr", "cdRatio", "retinaMsg",
+      "ast", "alt", "rGtp", "creatinine", "egfr", "hemoglobin",
+      "hdlCholesterol", "ldlCholesterol", "triglycerides",
+      "height", "weight", "waist", "urineProtein"
+    ];
+    const hasAnyMetric = metricKeys.some(k => metrics[k] !== undefined);
     
     if (!hasAnyMetric) {
       return null;
@@ -990,116 +1447,14 @@ function setupEventListeners() {
       });
       return;
     }
-    openSyncModal();
+    step3Auth.openSyncModal();
   });
 
-  // 모달 닫기
-  $("btn-close-modal")?.addEventListener("click", closeSyncModal);
-
-  // 약관 전체 체크 동의 연계
-  $("check-term-all")?.addEventListener("change", (e) => {
-    const checked = (e.target as HTMLInputElement).checked;
-    $$(".required-check").forEach((cb) => {
-      (cb as HTMLInputElement).checked = checked;
-    });
+  // 🔒 본인인증 모달 닫기 및 이벤트 바인딩 위임
+  $("btn-close-modal")?.addEventListener("click", () => {
+    step3Auth.closeSyncModal();
   });
-
-  $$(".required-check").forEach((cb) => {
-    cb.addEventListener("change", () => {
-      const allChecked = Array.from($$(".required-check")).every(c => (c as HTMLInputElement).checked);
-      const mainCheck = $("check-term-all") as HTMLInputElement;
-      if (mainCheck) mainCheck.checked = allChecked;
-    });
-  });
-
-  // 모달 - 간편인증 발송 요청
-  $("btn-modal-request-auth")?.addEventListener("click", async () => {
-    const errorBanner = $("modal-error-banner");
-    if (errorBanner) errorBanner.classList.add("hidden");
-
-    const phoneInput = $("modal-input-phone") as HTMLInputElement;
-    const phoneError = $("error-modal-phone");
-    const phoneNo = phoneInput ? phoneInput.value : "";
-
-    if (!phoneNo.trim()) {
-      if (phoneInput && phoneError) {
-        triggerInputError(phoneInput, phoneError as HTMLElement, "휴대폰 번호를 입력해주세요.");
-      }
-      return;
-    }
-
-    if (phoneNo.length < 10 || isNaN(Number(phoneNo))) {
-      if (phoneInput && phoneError) {
-        triggerInputError(phoneInput, phoneError as HTMLElement, "올바른 휴대폰 번호 10~11자리를 입력해주세요.");
-      }
-      return;
-    }
-
-    // 통과했으므로 에러 클리어
-    clearInputErrors();
-
-    const allAgreed = Array.from($$(".required-check")).every(c => (c as HTMLInputElement).checked);
-    if (!allAgreed) {
-      showModalError("국민건강보험 의료정보 연동을 위해 모든 필수 약관 수집에 동의해야 합니다.");
-      return;
-    }
-
-    // PUSH 발송을 위한 버튼 로더화 및 비활성화
-    const reqBtn = $("btn-modal-request-auth") as HTMLButtonElement | null;
-    if (reqBtn) {
-      reqBtn.disabled = true;
-      reqBtn.innerText = "간편인증 요청 중...";
-    }
-
-    const telecomSelect = $("modal-input-telecom") as HTMLSelectElement;
-    const telecom = telecomSelect ? telecomSelect.value : "skt";
-
-    const payload = {
-      userName,
-      identity: birthDate,
-      phoneNo,
-      telecom,
-      loginType2: authProvider
-    };
-
-    try {
-      const res = await fetch("/api/health/nhis-sync-request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const body = await res.json();
-      
-      if (body.result?.code === "CF-03002") {
-        codefJti = body.data.jti;
-        codefTwoWayInfo = body.data.twoWayInfo;
-        startAuthCountdown();
-      } else {
-        throw new Error(body.result?.message || "간편인증 PUSH 전송 중 알 수 없는 오류가 발생했습니다.");
-      }
-    } catch (err: any) {
-      console.error(err);
-      showModalError(err.message || "서버 통신 중 장애가 발생했습니다. 다시 시도해 주세요.");
-    } finally {
-      if (reqBtn) {
-        reqBtn.disabled = false;
-        reqBtn.innerText = "간편인증";
-      }
-    }
-  });
-
-  // 모달 - 인증 요청 취소
-  $("btn-modal-cancel-request")?.addEventListener("click", () => {
-    stopAuthCountdown();
-    $("modal-step-requesting")?.classList.add("hidden");
-    $("modal-step-form")?.classList.remove("hidden");
-  });
-
-  // 모달 - 인증 승인완료 후 동기화 실시
-  $("btn-modal-confirm-sync")?.addEventListener("click", () => {
-    stopAuthCountdown();
-    executeNhisSync();
-  });
+  step3Auth.bindAuthModalEvents(step3Ctx);
 
   // 다시 동기화버튼 (초기 단계로 원복)
   $("btn-re-sync")?.addEventListener("click", () => {
@@ -1262,31 +1617,8 @@ function setupEventListeners() {
     });
   }
 
-  // 챗봇 입력 폼 SUBMIT 연동
-  $("chat-input-form")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    handleChatSubmit();
-  });
-
-  // 추천 문구 칩 클릭 이벤트 연동
-  $("section-action")?.addEventListener("click", (e) => {
-    const chip = (e.target as HTMLElement).closest(".chat-chip");
-    if (chip) {
-      const query = chip.getAttribute("data-query");
-      if (query) {
-        const input = $("chat-user-message-input") as HTMLInputElement;
-        if (input) {
-          input.value = query;
-          handleChatSubmit();
-        }
-      }
-    }
-  });
-
-  // 챗봇 대화 초기화
-  $("btn-reset-chat")?.addEventListener("click", () => {
-    initializeChatRoom();
-  });
+  // 💬 챗봇 이벤트 리스너 통합 바인딩 등록 위임
+  step4Dashboard.bindChatEvents(dashboardCtx);
 
   // 👪 가족력 선택(토글) 이벤트 리스너 배정
   $$(".family-factor-btn").forEach((btn) => {
@@ -1344,180 +1676,7 @@ function showModalError(msg: string) {
 // ========================================================
 // 3. 모달 제어 및 카운트다운 타이머
 // ========================================================
-function openSyncModal() {
-  const modal = $("auth-modal");
-  if (modal) {
-    modal.classList.remove("hidden");
-    // 로깅/로그인 진행 중에는 하단 CTA 영역(final-analysis-cta-container)을 보이지 않게 숨김 처리합니다.
-    $("final-analysis-cta-container")?.classList.add("hidden");
-    // 초기화
-    $("modal-step-form")?.classList.remove("hidden");
-    $("modal-step-requesting")?.classList.add("hidden");
-    $("modal-step-api-loading")?.classList.add("hidden");
-    $("modal-error-banner")?.classList.add("hidden");
-    
-    // 전화번호 입력칸 초기화 및 우회안내 숨김
-    const phoneInput = $("modal-input-phone") as HTMLInputElement | null;
-    if (phoneInput) {
-      phoneInput.value = "";
-    }
-    const disclaimer = $("modal-bypass-disclaimer");
-    if (disclaimer) {
-      disclaimer.classList.add("hidden");
-    }
-    
-    const mainCheck = $("check-term-all") as HTMLInputElement;
-    if (mainCheck) mainCheck.checked = false;
-    $$(".required-check").forEach(c => (c as HTMLInputElement).checked = false);
-  }
-}
-
-function closeSyncModal() {
-  stopAuthCountdown();
-  $("auth-modal")?.classList.add("hidden");
-  $("final-analysis-cta-container")?.classList.remove("hidden");
-}
-
-function startAuthCountdown() {
-  $("modal-step-form")?.classList.add("hidden");
-  $("modal-step-requesting")?.classList.remove("hidden");
-  $("modal-bypass-disclaimer")?.classList.add("hidden");
-
-  authTimerSeconds = 180;
-  updateTimerDisplay();
-
-  authTimerInterval = setInterval(() => {
-    authTimerSeconds--;
-    updateTimerDisplay();
-
-    if (authTimerSeconds <= 0) {
-      stopAuthCountdown();
-      alert("본인인증 대기 시간이 넘었습니다. 다시 시도해 주십시오.");
-      $("modal-step-requesting")?.classList.add("hidden");
-      $("modal-step-form")?.classList.remove("hidden");
-    }
-  }, 1000);
-}
-
-function stopAuthCountdown() {
-  if (authTimerInterval) {
-    clearInterval(authTimerInterval);
-    authTimerInterval = null;
-  }
-}
-
-function updateTimerDisplay() {
-  const display = $("modal-timer-text");
-  if (!display) return;
-  const mins = Math.floor(authTimerSeconds / 60).toString().padStart(2, "0");
-  const secs = (authTimerSeconds % 60).toString().padStart(2, "0");
-  display.innerText = `${mins}:${secs}`;
-}
-
-// ========================================================
-// 4. 안전가교 API 호출 동기화 (nhis-sync)
-// ========================================================
-function executeNhisSync() {
-  $("modal-step-requesting")?.classList.add("hidden");
-  $("modal-step-api-loading")?.classList.remove("hidden");
-  $("modal-bypass-disclaimer")?.classList.add("hidden");
-  $("final-analysis-cta-container")?.classList.add("hidden");
-
-  const pFill = $("modal-api-bar-fill");
-  const pPercent = $("modal-api-bar-percent");
-  const pText = $("modal-api-loading-text");
-
-  // 시각적인 API 파이프라인 연출
-  const stages = [
-    { text: "🔒 국민건강보험공단 건강검진 내부 가상세션 획득 중...", percent: 25, delay: 600 },
-    { text: "✍️ 모바일 서명 검인증 및 전자증명서 무결성 대조 통과...", percent: 50, delay: 600 },
-    { text: "📥 최근 5개년치 15대 만성 대사증후군 건강 인덱스 수집 중...", percent: 75, delay: 700 },
-    { text: "📊 요합 지표 매핑 최적화 설계 및 클라이언트 암호화 로딩 중...", percent: 95, delay: 600 }
-  ];
-
-  let idx = 0;
-  function nextStage() {
-    if (idx < stages.length) {
-      if (pText) pText.innerText = stages[idx].text;
-      if (pFill) pFill.style.width = `${stages[idx].percent}%`;
-      if (pPercent) pPercent.innerText = `${stages[idx].percent}%`;
-      setTimeout(() => {
-        idx++;
-        nextStage();
-      }, stages[idx].delay);
-    } else {
-      // 실제 API 호출 개시
-      sendNhisSyncRequest();
-    }
-  }
-  nextStage();
-}
-
-async function sendNhisSyncRequest() {
-  const phoneInput = $("modal-input-phone") as HTMLInputElement;
-  const phoneNo = phoneInput ? phoneInput.value : "01012345678";
-  const telecomSelect = $("modal-input-telecom") as HTMLSelectElement;
-  const telecom = telecomSelect ? telecomSelect.value : "skt";
-
-  const payload = {
-    userName,
-    identity: birthDate,
-    phoneNo,
-    telecom,
-    loginType2: authProvider,
-    jti: codefJti,
-    twoWayInfo: codefTwoWayInfo
-  };
-
-  try {
-    const res = await fetch("/api/health/nhis-sync-confirm", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    const body = await res.json();
-    if (!res.ok || body.result?.code !== "CF-00000") {
-      throw new Error(body.result?.message || "국민건강보험 공공 API를 동기화하는 도중 장애가 일어났습니다.");
-    }
-
-    // 성공 처리
-    nhisRecords = body.data.syncedRecords;
-    
-    // 성공 동기화 로그 기록
-    logAccessEvent("nhis_sync_success", { recordCount: nhisRecords ? nhisRecords.length : 0 });
-
-    const pFill = $("modal-api-bar-fill");
-    const pPercent = $("modal-api-bar-percent");
-    const pText = $("modal-api-loading-text");
-    if (pText) pText.innerText = "🎉 국민건강보험검진 지표 실시간 로딩 완벽 성공!";
-    if (pFill) pFill.style.width = "100%";
-    if (pPercent) pPercent.innerText = "100%";
-
-    setTimeout(() => {
-      closeSyncModal();
-      isStep1Completed = true;
-      updateAuthProgress();
-
-      // Step 4 보이기 및 앵커 이동
-      const connector3 = $("step-3-4-connector");
-      const card4 = $("step-4-card");
-      if (connector3 && card4) {
-        connector3.classList.remove("hidden");
-        card4.classList.remove("hidden");
-        card4.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 800);
-
-  } catch (err: any) {
-    console.error(err);
-    logAccessEvent("nhis_sync_failure", { errorMessage: err.message || err });
-    alert(err.message || "서버 통신 중 장애가 생겼습니다.");
-    $("modal-step-api-loading")?.classList.add("hidden");
-    $("modal-step-form")?.classList.remove("hidden");
-    $("final-analysis-cta-container")?.classList.remove("hidden");
-  }
-}
+// (레거시 간편인증 제어 함수들은 step3Auth 뷰 모듈로 완전 이관되어 비활성화/삭제되었습니다.)
 
 // ========================================================
 // 5. AI 융합분석 파이프라인 기동 (analyze)
@@ -1573,7 +1732,8 @@ async function executeAIReportFetch() {
     familyHistory: {
       father: fatherFactors,
       mother: motherFactors
-    }
+    },
+    prescriptionData: prescriptionData
   };
 
   try {
@@ -1672,7 +1832,7 @@ function switchTab(tabName: "report" | "trends" | "action" | "chat" | "consultin
     renderTrendsTab();
   } else if (tabName === "action") {
     renderActionTab();
-    renderChatTab();
+    step4Dashboard.renderChatTab(dashboardCtx);
   } else if (tabName === "consulting") {
     renderConsultingTab();
   }
@@ -1693,6 +1853,73 @@ function renderConsultingTab() {
     ? "여성의 생애 주기별 특화 보장(유방암, 갑상선암, 자궁암, 생식기암) 및 난임/출산/산후조리 집중 케어와 AMH 등급 할인을 융합한 한화의 대표 여성 시그니처 건강보험 상품입니다."
     : "3대 만성 질환(암, 뇌혈관, 허혈성 심장질환)과 수술비를 폭넓게 보장하며 3N5 무사고 할인 특약을 통해 가입 장벽과 보험료를 혁신적으로 낮춘 대표 종합 건강보험입니다.";
 
+  // 사용자가 제공해준 공식 및 PDF 링크 연동 (여성건강 vs 한아름종합보험 분기)
+  const productUrl = isFemale
+    ? "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01988002"
+    : "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01381001";
+
+  const guidePdfUrl = isFemale
+    ? "https://www.hwgeneralins.com/upload/hmpag_upload/product/woman_cm(2604)_01.pdf"
+    : "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan(2604)_01.pdf";
+
+  // 1. 고객의 최신 건강 검진 데이터와 가족력 정보 로드
+  const sortedRecs = [...nhisRecords].sort((a, b) => b.year - a.year);
+  const latestRec = sortedRecs[0];
+  const sysBp = latestRec?.systolicBP ?? 120;
+  const glucose = latestRec?.fastingGlucose ?? 95;
+  const bmiVal = latestRec?.bmi ?? 22.5;
+
+  // 2. 가족력 & 건강 수치 분석 기반의 구체적 의학/보험 공학 사유 조립
+  let reasonList: string[] = [];
+
+  // 당뇨 가족력 + 식전혈당 연계
+  if (fatherFactors.includes("당뇨병") || motherFactors.includes("당뇨병")) {
+    if (glucose >= 100) {
+      reasonList.push(`• <b>[당뇨 가족력 & 당대사 위험 연동]</b> 유전적 당뇨 위험군에 속하며 최근 공복혈당(${glucose} mg/dL) 경계성 상승이 확인되어, <b>'대사성 만성질환 특별보완 특약' 1,000만원</b>을 최우선 장착하여 향후 합병증 리스크에 대응했습니다.`);
+    } else {
+      reasonList.push(`• <b>[당뇨 유전 위험 대비]</b> 부모님 중 당뇨 병력이 검출되어, 현재 혈당 수치(${glucose} mg/dL)는 안전 상태이나 장기적 혈당 상승 시의 대사 합병증에 안심할 수 있도록 예방 보장을 추가 조율했습니다.`);
+    }
+  }
+
+  // 고혈압 가족력 + 혈압 수치 연계
+  if (fatherFactors.includes("고혈압") || motherFactors.includes("고혈압")) {
+    if (sysBp >= 130) {
+      reasonList.push(`• <b>[고혈압 가족력 & 혈행 압력 연동]</b> 고혈압 유전 소인과 함께 수축기 혈압(${sysBp} mmHg)의 고혈압 경계선 진입이 확인됨에 따라, 심뇌혈관 상속성 위험 방어를 위해 <b>'뇌혈관질환 및 허혈성심장질환 진단비'를 각 3,000만원씩 정밀 보강</b> 처방했습니다.`);
+    } else {
+      reasonList.push(`• <b>[고혈압 유전 위험 대비]</b> 부모님의 고혈압 이력이 확인되어, 향후 나이 누적에 따른 뇌/심장 2대 진단비 기본 설계를 탄탄하게 메웠습니다.`);
+    }
+  }
+
+  // 뇌졸중/심장질환 가족력
+  if (fatherFactors.includes("뇌졸중/뇌혈관") || motherFactors.includes("뇌졸중/뇌혈관") || fatherFactors.includes("심장질환") || motherFactors.includes("심장질환")) {
+    reasonList.push(`• <b>[뇌/심혈관 가족력 대비]</b> 부모님의 뇌혈관 및 심장 병력이 기재되어, 급성 혈관 파열/막힘 사고를 보상하는 한화손보의 <b>'2대 주요 만성 혈관질환 진단비'</b> 보장 한도를 보강했습니다.`);
+  }
+
+  // 암(위암, 대장암, 폐암, 간암, 유방암, 자궁암 등) 가족력 + 성별 맞춤 상품 연계
+  const hasCancerFamily = fatherFactors.some(f => f.includes("암")) || motherFactors.some(m => m.includes("암"));
+  if (hasCancerFamily) {
+    if (isFemale) {
+      reasonList.push(`• <b>[암 가족력 & 여성 특화 연계]</b> 가족력상 암 이력이 확인되어, 유방/자궁 등 여성 특화 다빈도 암을 일반 암 대비 최대 150% 수준으로 크게 상향 보장하는 여성 특화 다빈도 암 집중 특약이 탑재된 <b>'한화 시그니처 여성 건강보험 4.0'</b>을 맞춤 추천했습니다.`);
+    } else {
+      reasonList.push(`• <b>[암 유전 성향 예방]</b> 가족력 내 암 이력에 대응하여, 암 진단비 5,000만원 설계와 더불어 값비싼 표적항암 허가치료 특약을 결합한 <b>'한화 더건강한 한아름종합보험'</b>의 든든한 종합 암 처방을 적용했습니다.`);
+    }
+  }
+
+  // 가족력 선택이 없는 경우의 지표 기반 기본 분석 사유 조립
+  if (reasonList.length === 0) {
+    if (glucose >= 100 || sysBp >= 130 || bmiVal >= 25) {
+      reasonList.push(`• <b>[검진 대사항목 집중 보완]</b> 현재 공복식전혈당(${glucose} mg/dL) 또는 혈압(${sysBp} mmHg) 등의 기초 대사 지표가 주의 경계 영역에 분포해 있으므로, 만성질환으로의 발전을 사전에 상쇄하고 향후 합병증 치료비를 예방 적립할 수 있도록 만성질약 특별보완과 3대 주요 진단비를 결합했습니다.`);
+    } else {
+      if (isFemale) {
+        reasonList.push(`• <b>[기초 웰니스 보장 적립]</b> 현재 5개년 건강 검진 수치는 대단히 훌륭한 수준으로 잘 보존되고 있습니다. 다만, 현 시점의 건강함을 기반으로 한화손보의 웰니스 케어 첫해 월 보험료 최대 10% 우대 할인 제도(AMH 난소 기능 2.0 이상 할인 등)를 적용받아 가장 최저의 월 납입액으로 장기 안심 포트폴리오를 마련하도록 추천했습니다.`);
+      } else {
+        reasonList.push(`• <b>[기초 웰니스 보장 적립]</b> 현재 5개년 건강 검진 수치는 대단히 훌륭한 수준으로 잘 보존되고 있습니다. 다만, 현 시점의 건강함을 기반으로 한화손보의 3N5 무사고 할인 혜택 등을 활용하여 가장 합리적인 월 납입액으로 장기 안심 종합 포트폴리오를 마련하도록 추천했습니다.`);
+      }
+    }
+  }
+
+  const reasonHtml = reasonList.map(r => `<div class="text-slate-700 text-xs sm:text-xs font-semibold leading-relaxed break-keep">${r}</div>`).join("<div class='h-2.5'></div>");
+
   const coverages = [
     { id: "cov-cancer", name: "일반암 진단비 (표적항암 허가치료 포함 보강)", amount: "5,000만원", premium: 22400 },
     { id: "cov-brain", name: "뇌혈관질환 진단비 (2대 고위험 혈관 보강)", amount: "3,000만원", premium: 14800 },
@@ -1712,7 +1939,7 @@ function renderConsultingTab() {
           <div class="text-[10px] text-slate-400 mt-0.5 font-bold">한화손해보험 최신 맞춤설계특약</div>
         </td>
         <td class="py-3 px-2 text-right font-extrabold text-slate-900 text-xs sm:text-xs">${cov.amount}</td>
-        <td class="py-3 px-2 text-right font-mono font-bold text-[#f37321] text-xs sm:text-sm">${formattedPremium} 원</td>
+        <td class="py-3 px-2 text-right font-bold text-[#f37321] text-xs sm:text-sm">${formattedPremium} 원</td>
       </tr>
     `;
   }).join("");
@@ -1731,26 +1958,44 @@ function renderConsultingTab() {
             AI 건강 맞춤형 컨설팅
           </h3>
           <p class="text-slate-500 text-xs sm:text-sm mt-2 leading-relaxed">
-            고객님의 최근 건강검진 종합 지표(<span id="consulting-score-badge" class="font-bold text-slate-800">${analysisResult?.overallScore || 84}점</span>)와 기재해주신 건강 상태를 토대로 <strong class="text-slate-800 font-extrabold">한화손해보험 상품공시실</strong>에 현재 정식 판매 중인 건강보장형 상품들을 대조 분석하여, 고객님께 가장 완벽하게 보완된 비대면 맞춤 포트폴리오를 제공합니다.
+            고객님의 최근 건강검진 종합 지표(<span id="consulting-score-badge" class="font-bold text-slate-800">${analysisResult?.overallScore || 84}점</span>)와 기재해주신 건강 상태를 토대로 <strong class="text-slate-800 font-extrabold">한화손해보험 상품공시실 지식 위키</strong>에 현재 정식 판매 중인 건강보장형 상품들을 대조 분석하여, 고객님께 가장 완벽하게 보완된 비대면 맞춤 포트폴리오를 제공합니다.
           </p>
         </div>
         
         <!-- Product Box -->
-        <div class="bg-[#fffdfb] p-5 rounded-2xl border border-[#f37321]/20 space-y-2 relative overflow-hidden">
+        <div class="bg-[#fffdfb] p-5 rounded-2xl border border-[#f37321]/20 space-y-4.5 relative overflow-hidden">
             <div class="absolute -right-6 -bottom-6 text-[#f37321] opacity-5">
               <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 21.622c5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016L12 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622z"/>
               </svg>
             </div>
-            <div class="flex flex-col gap-1 items-start">
-                <span class="text-[10px] px-2 py-0.5 rounded-md bg-[#f37321] text-white font-black">AI 추천 최적상품</span>
-                <h4 class="font-black text-slate-900 text-sm sm:text-base">${productName}</h4>
+            <div class="space-y-2">
+                <div class="flex flex-col gap-1 items-start">
+                    <span class="text-[10px] px-2 py-0.5 rounded-md bg-[#f37321] text-white font-black">AI 추천 최적상품 (공시실 위키 연동)</span>
+                    <h4 class="font-black text-slate-900 text-sm sm:text-base">${productName}</h4>
+                </div>
+                <p class="text-slate-600 text-xs sm:text-sm leading-relaxed break-keep">${productDescription}</p>
             </div>
-            <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">${productDescription}</p>
+            
+            <!-- 🔗 상품 보러가기 / 설명서 다운로드 버튼 (모바일 한 손 조작 최적화) -->
+            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 relative z-10">
+              <a href="${productUrl}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-[#f37321] bg-white text-[#f37321] hover:bg-[#fff5ee] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                공식 상품 정보
+              </a>
+              <a href="${guidePdfUrl}" target="_blank" download class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#f37321] text-white hover:bg-[#dd6216] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                설명서 PDF 받기
+              </a>
+            </div>
         </div>
         
         <!-- Recommended Coverages -->
-        <div class="space-y-3">
+        <div class="space-y-3.5">
             <h4 class="font-extrabold text-slate-800 text-sm sm:text-base flex items-center gap-1.5">
               <svg class="w-4 h-4 text-[#f37321]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -1758,13 +2003,13 @@ function renderConsultingTab() {
               가족력 및 검진 기반 추천 담보 구성
             </h4>
 
-            <div class="border border-slate-200 bg-white rounded-2xl shadow-xs">
+            <div class="border border-slate-200 bg-white rounded-2xl shadow-xs overflow-hidden">
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-xs">
-                    <th class="py-3 px-2 font-black">담보명</th>
-                    <th class="py-3 px-2 text-right font-black">가입금액</th>
-                    <th class="py-3 px-2 text-right font-black">월 보험료</th>
+                    <th class="py-3 px-3 font-black">담보명</th>
+                    <th class="py-3 px-3 text-right font-black">가입금액</th>
+                    <th class="py-3 px-3 text-right font-black">월 보험료</th>
                   </tr>
                 </thead>
                 <tbody class="text-xs text-slate-700">
@@ -1772,6 +2017,19 @@ function renderConsultingTab() {
                 </tbody>
               </table>
             </div>
+        </div>
+
+        <!-- 💡 가족력 및 검진 기반 융합 사유 카드 -->
+        <div class="bg-gradient-to-br from-indigo-50/20 to-[#f5f7ff]/40 border border-indigo-200/50 rounded-2xl p-5 space-y-3 text-left">
+          <h4 class="font-extrabold text-slate-800 text-sm flex items-center gap-1.5 text-indigo-700">
+            <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            가족력 및 검진 지표 융합 분석 사유
+          </h4>
+          <div class="space-y-3 pl-0.5">
+            ${reasonHtml}
+          </div>
         </div>
 
         <!-- Monthly Premium -->
@@ -1785,21 +2043,39 @@ function renderConsultingTab() {
           </div>
         </div>
         
-        <!-- File Upload Section -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
-            <h3 class="font-extrabold text-lg text-slate-900">기존 설계서 분석</h3>
-            <p class="text-slate-500 text-sm">기존에 설계받은 보험 설계서를 업로드하거나 사진을 찍어 올려주시면, 현재 추천 상품과 비교하여 보장 차이점을 분석해 드립니다.</p>
-            <input type="file" id="existing-plan-file" class="hidden" accept="image/*,application/pdf" />
-            <div id="upload-zone" class="border-2 border-dashed border-slate-200 hover:border-[#f37321] bg-slate-50/70 hover:bg-[#fff5ee] rounded-xl p-6 text-center cursor-pointer transition-all">
-               <span class="text-xs font-semibold text-slate-700">설계서 파일 / 사진 선택</span>
+        <!-- 📂 다른 설계서와 비교 분석 섹션 (독립 하단 섹션으로 분리) -->
+        <div class="mt-8 pt-8 border-t border-slate-200 space-y-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center gap-2 text-slate-800">
+                    <svg class="w-5 h-5 text-[#f37321]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2" />
+                    </svg>
+                    <h3 class="font-extrabold text-base sm:text-lg text-slate-900">다른 설계서와 비교 분석</h3>
+                </div>
+                <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">기존에 설계받은 보험 설계서를 업로드하거나 사진을 찍어 올려주시면, 현재 추천 상품과 비교하여 보장 차이점을 분석해 드립니다.</p>
+                <input type="file" id="existing-plan-file" class="hidden" accept="image/*,application/pdf" />
+                <div id="upload-zone" class="border-2 border-dashed border-slate-200 hover:border-[#f37321] bg-slate-50/70 hover:bg-[#fff5ee] rounded-2xl p-8 text-center cursor-pointer transition-all space-y-2.5 flex flex-col items-center justify-center">
+                   <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-3xs border border-slate-100 text-[#f37321]">
+                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                       <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                     </svg>
+                   </div>
+                   <div class="space-y-1">
+                     <span class="text-xs sm:text-sm font-bold text-slate-700 block">설계서 파일 선택 / 사진 촬영</span>
+                     <span class="text-[10px] text-slate-400 block font-medium">보험 증권이나 가입 설계서 이미지를 업로드해 주세요.</span>
+                   </div>
+                </div>
+                <button id="btn-analyze-plan" class="w-full bg-[#f37321] hover:bg-[#dd6216] text-white rounded-xl py-3.5 font-bold text-sm transition-all">비교 분석하기</button>
             </div>
-            <button id="btn-analyze-plan" class="w-full bg-[#f37321] text-white rounded-xl py-3.5 font-bold text-sm">비교 분석하기</button>
         </div>
 
-        <div id="analysis-result" class="hidden w-full bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 mt-4 shadow-sm text-left">
+        <!-- 비교분석 결과 테이블 영역 (상태 유지용 캐시 HTML 또는 기본 hidden) -->
+        <div id="analysis-result" class="${isComparisonCompleted ? '' : 'hidden'} w-full bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 mt-4 shadow-sm text-left">
+            ${isComparisonCompleted ? comparisonResultHtml : ""}
         </div>
 
-        <button id="btn-consulting-consult-submit" class="w-full bg-[#f37321] hover:bg-[#dd6216] text-white font-extrabold text-sm sm:text-base px-6 py-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer mt-4">
+        <!-- 💬 상담 신청하기 버튼 (비교분석이 완료되었을 때만 노출) -->
+        <button id="btn-consulting-consult-submit" class="${isComparisonCompleted ? '' : 'hidden'} w-full bg-[#f37321] hover:bg-[#dd6216] text-white font-extrabold text-sm sm:text-base px-6 py-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer mt-4">
             <svg class="w-5 h-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
             </svg>
@@ -1839,7 +2115,7 @@ function renderConsultingTab() {
     const resultDiv = $("analysis-result");
     if (resultDiv) {
       resultDiv.classList.remove("hidden");
-      resultDiv.innerText = "분석 중...";
+      resultDiv.innerHTML = `<div class="text-slate-500 font-bold text-xs sm:text-sm animate-pulse">상세한 보장 차이점을 비교 분석 중입니다. 잠시만 기다려주세요...</div>`;
     }
 
     const formData = new FormData();
@@ -1855,7 +2131,7 @@ function renderConsultingTab() {
         const comparison = data.comparison;
         
         if (resultDiv) {
-            resultDiv.innerHTML = `
+            const tableHtml = `
                 <div class="overflow-x-auto w-full">
                     <table class="w-full text-xs sm:text-sm text-left border-collapse min-w-[450px]">
                         <thead>
@@ -1890,6 +2166,14 @@ function renderConsultingTab() {
                     </table>
                 </div>
             `;
+            resultDiv.innerHTML = tableHtml;
+            
+            // 비교 분석 완료 상태 저장
+            isComparisonCompleted = true;
+            comparisonResultHtml = tableHtml;
+
+            // 상담 신청하기 버튼 노출 처리
+            $("btn-consulting-consult-submit")?.classList.remove("hidden");
         }
     } catch(e) {
       if (resultDiv) resultDiv.innerText = "분석 중 오류가 발생했습니다.";
@@ -2045,10 +2329,10 @@ function renderReportTab() {
     }
   }
 
-  // 5. 내년도 추천 정밀 검사 목록 빌드
+  // 5. 내년도 추천 정밀 검사 목록 빌드 (추가 기획 보장 공백 및 재검 타이머 융합)
   const recommendedContainer = $("rendered-recommended-checks");
   if (recommendedContainer) {
-    recommendedContainer.innerHTML = analysisResult.recommendedChecks.map((item) => {
+    let checksCardsHtml = analysisResult.recommendedChecks.map((item) => {
       const isHigh = item.priority === "HIGH";
       const badgeCls = isHigh ? "bg-red-50 text-red-700 border-red-100" : "bg-indigo-50 text-indigo-700 border-indigo-100";
       
@@ -2069,7 +2353,71 @@ function renderReportTab() {
         </div>
       `;
     }).join("");
+
+    // ⏱️ 추가 기획 1: 다음 추천 검진 리마인더 카드 동적 생성
+    const sortedRecords = [...nhisRecords].sort((a, b) => b.year - a.year);
+    const latestGl = sortedRecords[0]?.fastingGlucose ?? 95;
+    const latestBmi = sortedRecords[0]?.bmi ?? 22.5;
+    
+    let checkupTimerText = "고객님은 현재 전반적인 대사 지표가 정상 범위에 속해 있으므로 내년도 국민건강보험 정기 검진을 계획대로 받으셔도 안전합니다.";
+    let checkupTimerIcon = "🟢";
+    if (latestGl >= 100 || latestBmi >= 25) {
+      // 3개월 뒤 재검사 기한 날짜 계산
+      const targetDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+      const formattedDate = targetDate.toLocaleDateString("ko-KR", { month: "long", day: "numeric" });
+      checkupTimerText = `공복 식전혈당(${latestGl} mg/dL) 또는 체중 지표가 다소 높아, <b>3개월 뒤인 ${formattedDate}경</b> 자가혈당 측정 및 복부 대사지표 재추적 검사를 추천합니다.`;
+      checkupTimerIcon = "⏳";
+    }
+
+    checksCardsHtml += `
+      <div class="bg-gradient-to-br from-[#fffdfb] to-[#fff5ee] p-5 rounded-2xl border border-orange-200/40 flex flex-col justify-between space-y-4 shadow-3xs transition-all hover:scale-[1.01] text-left">
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-extrabold text-orange-400 font-mono uppercase">NEXT CHECKUP TIMER</span>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-md border bg-orange-50 text-[#f37321] border-orange-100 flex items-center gap-1">${checkupTimerIcon} 정밀 추적</span>
+          </div>
+          <h4 class="font-extrabold text-slate-800 text-sm tracking-tight break-keep">대사 연동 차기 검진 권장 리마인더</h4>
+          <p class="text-slate-600 text-xs leading-relaxed min-h-[50px] break-keep">${checkupTimerText}</p>
+        </div>
+        <div class="border-t border-orange-100/60 pt-3 flex items-center justify-between">
+          <span class="text-[10px] text-orange-500 font-bold pb-px">건강 신호 리마인더 활성화 중</span>
+          <div class="w-2.5 h-2.5 rounded-full bg-[#f37321] animate-ping"></div>
+        </div>
+      </div>
+    `;
+
+    // 🛡️ 추가 기획 2: 한화손보 AI 보장 격차(Gap) 가이드 카드 동적 생성
+    let gapAnalysisText = "현재 주요 대사증후군 위험도가 비교적 건강 표준치 내에 있으므로, 기존에 가입해두신 안심 실손 보장을 탄탄하게 유지하시면 충분합니다.";
+    let hasGap = false;
+    if (latestGl >= 100 || latestBmi >= 23) {
+      gapAnalysisText = "당뇨 경계 및 과체중 소견이 감지되었습니다. <b>만성질환 합병증(뇌혈관/허혈성 심장질환 등) 진단비 보장 특약</b>의 공백이 없는지 한화손보 AI 진단을 통해 기가입 보장 대조표를 확인해보세요.";
+      hasGap = true;
+    }
+
+    checksCardsHtml += `
+      <div class="bg-gradient-to-br from-[#f5f7ff] to-[#edf0ff] p-5 rounded-2xl border border-indigo-200/40 flex flex-col justify-between space-y-4 shadow-3xs transition-all hover:scale-[1.01] text-left">
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-extrabold text-indigo-400 font-mono uppercase">AI INSURANCE GAP</span>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-md border ${hasGap ? 'bg-rose-50 text-rose-700 border-rose-100' : 'bg-indigo-50 text-indigo-700 border-indigo-100'}">${hasGap ? '보장공백 위험' : '안정 상태'}</span>
+          </div>
+          <h4 class="font-extrabold text-slate-800 text-sm tracking-tight break-keep">한화손보 AI 보장 격차(Gap) 가이드</h4>
+          <p class="text-slate-600 text-xs leading-relaxed min-h-[50px] break-keep">${gapAnalysisText}</p>
+        </div>
+        <div class="border-t border-indigo-100/60 pt-3 flex items-center justify-between">
+          <button type="button" onclick="document.querySelector('.tab-btn[data-tab=\\'consulting\\']')?.click();" class="text-[10px] text-indigo-600 font-bold hover:underline transition-all cursor-pointer flex items-center gap-1 bg-transparent border-0 outline-none">
+            <span>🛡️ AI 맞춤 설계 비교하러 가기</span>
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    `;
+
+    recommendedContainer.innerHTML = checksCardsHtml;
   }
+
+  // 💊 처방전 및 약물 분석 섹션 렌더링 추가
+  step4Dashboard.renderPrescriptionSection(dashboardCtx);
 }
 
 // ========================================================
@@ -3528,20 +3876,19 @@ function updateAuthProgress() {
     }
   }
 
-  // CODEF 요약 패널 실시간 제어
+  // CODEF 요약 패널 실시간 제어 (전면 노출 방식 변경)
   if (isStep1Completed) {
-    renderCodefSummary();
-    $("codef-link-container")?.classList.remove("hidden");
+    step4Dashboard.renderCodefSummary(dashboardCtx);
+    $("codef-summary-section")?.classList.remove("hidden");
+    $("final-analysis-cta-container")?.classList.remove("hidden");
   } else {
-    const section = $("codef-summary-section");
-    if (section) section.classList.add("hidden");
-    $("codef-link-container")?.classList.add("hidden");
-    $("codef-summary-modal-wrapper")?.classList.add("hidden");
+    $("codef-summary-section")?.classList.add("hidden");
+    $("final-analysis-cta-container")?.classList.add("hidden");
   }
 
   // 업로드 파일 파싱 결과 요약 패널 제어
   if (isStep2Completed) {
-    renderParsedFileSummary();
+    step4Dashboard.renderParsedFileSummary(dashboardCtx);
     $("parsed-file-link-container")?.classList.remove("hidden");
   } else {
     $("parsed-file-link-container")?.classList.add("hidden");
@@ -3551,415 +3898,9 @@ function updateAuthProgress() {
 
 // 업로드 문서들의 파싱 결과를 팝업창용으로 포맷팅 및 주입하는 함수
 function renderParsedFileSummary() {
-  const metricsList = $("parsed-file-metrics-list");
-  const tableBody = $("parsed-file-table-body");
-  const ownerEl = $("parsed-file-summary-owner");
-
-  if (ownerEl) {
-    const inputName = $("input-username") as HTMLInputElement | null;
-    ownerEl.innerText = inputName && inputName.value ? inputName.value : "이민재";
-  }
-
-  // 1. 모든 파일들 중 파싱 완료된 데이터 확인
-  const parsedFiles = uploadedFiles.filter(f => !f.isParsing && f.metrics && !f.parseFailed);
-  const isAllFailed = uploadedFiles.length > 0 && parsedFiles.length === 0;
-
-  // 2. 만약 모든 파일이 파싱 실패했거나 검출 수치가 부재한 경우 에러 예외 화면 렌더링
-  if (isAllFailed) {
-    if (metricsList) {
-      metricsList.innerHTML = `
-        <div class="bg-red-50/70 border border-red-200/80 rounded-2xl p-5 text-center flex flex-col items-center justify-center gap-3 shadow-xs">
-          <div class="w-12 h-12 rounded-full bg-red-100 text-red-500 flex items-center justify-center">
-            <svg class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <div class="space-y-1.5 max-w-lg">
-            <h4 class="text-sm font-extrabold text-red-900">⚠️ 실제 건강성적표 데이터 파싱 실패</h4>
-            <p class="text-xs text-red-700 leading-relaxed break-keep font-medium">
-              업로드하신 <b>${uploadedFiles.map(f => f.name).join(", ")}</b> 문서에서 혈압, 공복혈당, 총콜레스테롤, BMI 등 핵심 표준 검진 지표를 가독/추출하지 못했습니다.
-            </p>
-            <div class="text-[10px] text-red-500/90 text-left bg-white/70 border border-red-100 p-3 rounded-lg mt-2 font-mono whitespace-pre-wrap max-h-36 overflow-y-auto w-full">
-<b>[추출 불가 상세 이유]</b>
-${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강보험 표준 검진 수치 포맷이 발견되지 않았습니다. (텍스트 미검출 혹은 이미지 파일)"}`).join("\n")}
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-[#fff9f4] border border-orange-100 rounded-xl p-4 mt-2">
-          <h4 class="text-[11px] font-bold text-[#f37321] flex items-center gap-1.5">
-            💡 체험을 진행하기 위한 가이드라인
-          </h4>
-          <ul class="text-[10px] text-[#767676] mt-1.5 space-y-1 leading-relaxed pl-4 list-disc font-semibold">
-            <li>우측 상단의 <b>[가이드라인 프리셋]</b>에서 '추가 처방지'나 '초음파 판독서' 등의 가주 종합 프리셋을 선택해 보세요. 즉시 파싱 플로우를 체험할 수 있습니다.</li>
-            <li>혈압(예: <b>120/80</b>), 당(예: <b>공복혈당 115</b>), 콜레스테롤(예: <b>총콜레스테롤 210</b>) 텍스트가 인쇄된 PDF/텍스트 파일을 직접 업로드해주시면 자동 문자 스캐닝 가독 분석이 활성화됩니다.</li>
-            <li>수치가 없으시더라도 하단의 <b>'Wellness Care AI Agent 융합 정밀 분석'</b> 버튼을 누르시면, 인공지능이 PDF 원장 본문 전문을 정밀 분석하여 맞춤 보고서 생성을 소생해냅니다!</li>
-          </ul>
-        </div>
-      `;
-    }
-
-    if (tableBody) {
-      tableBody.innerHTML = `
-        <tr>
-          <td colspan="4" class="py-8 text-center text-xs font-semibold text-slate-400 bg-slate-50/50 rounded-b-xl border-dashed border-2 border-slate-100">
-            수집 가능한 검진 수치 텍스트가 발췌되지 않아 5개년 성적 시계열 추이 표를 그릴 수 없습니다.
-          </td>
-        </tr>
-      `;
-    }
-    return;
-  }
-
-  // 3. 만약 파싱에 성공한 하나 이상의 검정 데이터가 있는 경우, 실제 해당 실합산 수치를 융합 렌더링
-  let systolic = 120;
-  let diastolic = 80;
-  let glucose = 95;
-  let cholesterol = 180;
-  let bmiVal = 22.0;
-
-  let isBPParsed = false;
-  let isGlucoseParsed = false;
-  let isCholesterolParsed = false;
-  let isBmiParsed = false;
-
-  parsedFiles.forEach(file => {
-    if (file.metrics) {
-      if (file.metrics.systolicBP && file.metrics.diastolicBP) {
-        systolic = file.metrics.systolicBP;
-        diastolic = file.metrics.diastolicBP;
-        isBPParsed = true;
-      }
-      if (file.metrics.fastingGlucose) {
-        glucose = file.metrics.fastingGlucose;
-        isGlucoseParsed = true;
-      }
-      if (file.metrics.totalCholesterol) {
-        cholesterol = file.metrics.totalCholesterol;
-        isCholesterolParsed = true;
-      }
-      if (file.metrics.bmi) {
-        bmiVal = file.metrics.bmi;
-        isBmiParsed = true;
-      }
-    }
-  });
-
-  // 혈압 판별 소견
-  let bpStatus = "정상 혈압";
-  let bpBadgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
-  let bpMsg = "혈관 긴장도 및 압박 저항 수준이 아주 안정적입니다. 일상의 소금 섭취 조절과 유산소를 지속하세요.";
-
-  if (systolic >= 140 || diastolic >= 90) {
-    bpStatus = "고혈압 (2기/경고)";
-    bpBadgeClass = "bg-red-50 text-red-700 border-red-200/60";
-    bpMsg = "혈관 벽에 높은 압력이 가해지고 있어 집중 케어가 시급합니다. 즉시 정밀 약품 진단과 저나트륨 영양 수식을 배려하세요.";
-  } else if (systolic >= 130 || diastolic >= 80) {
-    bpStatus = "고혈압 (1기)";
-    bpBadgeClass = "bg-orange-50 text-orange-700 border-orange-200/60";
-    bpMsg = "혈관 긴장이 지속 누적된 기저 수치입니다. 매일 30분의 조깅과 저염 배식 습관을 전면 정착시켜 주십시오.";
-  } else if (systolic >= 120) {
-    bpStatus = "고혈압 전단계";
-    bpBadgeClass = "bg-amber-50 text-amber-700 border-amber-200/50";
-    bpMsg = "경계 신축 영역입니다. 일일 나트륨 권장량 제한(2,000mg 이하) 식단과 웰니스 유산소가 수반됩니다.";
-  }
-
-  // 혈당 판별 소견
-  let glucoseStatus = "정상 혈당";
-  let glucoseBadgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
-  let glucoseMsg = "췌장 인슐린 작용 및 혈관 속 혈당 흡수 효율이 매우 좋습니다. 현재의 클린 잡곡 배식을 유지하세요.";
-
-  if (glucose >= 126) {
-    glucoseStatus = "공복 고혈당 위험";
-    glucoseBadgeClass = "bg-red-50 text-red-700 border-red-200/60";
-    glucoseMsg = "만성 인슐린 저항성이 심화되어 정밀 가료가 제안되는 당 수치입니다. 당화혈색소 3개월 추이 점검을 병행하십시오.";
-  } else if (glucose >= 100) {
-    glucoseStatus = "공복혈당장애 경계";
-    glucoseBadgeClass = "bg-amber-50 text-amber-700 border-amber-200/60";
-    glucoseMsg = "당뇨 전 단계 소견이 파싱되었습니다. 탄수화물 절식과 근력 트레이닝을 통한 체외 포도당 자원을 소급하십시오.";
-  }
-
-  // 콜레스테롤 판별 소견
-  let cholStatus = "정상 지질";
-  let cholBadgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
-  let cholMsg = "이상지질혈증 소요 리스크가 없는 맑고 투명한 혈행 탄력 조건이 지속되고 있습니다.";
-
-  if (cholesterol >= 240) {
-    cholStatus = "고콜레스테롤 위험";
-    cholBadgeClass = "bg-red-50 text-red-700 border-red-200/60";
-    cholMsg = "중성 유리지질 과밀 상태로 동맥 경화 예방을 위해 포화지방 절제 및 불포화지방산 주입이 간절히 요망됩니다.";
-  } else if (cholesterol >= 200) {
-    cholStatus = "경계성 이상지질";
-    cholBadgeClass = "bg-amber-50 text-amber-700 border-amber-200/60";
-    cholMsg = "총지질 수치가 안전기준 상단을 야금야금 터치 중입니다. 등푸른 생선, 아보카도 등 오메가3 영양이 보약보다 우세합니다.";
-  }
-
-  // BMI 판별 소견
-  let bmiStatus = "정상 체중";
-  let bmiBadgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
-  let bmiMsg = "신장 대비 근골격 및 지방 대사가 매우 조화로운 정상 체중 범위가 연계되고 있습니다.";
-
-  if (bmiVal >= 25.0) {
-    bmiStatus = "비만 경고";
-    bmiBadgeClass = "bg-red-50 text-red-700 border-[#ffccd5]";
-    bmiMsg = "기저 대사를 위협하는 비만형 체중 범위입니다. 탄수화물 제한 배합과 고강도 유산소 훈련을 전격 추진하십시오.";
-  } else if (bmiVal >= 23.0) {
-    bmiStatus = "과체중 주의";
-    bmiBadgeClass = "bg-amber-50 text-amber-700 border-amber-200/60";
-    bmiMsg = "조금 과중한 수치입니다. 유산소 스포츠 매개 활용 및 점진적인 섭취 칼로리 차단을 진행하십시오.";
-  } else if (bmiVal < 18.5) {
-    bmiStatus = "저체중 관리";
-    bmiBadgeClass = "bg-amber-50 text-amber-700 border-amber-200/60";
-    bmiMsg = "기저 체중 미달선 관리 영역입니다. 양질의 단백질 대사의 점진 보강 요망.";
-  }
-
-  if (metricsList) {
-    let cardsContent = "";
-    
-    // 이 검진에 혈압이 실시간 통과된 경우에만 출력
-    if (isBPParsed) {
-      cardsContent += `
-        <!-- 지표 1: 최고/최저 혈압 수치 -->
-        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-red-50 text-[#f37321] flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
-              <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </div>
-            <div>
-              <div class="text-xs font-black text-slate-800">최고/최저 혈압 수치 <span class='text-emerald-500 font-extrabold text-[10px] ml-1 bg-emerald-50 px-1 py-0.2 rounded'>🟢 가독성공</span></div>
-              <div class="text-[10px] text-slate-400 mt-0.5">${systolic}/${diastolic} mmHg 기재 데이터 실시간 매칭 완료</div>
-            </div>
-          </div>
-          <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-            <div class="text-right">
-              <span class="text-base font-black text-slate-900">${systolic}/${diastolic}</span>
-              <span class="text-[10px] text-slate-400">mmHg</span>
-            </div>
-            <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${bpBadgeClass}">${bpStatus}</span>
-          </div>
-        </div>
-        <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">${bpMsg}</p>
-      `;
-    }
-
-    // 이 검진에 공복 식전 혈당이 실시간 통과된 경우에만 출력
-    if (isGlucoseParsed) {
-      cardsContent += `
-        <!-- 지표 2: 공복 식전 혈당 -->
-        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
-              <svg class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-              </svg>
-            </div>
-            <div>
-              <div class="text-xs font-black text-slate-800">공복 식전 혈당 <span class='text-emerald-500 font-extrabold text-[10px] ml-1 bg-emerald-50 px-1 py-0.2 rounded'>🟢 가독성공</span></div>
-              <div class="text-[10px] text-slate-400 mt-0.5">${glucose} mg/dL 인슐린 분비 대조 조율 검경</div>
-            </div>
-          </div>
-          <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-            <div class="text-right">
-              <span class="text-base font-black text-slate-900">${glucose}</span>
-              <span class="text-[10px] text-slate-400">mg/dL</span>
-            </div>
-            <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${glucoseBadgeClass}">${glucoseStatus}</span>
-          </div>
-        </div>
-        <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">${glucoseMsg}</p>
-      `;
-    }
-
-    // 이 검진에 총 콜레스테롤이 실시간 통과된 경우에만 출력
-    if (isCholesterolParsed) {
-      cardsContent += `
-        <!-- 지표 3: 총 콜레스테롤 -->
-        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
-              <svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div>
-              <div class="text-xs font-black text-slate-800">총 콜레스테롤 <span class='text-emerald-500 font-extrabold text-[10px] ml-1 bg-emerald-50 px-1 py-0.2 rounded'>🟢 가독성공</span></div>
-              <div class="text-[10px] text-slate-400 mt-0.5">${cholesterol} mg/dL 고화 지질 누적 비례 대조</div>
-            </div>
-          </div>
-          <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-            <div class="text-right">
-              <span class="text-base font-black text-slate-900">${cholesterol}</span>
-              <span class="text-[10px] text-slate-400">mg/dL</span>
-            </div>
-            <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${cholBadgeClass}">${cholStatus}</span>
-          </div>
-        </div>
-        <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">${cholMsg}</p>
-      `;
-    }
-
-    // 이 검진에 체질량지수(BMI)가 실시간 통과된 경우에만 출력
-    if (isBmiParsed) {
-      cardsContent += `
-        <!-- 지표 4: 체질량 지수 (BMI) -->
-        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
-              <svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7H1.5M12 3v18m-6-3h12m-3-12l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9H13.5" />
-              </svg>
-            </div>
-            <div>
-              <div class="text-xs font-black text-slate-800">체질량 지수 (BMI) <span class='text-emerald-500 font-extrabold text-[10px] ml-1 bg-emerald-50 px-1 py-0.2 rounded'>🟢 가독성공</span></div>
-              <div class="text-[10px] text-slate-400 mt-0.5">${bmiVal} kg/m² 고유 비만 비율 대시</div>
-            </div>
-          </div>
-          <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-            <div class="text-right">
-              <span class="text-base font-black text-slate-900">${bmiVal}</span>
-              <span class="text-[9px] text-[#767676]">kg/m²</span>
-            </div>
-            <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${bmiBadgeClass}">${bmiStatus}</span>
-          </div>
-        </div>
-        <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">${bmiMsg}</p>
-      `;
-    }
-
-    // 부가적인 지표 추가 렌더링 (지방간, HbA1c, C/D ratio 등)
-    parsedFiles.forEach(file => {
-      if (file.metrics) {
-        if (file.metrics.fattyLiver && !cardsContent.includes("지방간 소견")) {
-          cardsContent += `
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-orange-50 text-[#f37321] flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
-                  <svg class="w-5 h-5 text-[#f37321]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <div class="text-xs font-black text-slate-800">지방간 소견 (초음파) <span class='text-emerald-500 font-extrabold text-[10px] ml-1 bg-emerald-50 px-1 py-0.2 rounded'>🟢 가독성공</span></div>
-                  <div class="text-[10px] text-slate-400 mt-0.5">상복부 초음파 검출 지방 관택 배합</div>
-                </div>
-              </div>
-              <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-                <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border bg-amber-50 text-amber-700 border-amber-200/60 font-semibold">지방간 소견</span>
-              </div>
-            </div>
-            <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">상복부 간 초음파 상 경미한 지방간 음영이 매칭되었습니다. 식이량 정량화와 가벼운 조깅이 권유됩니다.</p>
-          `;
-        }
-        if (file.metrics.hba1c && !cardsContent.includes("당화혈색소")) {
-          cardsContent += `
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
-                  <svg class="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </div>
-                <div>
-                  <div class="text-xs font-black text-slate-800">당화혈색소 (HbA1c) <span class='text-emerald-500 font-extrabold text-[10px] ml-1 bg-emerald-50 px-1 py-0.2 rounded'>🟢 가독성공</span></div>
-                  <div class="text-[10px] text-slate-400 mt-0.5">최근 3개월간 평균 혈당 누적지 기준</div>
-                </div>
-              </div>
-              <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-                <div class="text-right">
-                  <span class="text-base font-black text-slate-900">${file.metrics.hba1c}</span>
-                  <span class="text-[10px] text-slate-400">%</span>
-                </div>
-                <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border bg-amber-50 text-amber-700 border-amber-200/60">${file.metrics.hba1c >= 5.7 ? "당뇨 전단계" : "기준내 정상"}</span>
-              </div>
-            </div>
-            <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">장기 누적 혈색소 값이 ${file.metrics.hba1c}%로 관청됩니다. 단순 정제당과 당 탄수화물 과섭취 시비를 배려하십시오.</p>
-          `;
-        }
-        if (file.metrics.cdRatio && !cardsContent.includes("시신경 안저 함몰비")) {
-          cardsContent += `
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
-                  <svg class="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </div>
-                <div>
-                  <div class="text-xs font-black text-slate-800">시신경 안저 함몰비 (C/D Ratio) <span class='text-emerald-500 font-extrabold text-[10px] ml-1 bg-emerald-50 px-1 py-0.2 rounded'>🟢 가독성공</span></div>
-                  <div class="text-[10px] text-slate-400 mt-0.5">안저 촬영 소견 상 유두 시경 함몰 비율</div>
-                </div>
-              </div>
-              <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center font-semibold">
-                <div class="text-right">
-                  <span class="text-base font-black text-slate-900">${file.metrics.cdRatio}</span>
-                </div>
-                <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border bg-emerald-50 text-emerald-700 border-emerald-200/60">정상</span>
-              </div>
-            </div>
-            <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">함몰비가 ${file.metrics.cdRatio} 수준으로 시신경 보종이 조절 하우 영역으로 지지됩니다.</p>
-          `;
-        }
-      }
-    });
-
-    metricsList.innerHTML = cardsContent || `
-      <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-4 text-center">
-        <p class="text-xs text-amber-800 font-bold">⚠️ 파싱된 핵심 혈압, 혈당, 콜레스테롤 등의 공단 수치가 발견되지 않았습니다. 프리셋을 선택하시거나 수치가 명기된 다른 성적서 PDF를 올려주십시오.</p>
-      </div>
-    `;
-  }
-
-  // 5. 연도별 실제 파싱한 데이터로만 Table Body 구성 (더미 지표 완전 배제 및 실제 파싱 파일들 정합)
-  if (tableBody) {
-    let rowsHtml = "";
-    
-    // Sort parsed files by their resolved checkup year descending
-    const sortedParsedFiles = [...parsedFiles].sort((a, b) => {
-      const yearA = a.metrics?.year || 2025;
-      const yearB = b.metrics?.year || 2025;
-      return yearB - yearA;
-    });
-
-    if (sortedParsedFiles.length === 0) {
-      rowsHtml = `
-        <tr>
-          <td colspan="4" class="py-8 text-center text-xs font-semibold text-slate-400 bg-slate-50/50 rounded-b-xl border-dashed border-2 border-slate-100">
-            실제로 성공적으로 파싱된 건강 성적표 데이터가 부재합니다.
-          </td>
-        </tr>
-      `;
-    } else {
-      sortedParsedFiles.forEach(file => {
-        const yrVal = file.metrics?.year || 2025;
-        const bpStr = (file.metrics?.systolicBP && file.metrics?.diastolicBP)
-          ? `${file.metrics.systolicBP} <span class="text-slate-400 text-[9px] font-semibold">/ ${file.metrics.diastolicBP} mmHg</span>`
-          : `<span class="text-slate-300">-</span>`;
-        const glucoseStr = file.metrics?.fastingGlucose 
-          ? `${file.metrics.fastingGlucose} <span class="text-slate-400 text-[9px] font-semibold">mg/dL</span>`
-          : `<span class="text-slate-300">-</span>`;
-        const cholStr = file.metrics?.totalCholesterol 
-          ? `${file.metrics.totalCholesterol} <span class="text-[#f37321]/60 text-[9px] font-semibold">mg/dL</span>`
-          : `<span class="text-slate-300">-</span>`;
-          
-        rowsHtml += `
-          <tr class="hover:bg-[#fff5ee]/40 transition-all font-semibold border-b border-slate-100 text-slate-700">
-            <td class="py-3 font-extrabold text-[#767676]">${yrVal}년</td>
-            <td class="py-3 text-center font-bold text-slate-800">${bpStr}</td>
-            <td class="py-3 text-center font-bold text-slate-800">${glucoseStr}</td>
-            <td class="py-3 text-center font-bold text-[#f37321]">${cholStr}</td>
-          </tr>
-        `;
-      });
-    }
-    
-    tableBody.innerHTML = rowsHtml;
-  }
+  step4Dashboard.renderParsedFileSummary(dashboardCtx);
 }
 
-// 업로드된 파일 리스트를 화면에 표시 및 제어하는 함수
 function renderUploadedFilesList() {
   const container = $("uploaded-files-container");
   const listEl = $("uploaded-files-list");
@@ -4330,199 +4271,33 @@ function setupConsentDetailsHandlers() {
 // 6. CODEF 검진 동기화 데이터 전 실시간 파싱 및 가이드 요약기
 // ========================================================
 function renderCodefSummary() {
-  const section = $("codef-summary-section");
-  if (!section) return;
-
-  const ownerEl = $("codef-summary-owner");
-  if (ownerEl) {
-    const inputName = $("input-username") as HTMLInputElement | null;
-    ownerEl.innerText = inputName ? inputName.value : "고객";
-  }
-
-  const metricsList = $("codef-summary-metrics-list");
-  const tableBody = $("codef-summary-table-body");
-
-  if (!nhisRecords || nhisRecords.length === 0) {
-    section.classList.add("hidden");
-    return;
-  }
-
-  // 데이터 정조율: 연도 내림차순 (최신 정보가 맨 처음에 오도록 정렬)
-  const sortedRecords = [...nhisRecords].sort((a, b) => b.year - a.year);
-  const latest = sortedRecords[0];
-
-  // 지표 1: 혈압 (Systolic/Diastolic BP)
-  let bpLevel = "정상";
-  let bpColor = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
-  let bpDesc = "혈압 수치가 안전 기준 내부 범위로 대폭 양호하며, 혈관 탄성도가 보장된 안정 상태입니다.";
-  const sys = latest.systolicBP ?? 120;
-  const dia = latest.diastolicBP ?? 80;
-  if (sys >= 140 || dia >= 90) {
-    bpLevel = "고혈압 의심";
-    bpColor = "bg-rose-50 text-rose-700 border-rose-200/60";
-    bpDesc = "연동된 연도 기준 고혈압 소견이 발견되었습니다. 한화손보 만성 합병 보장 설정을 함께 정진해보십시오.";
-  } else if (sys >= 120 || dia >= 80) {
-    bpLevel = "고혈압 전단계";
-    bpColor = "bg-amber-50 text-amber-700 border-amber-200/60";
-    bpDesc = "경계 신축 영역입니다. 일일 나트륨 권장량 제한(2,000mg 이하)식단과 웰니스 유산소가 수반됩니다.";
-  }
-
-  // 지표 2: 공복 식전혈당 (Fasting Glucose)
-  let glLevel = "정상";
-  let glColor = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
-  let glDesc = "당류 대사실행 능력이 견조하며, 인슐린 감수성이 지극히 정상 단계로 판단됩니다.";
-  const gl = latest.fastingGlucose ?? 95;
-  if (gl >= 126) {
-    glLevel = "당뇨 의심";
-    glColor = "bg-rose-50 text-rose-700 border-rose-200/60";
-    glDesc = "식전 혈당 한계치를 초과하였습니다. 한화손보 요당/당뇨 맞춤 안심 보장 라인업으로 방어력을 정렬하십시오.";
-  } else if (gl >= 100) {
-    glLevel = "공복혈당장애 경계";
-    glColor = "bg-amber-50 text-amber-700 border-amber-200/60";
-    glDesc = "당뇨 전 단계 소견이 파싱되었습니다. 탄수화물 절식과 근력 트레이닝을 통한 체외 포도당 자원을 소급하십시오.";
-  }
-
-  // 지표 3: 총 콜레스테롤 (Total Cholesterol)
-  let cholLevel = "정상";
-  let cholColor = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
-  let cholDesc = "이상지질혈증 소요 리스크가 없는 맑고 투명한 혈행 탄력 조건이 지속되고 있습니다.";
-  const chol = latest.totalCholesterol ?? 180;
-  if (chol >= 240) {
-    cholLevel = "고콜레스테롤";
-    cholColor = "bg-rose-50 text-rose-700 border-rose-200/60";
-    cholDesc = "고지혈 가속도가 염려됩니다. 불포화 지방 위주의 식단 교정 및 오메가 보조 인덱스 투여를 시작하세요.";
-  } else if (chol >= 200) {
-    cholLevel = "경계선 이상";
-    cholColor = "bg-amber-50 text-amber-700 border-amber-200/60";
-    cholDesc = "관상동맥 예방주의 단계입니다. 육류 섭취 제한 및 야채 위주 섬유질 공급율을 점차 늘려보시기 바랍니다.";
-  }
-
-  // 지표 4: 체질량 지수 (BMI)
-  let bmiLevel = "정상";
-  let bmiColor = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
-  let bmiDesc = "키 대비 몸무게 상관관계가 건강 표준 영역에 분포하며, 탁월한 기초 생리학적 골격을 대조 유지 중입니다.";
-  const bmiVal = latest.bmi ?? 22.5;
-  if (bmiVal >= 25) {
-    bmiLevel = "비만군 분포";
-    bmiColor = "bg-rose-50 text-rose-700 border-rose-200/60";
-    bmiDesc = "비만형 대사 저하 주의 단계입니다. 주 150분 이상의 활동 지표 유입과 규칙적인 수면 스케줄을 유지하세요.";
-  } else if (bmiVal >= 23) {
-    bmiLevel = "과체중 주의";
-    bmiColor = "bg-amber-50 text-amber-700 border-amber-200/60";
-    bmiDesc = "조금 과중한 수치입니다. 유산소 스포츠 매개 활용 및 점진적인 섭취 칼로리 차단을 진행하십시오.";
-  }
-
-  if (metricsList) {
-    metricsList.innerHTML = `
-      <!-- 1. 혈압 -->
-      <div class="bg-white border border-slate-100/80 rounded-xl p-3 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-2 shadow-xs transition-all hover:border-[#f37321]/20">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
-            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-          </div>
-          <div>
-            <div class="text-[11px] font-extrabold text-slate-800">최수 혈압 수치</div>
-            <div class="text-[9px] text-[#767676] mt-0.5">${sys}/${dia} mmHg 기재 데이터 파싱 완료</div>
-          </div>
-        </div>
-        <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-          <div class="text-right">
-            <span class="text-xs font-black text-slate-800">${sys}/${dia}</span>
-            <span class="text-[9px] text-slate-400">mmHg</span>
-          </div>
-          <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${bpColor}">${bpLevel}</span>
-        </div>
-      </div>
-      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">${bpDesc}</p>
-
-      <!-- 2. 혈당 -->
-      <div class="bg-white border border-slate-100/80 rounded-xl p-3 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-2 shadow-xs transition-all hover:border-[#f37321]/20">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
-            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-            </svg>
-          </div>
-          <div>
-            <div class="text-[11px] font-extrabold text-slate-800">공복 식전 혈당</div>
-            <div class="text-[9px] text-[#767676] mt-0.5">${gl} mg/dL 인슐린 대조 유입 분석 완료</div>
-          </div>
-        </div>
-        <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-          <div class="text-right">
-            <span class="text-xs font-black text-slate-800">${gl}</span>
-            <span class="text-[9px] text-slate-400">mg/dL</span>
-          </div>
-          <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${glColor}">${glLevel}</span>
-        </div>
-      </div>
-      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">${glDesc}</p>
-
-      <!-- 3. 콜레스테롤 -->
-      <div class="bg-white border border-slate-100/80 rounded-xl p-3 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-2 shadow-xs transition-all hover:border-[#f37321]/20">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
-            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-            </svg>
-          </div>
-          <div>
-            <div class="text-[11px] font-extrabold text-slate-800">총 콜레스테롤</div>
-            <div class="text-[9px] text-[#767676] mt-0.5">${chol} mg/dL 고화 지질 농도 안전 측정 연동</div>
-          </div>
-        </div>
-        <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-          <div class="text-right">
-            <span class="text-xs font-black text-slate-800">${chol}</span>
-            <span class="text-[9px] text-slate-400">mg/dL</span>
-          </div>
-          <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${cholColor}">${cholLevel}</span>
-        </div>
-      </div>
-      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">${cholDesc}</p>
-
-      <!-- 4. 체질량지수 (BMI) -->
-      <div class="bg-white border border-slate-100/80 rounded-xl p-3 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-2 shadow-xs transition-all hover:border-[#f37321]/20">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
-            <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-            </svg>
-          </div>
-          <div>
-            <div class="text-[11px] font-extrabold text-slate-800">체질량 지수 (BMI)</div>
-            <div class="text-[9px] text-[#767676] mt-0.5">${bmiVal.toFixed(1)} kg/㎡ 신장 대비 고유 비만 비율 대조</div>
-          </div>
-        </div>
-        <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
-          <div class="text-right">
-            <span class="text-xs font-black text-slate-800">${bmiVal.toFixed(1)}</span>
-            <span class="text-[9px] text-slate-400">kg/㎡</span>
-          </div>
-          <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${bmiColor}">${bmiLevel}</span>
-        </div>
-      </div>
-      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-1.5 font-semibold">${bmiDesc}</p>
-    `;
-  }
-
-  // 연도별 테이블 렌더러
-  if (tableBody) {
-    tableBody.innerHTML = sortedRecords.map((rec) => {
-      return `
-        <tr class="hover:bg-slate-100/60 transition-colors border-b border-slate-100">
-          <td class="py-2.5 font-bold text-slate-800">${rec.year}년</td>
-          <td class="py-2.5 text-center text-slate-900 font-extrabold">${rec.systolicBP ?? "-"} <span class="text-[9px] text-slate-400 font-normal">mmHg</span></td>
-          <td class="py-2.5 text-center text-slate-900 font-extrabold">${rec.fastingGlucose ?? "-"} <span class="text-[9px] text-slate-400 font-normal">mg/dL</span></td>
-          <td class="py-2.5 text-center text-[#f37321] font-black">${rec.totalCholesterol ?? "-"} <span class="text-[9px] text-slate-400 font-normal">mg/dL</span></td>
-        </tr>
-      `;
-    }).join("");
-  }
-
-  section.classList.remove("hidden");
+  step4Dashboard.renderCodefSummary(dashboardCtx);
 }
 
+// ========================================================
+// 7. 약관 전체동의 및 하위 개별 동의 상호 연동 연쇄 처리 (NEW)
+// ========================================================
+function setupConsentCheckboxes() {
+  const checkAll = $("check-term-all") as HTMLInputElement | null;
+  const subChecks = $$(".required-check");
+
+  if (!checkAll || subChecks.length === 0) return;
+
+  // 전체 동의 체크박스 클릭 시 하위 체크박스들을 일괄 변경
+  checkAll.addEventListener("change", (e) => {
+    const isChecked = (e.target as HTMLInputElement).checked;
+    subChecks.forEach((cb) => {
+      (cb as HTMLInputElement).checked = isChecked;
+    });
+  });
+
+  // 개별 체크박스 상태 변경 시 전체 동의 체크박스 상태를 재계산
+  subChecks.forEach((cb) => {
+    cb.addEventListener("change", () => {
+      const allChecked = Array.from(subChecks).every(
+        (c) => (c as HTMLInputElement).checked
+      );
+      checkAll.checked = allChecked;
+    });
+  });
+}

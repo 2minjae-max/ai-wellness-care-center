@@ -11,6 +11,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { createServer as createViteServer } from "vite";
 import { createClient } from "@supabase/supabase-js";
 import multer from "multer";
+import * as codefService from "./server/services/codefService.ts";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -408,299 +409,34 @@ app.get("/api/test-supabase", async (req, res) => {
 // -------------------------------------------------------------
 // 국민건강보험공단 건강검진 API 정보 가져오기 연동 라우트
 // (CODEF API 규격 기반: https://developer.codef.io/products/public/each/pp/nhis-health-check)
-// -------------------------------------------------------------
-// -------------------------------------------------------------
-// CODEF API 유틸리티 함수 및 맵퍼 정의
-// -------------------------------------------------------------
-function mapTelecom(telecom: string): string {
-  const norm = telecom.toLowerCase();
-  if (norm === "skt") return "0";
-  if (norm === "kt") return "1";
-  if (norm === "lgt" || norm === "lg" || norm === "lgu") return "2";
-  if (norm === "sktm" || norm === "skt_mvno") return "3";
-  if (norm === "ktm" || norm === "kt_mvno") return "4";
-  if (norm === "lgtm" || norm === "lg_mvno" || norm === "lgu_mvno") return "5";
-  return "0";
-}
 
-function mapProvider(provider: string): string {
-  const norm = provider.toLowerCase();
-  if (norm === "kakao") return "1";
-  if (norm === "toss") return "2";
-  if (norm === "pass") return "3";
-  if (norm === "naver") return "4";
-  return "1";
-}
-
-async function getCodefToken(clientId: string, clientSecret: string): Promise<string | null> {
-  try {
-    const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
-    const response = await fetch("https://oauth.codef.io/oauth/token", {
-      method: "POST",
-      headers: {
-        "Authorization": `Basic ${authHeader}`,
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: "grant_type=client_credentials"
-    });
-    if (!response.ok) {
-      console.error(`[CODEF Token Error] Status: ${response.status}`);
-      return null;
-    }
-    const data: any = await response.json();
-    return data.access_token || null;
-  } catch (err) {
-    console.error("[CODEF Token Exception]", err);
-    return null;
-  }
-}
-
-function getSimulatedNhisRecords(userName: string, identity: string) {
-  const nameStr = String(userName || "");
-  const identityStr = String(identity || "");
-  const nameHash = Array.from(nameStr).reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const birthNum = parseInt(identityStr.substring(0, 4)) || 8505;
-  const variance = (nameHash + birthNum) % 15;
-
-  const baseGlucose = 104 + (variance % 6);
-  const baseBP = 126 + (variance % 8);
-  const baseALT = 36 + (variance % 10);
-  const baseTriglycerides = 138 + (variance * 2);
-  const baseBMI = 23.4 + (variance / 10);
-
-  return [
-    {
-      year: 2025,
-      weight: 71,
-      bmi: Number(baseBMI.toFixed(1)),
-      waist: 85,
-      systolicBP: baseBP,
-      diastolicBP: Math.round(baseBP * 0.65),
-      fastingGlucose: baseGlucose,
-      hba1c: Number((baseGlucose * 0.05).toFixed(1)),
-      ast: Math.round(baseALT * 0.8),
-      alt: baseALT,
-      rGtp: Math.round(baseALT * 1.2),
-      creatinine: 0.9,
-      egfr: 92,
-      hemoglobin: 14.5,
-      totalCholesterol: 198,
-      hdlcholesterol: 52,
-      ldlcholesterol: 120,
-      triglycerides: baseTriglycerides,
-      urineProtein: "음성"
-    },
-    {
-      year: 2024,
-      weight: 69,
-      bmi: Number((baseBMI - 0.4).toFixed(1)),
-      waist: 83,
-      systolicBP: baseBP - 4,
-      diastolicBP: Math.round((baseBP - 4) * 0.65),
-      fastingGlucose: baseGlucose - 5,
-      hba1c: Number(((baseGlucose - 5) * 0.05).toFixed(1)),
-      ast: Math.round((baseALT - 4) * 0.8),
-      alt: baseALT - 4,
-      rGtp: Math.round((baseALT - 4) * 1.1),
-      creatinine: 0.9,
-      egfr: 95,
-      hemoglobin: 14.8,
-      totalCholesterol: 188,
-      hdlcholesterol: 55,
-      ldlcholesterol: 112,
-      triglycerides: Math.round(baseTriglycerides * 0.9),
-      urineProtein: "음성"
-    },
-    {
-      year: 2023,
-      weight: 68,
-      bmi: Number((baseBMI - 0.7).toFixed(1)),
-      waist: 82,
-      systolicBP: baseBP - 8,
-      diastolicBP: Math.round((baseBP - 8) * 0.65),
-      fastingGlucose: baseGlucose - 9,
-      hba1c: Number(((baseGlucose - 9) * 0.05).toFixed(1)),
-      ast: Math.round((baseALT - 8) * 0.8),
-      alt: baseALT - 8,
-      rGtp: Math.round((baseALT - 8) * 1.0),
-      creatinine: 0.8,
-      egfr: 98,
-      hemoglobin: 14.9,
-      totalCholesterol: 178,
-      hdlcholesterol: 58,
-      ldlcholesterol: 105,
-      triglycerides: Math.round(baseTriglycerides * 0.8),
-      urineProtein: "음성"
-    },
-    {
-      year: 2022,
-      weight: 66,
-      bmi: Number((baseBMI - 1.0).toFixed(1)),
-      waist: 80,
-      systolicBP: baseBP - 10,
-      diastolicBP: Math.round((baseBP - 10) * 0.65),
-      fastingGlucose: baseGlucose - 12,
-      hba1c: Number(((baseGlucose - 12) * 0.05).toFixed(1)),
-      ast: Math.round((baseALT - 10) * 0.8),
-      alt: baseALT - 10,
-      rGtp: Math.round((baseALT - 10) * 0.9),
-      creatinine: 0.8,
-      egfr: 100,
-      hemoglobin: 15.0,
-      totalCholesterol: 172,
-      hdlcholesterol: 60,
-      ldlcholesterol: 98,
-      triglycerides: Math.round(baseTriglycerides * 0.75),
-      urineProtein: "음성"
-    },
-    {
-      year: 2021,
-      weight: 65,
-      bmi: Number((baseBMI - 1.2).toFixed(1)),
-      waist: 79,
-      systolicBP: baseBP - 12,
-      diastolicBP: Math.round((baseBP - 12) * 0.65),
-      fastingGlucose: baseGlucose - 15,
-      hba1c: Number(((baseGlucose - 15) * 0.05).toFixed(1)),
-      ast: Math.round((baseALT - 12) * 0.8),
-      alt: baseALT - 12,
-      rGtp: Math.round((baseALT - 12) * 0.8),
-      creatinine: 0.82,
-      egfr: 102,
-      hemoglobin: 15.1,
-      totalCholesterol: 168,
-      hdlcholesterol: 62,
-      ldlcholesterol: 92,
-      triglycerides: Math.round(baseTriglycerides * 0.7),
-      urineProtein: "음성"
-    }
-  ];
-}
-
-function mapCodefToNhisRecords(rawRecords: any[], userName: string, identity: string): any[] {
-  if (!Array.isArray(rawRecords) || rawRecords.length === 0) {
-    return getSimulatedNhisRecords(userName, identity);
-  }
-
-  return rawRecords.map((r: any) => {
-    const yearStr = r.resCheckupYear || r.resCheckupDate?.substring(0, 4) || new Date().getFullYear().toString();
-    const year = parseInt(yearStr) || new Date().getFullYear();
-
-    const weight = Number(r.resWeight) || null;
-    const bmi = Number(r.resBMI) || null;
-    const waist = Number(r.resWaist) || null;
-    
-    const systolicBP = Number(r.resBloodPressureMax || r.resSystolicBloodPressure) || null;
-    const diastolicBP = Number(r.resBloodPressureMin || r.resDiastolicBloodPressure) || null;
-    
-    const fastingGlucose = Number(r.resFastingBloodSugar) || null;
-    const hba1c = Number(r.resHemoglobinA1c || r.resHbA1c) || null;
-    
-    const ast = Number(r.resAST || r.resSGOT) || null;
-    const alt = Number(r.resALT || r.resSGPT) || null;
-    const rGtp = Number(r.resGammaGTP || r.resGGT) || null;
-    
-    const creatinine = Number(r.resSerumCreatinine) || null;
-    const egfr = Number(r.resGFR || r.resEGFR) || null;
-    const hemoglobin = Number(r.resHemoglobin) || null;
-    
-    const totalCholesterol = Number(r.resTotalCholesterol) || null;
-    const hdlcholesterol = Number(r.resHDLCholesterol) || null;
-    const ldlcholesterol = Number(r.resLDLCholesterol) || null;
-    const triglycerides = Number(r.resTriglycerides) || null;
-    
-    const urineProtein = r.resUrineProtein || "음성";
-
-    return {
-      year,
-      weight,
-      bmi,
-      waist,
-      systolicBP,
-      diastolicBP,
-      fastingGlucose,
-      hba1c,
-      ast,
-      alt,
-      rGtp,
-      creatinine,
-      egfr,
-      hemoglobin,
-      totalCholesterol,
-      hdlcholesterol,
-      ldlcholesterol,
-      triglycerides,
-      urineProtein
-    };
-  }).sort((a, b) => b.year - a.year);
-}
 
 // -------------------------------------------------------------
 // [CODEF 1차 간편인증 PUSH 발송 API]
 // -------------------------------------------------------------
 app.post("/api/health/nhis-sync-request", async (req, res): Promise<void> => {
   const { userName, identity, phoneNo, telecom, loginType2 } = req.body;
-  const client_id = process.env.CODEF_CLIENT_ID;
-  const client_secret = process.env.CODEF_CLIENT_SECRET;
 
   const ipAddress = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "";
   const userAgent = req.headers["user-agent"] || "";
   await saveAccessLog(userName, identity, "nhis_sync_request_start", ipAddress, userAgent, { phoneNo, telecom, loginType2 });
 
-  if (!client_id || !client_secret || client_id === "YOUR_CODEF_CLIENT_ID" || client_secret === "YOUR_CODEF_CLIENT_SECRET" || client_id.trim() === "") {
-    console.log(`${logPrefix} CODEF credentials missing. Bypassing and returning mock JTI for simulation.`);
-    res.json({
-      result: {
-        code: "CF-03002",
-        message: "인증요청 PUSH가 고객의 휴대폰으로 전송되었습니다. (시뮬레이션 모드)"
-      },
-      data: {
-        jti: `mock_jti_${Date.now()}`,
-        twoWayInfo: { mock: true }
-      }
-    });
-    return;
-  }
-
-  const token = await getCodefToken(client_id, client_secret);
-  if (!token) {
-    res.status(500).json({ error: "CODEF API 인증 토큰 발급에 실패했습니다." });
-    return;
-  }
-
-  const baseUrl = client_id.includes("sandbox") ? "https://development.codef.io" : "https://api.codef.io";
-  const url = `${baseUrl}/v1/kr/public/pp/nhis-health-check`;
-
-  const telecomCode = mapTelecom(telecom);
-  const providerCode = mapProvider(loginType2);
-
-  const payload = {
-    organization: "0002",
-    identity: identity,
-    userName: userName,
-    phoneNo: phoneNo,
-    telecom: telecomCode,
-    loginType: "5",
-    loginType2: providerCode,
-    simpleAuthType: "1",
-    type: "1"
-  };
-
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
+    const result = await codefService.requestNhisSync({
+      userName,
+      identity,
+      phoneNo,
+      telecom,
+      loginType2,
+      logPrefix
     });
-    const result: any = await response.json();
-    console.log(`${logPrefix} CODEF 1차인증 요청 완료:`, JSON.stringify(result));
     res.json(result);
   } catch (err: any) {
     console.error(`${logPrefix} CODEF 1차인증 예외 발생:`, err);
-    res.status(500).json({ error: err.message });
+    if (err.cause) {
+      console.error(`${logPrefix} CODEF 1차인증 예외 원인(Cause):`, err.cause);
+    }
+    res.status(500).json({ error: err.message, cause: err.cause?.message || String(err.cause) });
   }
 });
 
@@ -709,79 +445,173 @@ app.post("/api/health/nhis-sync-request", async (req, res): Promise<void> => {
 // -------------------------------------------------------------
 app.post("/api/health/nhis-sync-confirm", async (req, res): Promise<void> => {
   const { userName, identity, phoneNo, telecom, loginType2, jti, twoWayInfo } = req.body;
-  const client_id = process.env.CODEF_CLIENT_ID;
-  const client_secret = process.env.CODEF_CLIENT_SECRET;
 
   const ipAddress = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "";
   const userAgent = req.headers["user-agent"] || "";
   await saveAccessLog(userName, identity, "nhis_sync_confirm_start", ipAddress, userAgent, { jti });
 
-  if (!client_id || !client_secret || client_id === "YOUR_CODEF_CLIENT_ID" || client_secret === "YOUR_CODEF_CLIENT_SECRET" || client_id.trim() === "" || jti?.startsWith("mock_jti_")) {
-    console.log(`${logPrefix} Processing mock confirm and returning 5-year records.`);
-    const simulatedRecords = getSimulatedNhisRecords(userName, identity);
-    res.json({
-      result: {
-        code: "CF-00000",
-        message: "성공적으로 조회되었습니다."
-      },
-      data: {
-        syncedRecords: simulatedRecords
-      }
-    });
-    return;
-  }
-
-  const token = await getCodefToken(client_id, client_secret);
-  if (!token) {
-    res.status(500).json({ error: "CODEF API 인증 토큰 발급에 실패했습니다." });
-    return;
-  }
-
-  const baseUrl = client_id.includes("sandbox") ? "https://development.codef.io" : "https://api.codef.io";
-  const url = `${baseUrl}/v1/kr/public/pp/nhis-health-check`;
-
-  const telecomCode = mapTelecom(telecom);
-  const providerCode = mapProvider(loginType2);
-
-  const payload = {
-    organization: "0002",
-    identity: identity,
-    userName: userName,
-    phoneNo: phoneNo,
-    telecom: telecomCode,
-    loginType: "5",
-    loginType2: providerCode,
-    simpleAuthType: "1",
-    type: "1",
-    jti: jti,
-    twoWayInfo: twoWayInfo
-  };
-
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
+    const result = await codefService.confirmNhisSync({
+      userName,
+      identity,
+      phoneNo,
+      telecom,
+      loginType2,
+      jti,
+      twoWayInfo,
+      logPrefix,
+      body: req.body
     });
-    const result: any = await response.json();
-    console.log(`${logPrefix} CODEF 2차인증 확인 완료:`, JSON.stringify(result));
-
-    if (result.result?.code === "CF-00000" && result.data) {
-      const rawRecords = result.data.resCheckupList || result.data.resList || [];
-      const syncedRecords = mapCodefToNhisRecords(rawRecords, userName, identity);
-      res.json({
-        result: result.result,
-        data: { syncedRecords: syncedRecords }
-      });
-    } else {
-      res.json(result);
-    }
+    res.json(result);
   } catch (err: any) {
     console.error(`${logPrefix} CODEF 2차인증 확인 예외 발생:`, err);
-    res.status(500).json({ error: err.message });
+    if (err.cause) {
+      console.error(`${logPrefix} CODEF 2차인증 확인 예외 원인(Cause):`, err.cause);
+    }
+    res.status(500).json({ error: err.message, cause: err.cause?.message || String(err.cause) });
+  }
+});
+
+// -------------------------------------------------------------
+// AI 처방전 / 약봉투 이미지 비전 분석 라우트 (Gemini Vision)
+// -------------------------------------------------------------
+app.post("/api/health/analyze-prescription", upload.single("prescriptionImage"), async (req, res): Promise<void> => {
+  const file = req.file;
+  const ipAddress = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "";
+  const userAgent = req.headers["user-agent"] || "";
+
+  // IP 호출 비용 실시간 한도 체크
+  const limitCheck = await checkIpCostLimit(ipAddress);
+  if (limitCheck.isBlocked) {
+    console.log(`${logPrefix} [IP BLOCKED] Blocked prescription request from IP ${ipAddress} (Current cost: ${limitCheck.currentCost} KRW / Limit: ${IP_COST_LIMIT_KRW} KRW)`);
+    res.status(429).json({
+      error: `동일 IP에서 무료체험 허용 한도(${IP_COST_LIMIT_KRW}원)를 모두 소모하였습니다.`
+    });
+    return;
+  }
+
+  if (!file) {
+    res.status(400).json({ error: "분석할 처방전/약봉투 이미지 파일이 전달되지 않았습니다." });
+    return;
+  }
+
+  const ai = getGeminiClient();
+
+  // 1. 시뮬레이션 모드 (API 키가 없거나 비활성화된 경우)
+  if (!ai) {
+    console.log(`${logPrefix} Running simulated prescription analysis (Gemini API disabled)...`);
+    const simulatedResponse = {
+      medications: [
+        {
+          name: "아모디핀정 5mg (Amlodipine)",
+          dosage: "1일 1회, 아침 식후 30분 복용",
+          efficacy: "혈압 강하제 (본태성 고혈압 치료)",
+          sideEffects: "자몽 주스와 함께 복용 시 약효가 과도해질 수 있으므로 피하십시오. 복용 초기 가벼운 두통이나 어지러움이 있을 수 있습니다."
+        },
+        {
+          name: "리피토정 10mg (Atorvastatin)",
+          dosage: "1일 1회, 저녁 식후 30분 복용",
+          efficacy: "이상지질혈증 치료제 (콜레스테롤 합성 저해)",
+          sideEffects: "근육통, 전신 쇠약감이 갑자기 나타날 경우 의사와 상의하십시오. 자몽 주스는 피하는 것이 좋습니다."
+        }
+      ],
+      rawTextSummary: "제출된 처방전 이미지에서 고혈압 치료제(아모디핀정) 및 고지혈증 치료제(리피토정)가 검출되었습니다. 두 약물 모두 자몽 주스와의 상호작용 위험이 있으므로 섭취를 삼가야 합니다.",
+      isSimulated: true
+    };
+
+    const simulatedCost = {
+      promptTokens: 2500,
+      candidatesTokens: 800,
+      totalTokens: 3300,
+      costUsd: 0.00045,
+      costKrw: 0.63
+    };
+
+    recordIpCostUsage(ipAddress, simulatedCost.costKrw);
+    await saveAccessLog(null, null, "prescription_analysis_success", ipAddress, userAgent, {
+      ...simulatedCost,
+      fileName: file.originalname,
+      isSimulated: true
+    });
+
+    res.json(simulatedResponse);
+    return;
+  }
+
+  // 2. Gemini API Vision 모델 구동
+  try {
+    const prompt = `
+이 이미지는 환자의 약 봉투 또는 처방전 사진입니다.
+이미지 속 글자들을 인식하여 처방된 모든 약물의 세부 정보를 정확히 분석하고 JSON 포맷으로 응답해 주세요.
+
+1. medications: 이미지에서 식별된 개별 약 정보의 배열
+   - name: 약 이름 (제조사 및 성분명 포함)
+   - dosage: 복용 방법 (일일 복용 횟수, 복용 시기, 용량 등)
+   - efficacy: 주요 효능 / 치료 목적
+   - sideEffects: 부작용, 식습관 주의사항 (특히 특정 음식과의 상호작용)
+2. rawTextSummary: 처방 정보 전체에 대한 약사의 시선에서의 친절한 요약 및 복용 주의 권고
+
+반드시 한글로 작성되어야 하며, 지정된 JSON 스키마를 완벽히 준수해야 합니다.
+약 정보 외의 불필요한 마크업 텍스트(예: \`\`\`json) 없이 순수 JSON만 반환해 주세요.
+`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [
+        {
+          inlineData: {
+            data: file.buffer.toString("base64"),
+            mimeType: file.mimetype
+          }
+        },
+        prompt
+      ],
+      config: {
+        systemInstruction: "You are an expert clinical pharmacist. Output MUST exactly follow the responseSchema JSON representation. Keep descriptions active, clear, reassuring, and in Korean.",
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            medications: {
+              type: Type.ARRAY,
+              description: "처방 약물 목록",
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  name: { type: Type.STRING, description: "약 이름 및 성분명" },
+                  dosage: { type: Type.STRING, description: "1일 복용법 및 시점" },
+                  efficacy: { type: Type.STRING, description: "약물 효능" },
+                  sideEffects: { type: Type.STRING, description: "주요 부작용 및 상호작용 주의사항" }
+                },
+                required: ["name", "dosage", "efficacy", "sideEffects"]
+              }
+            },
+            rawTextSummary: { type: Type.STRING, description: "처방 정보 약사 총평 및 복용 요약" }
+          },
+          required: ["medications", "rawTextSummary"]
+        }
+      }
+    });
+
+    const parsedResult = JSON.parse(response.text || "{}");
+    const costInfo = calculateGeminiCost(response.usageMetadata, "gemini-2.5-flash");
+
+    recordIpCostUsage(ipAddress, costInfo.costKrw);
+
+    await saveAccessLog(null, null, "prescription_analysis_success", ipAddress, userAgent, {
+      ...costInfo,
+      fileName: file.originalname,
+      isSimulated: false
+    });
+
+    res.json({
+      ...parsedResult,
+      isSimulated: false,
+      costInfo
+    });
+  } catch (err: any) {
+    console.error(`${logPrefix} 처방전 Vision 분석 중 장애 발생:`, err);
+    res.status(500).json({ error: "처방전 이미지 분석에 실패했습니다.", detail: err.message });
   }
 });
 
@@ -789,7 +619,7 @@ app.post("/api/health/nhis-sync-confirm", async (req, res): Promise<void> => {
 // AI 검진 결과 융합 분석 라우트 (Schema 적용)
 // -------------------------------------------------------------
 app.post("/api/health/analyze", async (req, res): Promise<void> => {
-  const { nhisData, uploadedPDF, familyHistory } = req.body;
+  const { nhisData, uploadedPDF, familyHistory, prescriptionData } = req.body;
 
   const ipAddress = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "";
   const userAgent = req.headers["user-agent"] || "";
@@ -808,7 +638,8 @@ app.post("/api/health/analyze", async (req, res): Promise<void> => {
 
   await saveAccessLog(user_name, birth_year, "ai_analysis_request", ipAddress, userAgent, {
     uploadedPdfName: uploadedPDF ? uploadedPDF.fileName : null,
-    recordsCount: nhisData && nhisData.records ? nhisData.records.length : 0
+    recordsCount: nhisData && nhisData.records ? nhisData.records.length : 0,
+    hasPrescription: !!(prescriptionData && prescriptionData.medications && prescriptionData.medications.length > 0)
   });
 
   if (!nhisData) {
@@ -821,7 +652,7 @@ app.post("/api/health/analyze", async (req, res): Promise<void> => {
   // 1. 만약 GEMINI API KEY가 제공되지 않은 시뮬레이션용 모드 또는 API 제한인 경우 임상 룰베이스 엔진을 통한 즉시 평가 소견서 발행
   if (!ai) {
     console.log(`${logPrefix} Running real-data clinical rule-based analysis engine (Gemini API disabled or offline)...`);
-    const fallbackResponse = evaluateClinicalRuleBasedAnalysis(nhisData, uploadedPDF, familyHistory);
+    const fallbackResponse = evaluateClinicalRuleBasedAnalysis(nhisData, uploadedPDF, familyHistory, prescriptionData);
     const simulatedCost = {
       promptTokens: 3420,
       candidatesTokens: 1512,
@@ -859,6 +690,10 @@ app.post("/api/health/analyze", async (req, res): Promise<void> => {
     const motherStr = familyHistory?.mother?.length > 0 ? familyHistory.mother.join(", ") : "해당 사항 없음";
     const familyHistoryText = `부친(아버지): ${fatherStr} / 모친(어머니): ${motherStr}`;
 
+    const prescriptionText = prescriptionData && prescriptionData.medications && prescriptionData.medications.length > 0
+      ? `[데이터 소스 3: 현재 복용 중인 처방 약물 목록 및 요약]\n- 복용 요약: ${prescriptionData.rawTextSummary}\n- 약물 목록:\n${prescriptionData.medications.map((m: any, idx: number) => `${idx + 1}. 약물명: ${m.name}\n   복용법: ${m.dosage}\n   효능: ${m.efficacy}\n   주의사항: ${m.sideEffects}`).join("\n")}`
+      : "현재 복용 중인 처방 약물 정보가 존재하지 않습니다.";
+
     const prompt = `
 당신은 최고의 대사증후군 및 예방의학 헬스케어 임상 분석 AI입니다.
 의학적인 정확성, 통찰력 있으면서도 친절하고 행동 지침 중심인 보고서를 생성해 주세요.
@@ -875,16 +710,21 @@ ${recordsText}
 [데이터 소스 2: 고해상도 초음파/혈액 정밀 검진지 PDF 추출 결과]
 ${pdfText}
 
+[데이터 소스 3: 현재 복용 중인 처방 약물 정보]
+${prescriptionText}
+
 ---------------------------------------------------------
 [작업 가이드라인]
 1. 연도별 건강검진 기록의 시계열 변화(추세)를 신중하게 파악해 주세요 (대사성 항목 위주: 공복혈당, AST/ALT 간수치, 혈압, 콜레스테롤 등).
 2. 공단 데이터와 PDF 데이터가 모두 존재하는 경우, 두 데이터의 임상적 연관 관계를 유기적으로 가공하여 통찰력을 극대화해 주세요.
-   - 예: 최근 공복혈당이 110mg/dL으로 오르고 있고 동시에 PDF 검사 결과 초음파 상의 '경도 지방간' 소견이 복합되었다면, 비알코올성 지방간과 인슐린 저항성이 시작된 대사 불균형으로 원인을 분석해야 합니다.
-3. 건강 점수(overallScore)와 생체 나이 차이(biologicalAgeDiff)를 나이와 건강 추이를 종합적으로 가중 평가하여 도출하세요.
-4. 주의사항(warnings)은 이상 수치가 있는 비정상 지표를 최대 4개 정리하고, 상태 수준(RED: 즉각적인 식이상담/정밀진단, YELLOW: 식이/운동 관리 필요, GREEN: 양호하지만 예방 관리)으로 나누어 이유와 예방법을 명쾌히 세워 주세요.
-5. 향후 관리 방안(managementPlan)은 친절하게 실질적으로 실현 가능한 실천형 지침을 의학 연구 이론에 맞게 생성하세요 (diet, exercise, lifestyle 분류별 3개씩 가로 약 15자 내외).
-6. 내년도 추천 정밀 검사 항목(recommendedChecks)은 이 환자의 건강 소견 및 간/신장/대사성 이상 트렌드에 비추어 정형화되지 않고, 고위험 항목에 대해 반드시 필요한 맞춤형 정밀 검진 항목을 강력한 근거를 들어 도출하세요.
-7. **[가계 가족력 연계 강화]**: 제공된 가족력 요인(부친 및 모친의 과거 이력 또는 만성 질병군)을 환자의 연도별 검진 임상지표와 융합 연계하여, 가계 유전 성향에 따라 특별히 에방/주의해야 하거나 미리 스크리닝해야 할 고위험인자 소견들을 '전체 요약(summary)' 및 '내년도 추천 정밀 검사 항목(recommendedChecks)'에 세밀하고 설득력 있게 한화손보만의 든든한 맞춤 가이드라인으로 포함시켜 작성해 주세요.
+3. **[처방 약물 융합 분석]**: 환자가 현재 복용 중인 약물 목록이 제공된 경우(데이터 소스 3), 이 약물들의 성분/효능을 환자의 최근 건강검진 수치와 유기적으로 연계하십시오.
+   - 예: 고혈압 약을 복용 중인데도 최신 혈압이 145/95 mmHg라면 약물 치료 조절 또는 정밀 재진단이 필요함을 언급하고, 이상지질혈증 약물(스타틴계)을 복용 중인데 최근 AST/ALT 간수치가 높게 상승했다면 약물 유발성 간손상 우려에 대해 코멘트하십시오.
+   - 또한, 복용 중인 약물이 영양소 흡수를 방해하거나 피해야 할 식습관(예: 자몽, 고나트륨 식품 등)이 있다면 생활 관리 방안에 녹여내십시오.
+4. 건강 점수(overallScore)와 생체 나이 차이(biologicalAgeDiff)를 나이와 건강 추이 및 약물 조절 상태를 종합적으로 가중 평가하여 도출하세요.
+5. 주의사항(warnings)은 이상 수치가 있는 비정상 지표(복용 약물 관리 포함)를 최대 4개 정리하고, 상태 수준(RED: 즉각적인 식이상담/정밀진단, YELLOW: 식이/운동 관리 필요, GREEN: 양호하지만 예방 관리)으로 나누어 이유와 예방법을 명쾌히 세워 주세요.
+6. 향후 관리 방안(managementPlan)은 친절하게 실질적으로 실현 가능한 실천형 지침을 의학 연구 이론에 맞게 생성하세요 (diet, exercise, lifestyle 분류별 3개씩 가로 약 15자 내외). 복용 약물이 있을 경우 약물 복용 일정을 엄수하라는 피드백과 약물 상호작용 예방 가이드라인을 식단/라이프스타일에 포함해 주세요.
+7. 내년도 추천 정밀 검사 항목(recommendedChecks)은 이 환자의 건강 소견 및 간/신장/대사성 이상 트렌드에 비추어 정형화되지 않고, 고위험 항목에 대해 반드시 필요한 맞춤형 정밀 검진 항목을 강력한 근거를 들어 도출하세요.
+8. **[가계 가족력 연계 강화]**: 제공된 가족력 요인(부친 및 모친의 과거 이력 또는 만성 질병군)을 환자의 연도별 검진 임상지표와 융합 연계하여, 가계 유전 성향에 따라 특별히 에방/주의해야 하거나 미리 스크리닝해야 할 고위험인자 소견들을 '전체 요약(summary)' 및 '내년도 추천 정밀 검사 항목(recommendedChecks)'에 세밀하고 설득력 있게 한화손보만의 든든한 맞춤 가이드라인으로 포함시켜 작성해 주세요.
 
 모든 응답은 반드시 지정된 JSON 스키마 규격에 완벽히 호응해야 하며 한글로 작성되어야 합니다.
 `;
@@ -908,16 +748,16 @@ ${pdfText}
             },
             summary: {
               type: Type.STRING,
-              description: "전체 건강 트렌드를 한 눈에 파악할 수 있는 임상적 종합 평가 2-3줄"
+              description: "전체 건강 트렌드 및 복용 약물 상호작용을 한 눈에 파악할 수 있는 임상적 종합 평가 2-3줄"
             },
             warnings: {
               type: Type.ARRAY,
-              description: "각 핵심 유해 지표별 위험 분석 리스트 (최대 4개)",
+              description: "각 핵심 유해 지표 및 복용 약물 위험 분석 리스트 (최대 4개)",
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  item: { type: Type.STRING, description: "이상 수치 지표의 한글 명칭" },
-                  value: { type: Type.STRING, description: "가장 최근의 수치 값 및 단위" },
+                  item: { type: Type.STRING, description: "이상 수치 지표 또는 복용 약물 관리의 한글 명칭" },
+                  value: { type: Type.STRING, description: "가장 최근의 수치 값 또는 복용 약물 현황" },
                   status: { type: Type.STRING, enum: ["RED", "YELLOW", "GREEN"], description: "임상 상태 단계" },
                   analysis: { type: Type.STRING, description: "의학적 맥락 분석 및 추세 요인" },
                   action: { type: Type.STRING, description: "즉각 조치를 위한 생활 처방 가이드" }
@@ -930,7 +770,7 @@ ${pdfText}
               properties: {
                 diet: { type: Type.ARRAY, items: { type: Type.STRING }, description: "식단 관리 전략 가이드" },
                 exercise: { type: Type.ARRAY, items: { type: Type.STRING }, description: "신체 활동 처방 프로그램" },
-                lifestyle: { type: Type.ARRAY, items: { type: Type.STRING }, description: "수면 및 보충, 모니터링 가이드" }
+                lifestyle: { type: Type.ARRAY, items: { type: Type.STRING }, description: "수면, 약물 복용 일정 및 모니터링 가이드" }
               },
               required: ["diet", "exercise", "lifestyle"]
             },
@@ -942,7 +782,7 @@ ${pdfText}
                 properties: {
                   category: { type: Type.STRING, description: "검사 분류 (예: 간장 담도 정밀, 심뇌혈관 스크리닝)" },
                   checkItem: { type: Type.STRING, description: "정밀 검사항목 및 추천 명칭" },
-                  reason: { type: Type.STRING, description: "환자의 히스토리와 상충되는 위험을 예방하기 위해 이 검사가 꼭 필요한 임상적 설명" },
+                  reason: { type: Type.STRING, description: "환자의 히스토리 및 복용 약물 부작용 예방을 위해 이 검사가 꼭 필요한 임상적 설명" },
                   priority: { type: Type.STRING, enum: ["HIGH", "MEDIUM"], description: "검진 우선순위" }
                 },
                 required: ["category", "checkItem", "reason", "priority"]
@@ -974,8 +814,8 @@ ${pdfText}
     });
   } catch (error: any) {
     console.error(`${logPrefix} Gemini API Execution Error:`, error);
-    // 에러 발생시 실시간 처리를 살리기 위해 임상 의학 지침 룰베이스 엔진 가동 (더미나 무작위 값이 아닌 한국 검진지 지침 엄격 대조 적용)
-    const fallbackResponse = evaluateClinicalRuleBasedAnalysis(nhisData, uploadedPDF);
+    // 에러 발생시 실시간 처리를 살리기 위해 임상 의학 지침 룰베이스 엔진 가동
+    const fallbackResponse = evaluateClinicalRuleBasedAnalysis(nhisData, uploadedPDF, familyHistory, prescriptionData);
     const simulatedCost = {
       promptTokens: 1820,
       candidatesTokens: 620,
@@ -1007,7 +847,7 @@ ${pdfText}
 // 기존 보험 설계서 비교 분석 API (Gemini Vision 활용)
 // -------------------------------------------------------------
 app.post("/api/health/compare-plan", upload.single("file"), async (req, res): Promise<void> => {
-    const file = req.file;
+    const file = (req as any).file;
     const { productName } = req.body; 
     const ipAddress = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "";
     const userAgent = req.headers["user-agent"] || "";
@@ -1251,7 +1091,7 @@ function evaluateLocalChatResponse(message: string, context: any): string {
 // -------------------------------------------------------------
 // 건강 검진 데이터 시뮬레이터 유틸 (Gemini 미설정 시 완벽 작동 메커니즘)
 // -------------------------------------------------------------
-function evaluateClinicalRuleBasedAnalysis(nhisData: any, uploadedPDF: any, familyHistory?: any) {
+function evaluateClinicalRuleBasedAnalysis(nhisData: any, uploadedPDF: any, familyHistory?: any, prescriptionData?: any) {
   const records = nhisData.records || [];
   const latest = records[0] || {};
   const previous = records[1] || {};
@@ -1267,6 +1107,18 @@ function evaluateClinicalRuleBasedAnalysis(nhisData: any, uploadedPDF: any, fami
   const warnings = [];
   let score = 88;
   let ageDiff = -1;
+
+  // 처방전 약물 분석 내용 룰베이스 융합
+  if (prescriptionData && prescriptionData.medications && prescriptionData.medications.length > 0) {
+    warnings.push({
+      item: "복용 중인 처방 약물 주의 관리",
+      value: `${prescriptionData.medications.length}종 약물 복용 중`,
+      status: "YELLOW" as const,
+      analysis: `현재 환자는 ${prescriptionData.medications.map((m: any) => m.name.split(" ")[0]).join(", ")} 등의 약물을 복용 중입니다. 약물 치료 효과를 극대화하기 위해 복용 일정을 엄수해야 하며, 대사 수치(혈당, 혈압 등) 추이 관찰이 필수적입니다.`,
+      action: "매일 지정된 시간에 약을 거르지 않고 복용해 주시고, 식습관 상호작용(예: 자몽, 고나트륨 제한 등)을 주의 깊게 조절하십시오."
+    });
+    score -= 2;
+  }
 
   // 당뇨 전단계 평가
   if (fastingGlucose >= 100 && fastingGlucose < 126) {

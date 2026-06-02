@@ -1,12 +1,14 @@
 {
-  "generatedAt": "2026-06-01T22:26:07.288Z",
-  "batchLog": "Success - Processed 4 representative Hanwha Insurance active long-term products.",
+  "generatedAt": "2026-06-02T09:18:38.678Z",
+  "batchLog": "Success - Processed 4 representative Hanwha Insurance active long-term products with real URL patterns.",
   "products": {
     "한화 시그니처 여성 건강보험4.0[HOT]": {
       "fullName": "무배당 한화 시그니처 여성 건강보험4.0(2601) 무배당",
       "category": "장기 보장성 여성 특화보험",
       "status": "판매중",
       "targetAudience": "여성 (만 15세 ~ 90세)",
+      "productUrl": "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01988002",
+      "guidePdfUrl": "https://www.hwgeneralins.com/upload/hmpag_upload/product/woman_cm(2604)_01.pdf",
       "coreBenefits": [
         {
           "item": "여성 특화 질환 암 보장",
@@ -33,6 +35,8 @@
       "category": "장기 보장성 여성 특화보험 (가입 채널 다변화 상품)",
       "status": "판매중",
       "targetAudience": "여성 (만 15세 ~ 90세)",
+      "productUrl": "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01988002",
+      "guidePdfUrl": "https://www.hwgeneralins.com/upload/hmpag_upload/product/woman_cm(2604)_01.pdf",
       "coreBenefits": [
         {
           "item": "여성 생애주기 맞춤 라이프 케어",
@@ -51,6 +55,8 @@
       "category": "장기 보장성 종합 건강보험",
       "status": "판매중",
       "targetAudience": "전 성인 (만 15세 ~ 80세)",
+      "productUrl": "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01381001",
+      "guidePdfUrl": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan(2604)_01.pdf",
       "coreBenefits": [
         {
           "item": "3대 주요 만성질환 진단 보장",
@@ -73,6 +79,8 @@
       "category": "장기 실손의료보험",
       "status": "판매중",
       "targetAudience": "전 연령 (만 0세 ~ 70세)",
+      "productUrl": "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01111001",
+      "guidePdfUrl": "https://www.hwgeneralins.com/upload/hmpag_upload/product/silson(2604)_01.pdf",
       "coreBenefits": [
         {
           "item": "급여 의료비 본인부담 보장",

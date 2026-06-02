@@ -82,3 +82,32 @@ main:nth-of-type(1) > section#dashboard-container:nth-of-type(3) > div#section-c
   white-space: normal;
 }
 
+/* 📱 모바일 가로 스크롤바 제거 유틸리티 */
+.scrollbar-none::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+.scrollbar-none {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* ✨ 프리미엄 오렌지 글로우 광채 효과 */
+.glow-orange {
+  box-shadow: 0 10px 25px -5px rgba(243, 115, 33, 0.08), 0 8px 10px -6px rgba(243, 115, 33, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glow-orange:hover {
+  box-shadow: 0 20px 30px -10px rgba(243, 115, 33, 0.18), 0 10px 15px -3px rgba(243, 115, 33, 0.12);
+  transform: translateY(-2px);
+}
+
+/* ↕️ 아래로 스크롤 유도용 부드러운 미세 바운스 키프레임 (NEW) */
+@keyframes bounceSubtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+.animate-bounce-subtle {
+  animation: bounceSubtle 0.6s ease-in-out 3;
+}
+
+
