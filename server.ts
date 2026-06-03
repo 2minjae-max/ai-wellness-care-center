@@ -328,6 +328,19 @@ app.get("/api/health", (req, res) => {
 });
 
 // -------------------------------------------------------------
+// 서버 아웃바운드 IP 확인 API (CODEF 등록용 IP 체크)
+// -------------------------------------------------------------
+app.get("/api/check-ip", async (req, res) => {
+  try {
+    const response = await fetch("https://api.ipify.org?format=json");
+    const data = await response.json();
+    res.json({ outboundIp: data.ip, message: "이 IP를 CODEF 대시보드에 등록해야 합니다." });
+  } catch (err: any) {
+    res.status(500).json({ error: "아웃바운드 IP를 확인하지 못했습니다.", details: err.message });
+  }
+});
+
+// -------------------------------------------------------------
 // Supabase 접속이력 로깅 라우트
 // -------------------------------------------------------------
 app.post("/api/log-access", async (req, res): Promise<void> => {
