@@ -247,6 +247,7 @@ function initApp() {
   $("btn-close-consultation-success")?.addEventListener("click", () => {
     $("consultation-success-modal")?.classList.add("hidden");
   });
+  setupPremiumBasisModal();
 }
 
 // ========================================================
@@ -1832,7 +1833,6 @@ function switchTab(tabName: "report" | "trends" | "action" | "chat" | "consultin
     renderTrendsTab();
   } else if (tabName === "action") {
     renderActionTab();
-    step4Dashboard.renderChatTab(dashboardCtx);
   } else if (tabName === "consulting") {
     renderConsultingTab();
   }
@@ -1844,93 +1844,248 @@ function renderConsultingTab() {
   const container = $("section-consulting");
   if (!container) return;                
   
-  const isFemale = (gender === "F");
-  const productName = isFemale 
-    ? "한화 시그니처 여성 건강보험4.0[HOT]"
-    : "한화 더건강한 한아름종합보험 무배당[NEW]";
-    
-  const productDescription = isFemale
-    ? "여성의 생애 주기별 특화 보장(유방암, 갑상선암, 자궁암, 생식기암) 및 난임/출산/산후조리 집중 케어와 AMH 등급 할인을 융합한 한화의 대표 여성 시그니처 건강보험 상품입니다."
-    : "3대 만성 질환(암, 뇌혈관, 허혈성 심장질환)과 수술비를 폭넓게 보장하며 3N5 무사고 할인 특약을 통해 가입 장벽과 보험료를 혁신적으로 낮춘 대표 종합 건강보험입니다.";
-
-  // 사용자가 제공해준 공식 및 PDF 링크 연동 (여성건강 vs 한아름종합보험 분기)
-  const productUrl = isFemale
-    ? "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01988002"
-    : "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01381001";
-
-  const guidePdfUrl = isFemale
-    ? "https://www.hwgeneralins.com/upload/hmpag_upload/product/woman_cm(2604)_01.pdf"
-    : "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan(2604)_01.pdf";
-
   // 1. 고객의 최신 건강 검진 데이터와 가족력 정보 로드
   const sortedRecs = [...nhisRecords].sort((a, b) => b.year - a.year);
   const latestRec = sortedRecs[0];
   const sysBp = latestRec?.systolicBP ?? 120;
   const glucose = latestRec?.fastingGlucose ?? 95;
   const bmiVal = latestRec?.bmi ?? 22.5;
+  const altVal = latestRec?.alt ?? 25;
+  const cholVal = latestRec?.totalCholesterol ?? 180;
+  
+  // 만성질환 기왕력자/복용약물 여부 판별 (간편심사 유병자형 적용 대상)
+  const hasPrescriptionMed = !!(prescriptionData && prescriptionData.medications && prescriptionData.medications.length > 0);
+  const hasChronicHighMetrics = (glucose >= 126 || sysBp >= 140 || altVal >= 60 || cholVal >= 240);
+  const isSimplifiedTarget = hasPrescriptionMed || hasChronicHighMetrics;
 
-  // 2. 가족력 & 건강 수치 분석 기반의 구체적 의학/보험 공학 사유 조립
+  const isFemale = (gender === "F");
+  const userAge = calculateAge(birthDate);
+
+  // 2. 피보험자 건강상태에 따른 최적 추천 상품명 매핑 (표준체 vs 간편유병자형 분기)
+  let productName = "";
+  let productDescription = "";
+  let productUrl = "";
+  let guidePdfUrl = "";
+
+  if (isFemale) {
+    if (isSimplifiedTarget) {
+      productName = "한화 시그니처 여성 간편 건강보험";
+      productDescription = "고혈압, 당뇨 등 만성 대사 질환 약물을 복용 중이거나 치료 기왕력이 있어도 간편 고지(3.5.5)를 통해 복잡한 서류 없이 가입 가능하며, 유방/자궁 등 핵심 여성 특화 담보를 맞춤 제공하는 여성 유병자 전용 시그니처 건강보험입니다.";
+      productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01988003";
+      guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/woman_simple(2604)_01.pdf";
+    } else {
+      productName = "한화 시그니처 여성 건강보험4.0[HOT]";
+      productDescription = "여성의 생애 주기별 특화 보장(유방암, 갑상선암, 자궁암, 생식기암) 및 난임/출산/산후조리 집중 케어와 AMH 등급 할인을 융합한 한화의 대표 여성 시그니처 건강보험 상품입니다.";
+      productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01988002";
+      guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/woman_cm(2604)_01.pdf";
+    }
+  } else {
+    if (isSimplifiedTarget) {
+      productName = "한화 간편가입 3N5 건강보험";
+      productDescription = "고혈압, 당뇨 등의 정기 약물을 장기 복용 중인 만성 유병자도 3가지 핵심 질문(3개월 내 검사, N년 내 입원/수술, 5년 내 중증진단) 통과 시 서류 간편 고지로 무심사 가입 및 핵심 3대 만성 질환을 든든하게 보장받을 수 있는 대표 간편 유병자형 상품입니다.";
+      productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01358001";
+      guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/simple_3n5(2604)_01.pdf";
+    } else {
+      productName = "한화 더건강한 한아름종합보험 무배당[NEW]";
+      productDescription = "3대 만성 질환(암, 뇌혈관, 허혈성 심장질환)과 수술비를 폭넓게 보장하며 3N5 무사고 할인 특약을 통해 가입 장벽과 보험료를 혁신적으로 낮춘 대표 종합 건강보험입니다.";
+      productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01381001";
+      guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan(2604)_01.pdf";
+    }
+  }
+     
+  // 3. 가족력 & 건강 수치 분석 기반의 구체적 의학/보험 공학 사유 조립
   let reasonList: string[] = [];
-
-  // 당뇨 가족력 + 식전혈당 연계
-  if (fatherFactors.includes("당뇨병") || motherFactors.includes("당뇨병")) {
-    if (glucose >= 100) {
-      reasonList.push(`• <b>[당뇨 가족력 & 당대사 위험 연동]</b> 유전적 당뇨 위험군에 속하며 최근 공복혈당(${glucose} mg/dL) 경계성 상승이 확인되어, <b>'대사성 만성질환 특별보완 특약' 1,000만원</b>을 최우선 장착하여 향후 합병증 리스크에 대응했습니다.`);
-    } else {
-      reasonList.push(`• <b>[당뇨 유전 위험 대비]</b> 부모님 중 당뇨 병력이 검출되어, 현재 혈당 수치(${glucose} mg/dL)는 안전 상태이나 장기적 혈당 상승 시의 대사 합병증에 안심할 수 있도록 예방 보장을 추가 조율했습니다.`);
-    }
-  }
-
-  // 고혈압 가족력 + 혈압 수치 연계
-  if (fatherFactors.includes("고혈압") || motherFactors.includes("고혈압")) {
-    if (sysBp >= 130) {
-      reasonList.push(`• <b>[고혈압 가족력 & 혈행 압력 연동]</b> 고혈압 유전 소인과 함께 수축기 혈압(${sysBp} mmHg)의 고혈압 경계선 진입이 확인됨에 따라, 심뇌혈관 상속성 위험 방어를 위해 <b>'뇌혈관질환 및 허혈성심장질환 진단비'를 각 3,000만원씩 정밀 보강</b> 처방했습니다.`);
-    } else {
-      reasonList.push(`• <b>[고혈압 유전 위험 대비]</b> 부모님의 고혈압 이력이 확인되어, 향후 나이 누적에 따른 뇌/심장 2대 진단비 기본 설계를 탄탄하게 메웠습니다.`);
-    }
-  }
-
-  // 뇌졸중/심장질환 가족력
-  if (fatherFactors.includes("뇌졸중/뇌혈관") || motherFactors.includes("뇌졸중/뇌혈관") || fatherFactors.includes("심장질환") || motherFactors.includes("심장질환")) {
-    reasonList.push(`• <b>[뇌/심혈관 가족력 대비]</b> 부모님의 뇌혈관 및 심장 병력이 기재되어, 급성 혈관 파열/막힘 사고를 보상하는 한화손보의 <b>'2대 주요 만성 혈관질환 진단비'</b> 보장 한도를 보강했습니다.`);
-  }
-
-  // 암(위암, 대장암, 폐암, 간암, 유방암, 자궁암 등) 가족력 + 성별 맞춤 상품 연계
+  
+  let isMetabolicRisk = false;
+  let isHypertensionRisk = false;
+  let isCancerRisk = false;
+ 
+  // 암 가족력 + 성별 맞춤 상품 연계
   const hasCancerFamily = fatherFactors.some(f => f.includes("암")) || motherFactors.some(m => m.includes("암"));
   if (hasCancerFamily) {
-    if (isFemale) {
-      reasonList.push(`• <b>[암 가족력 & 여성 특화 연계]</b> 가족력상 암 이력이 확인되어, 유방/자궁 등 여성 특화 다빈도 암을 일반 암 대비 최대 150% 수준으로 크게 상향 보장하는 여성 특화 다빈도 암 집중 특약이 탑재된 <b>'한화 시그니처 여성 건강보험 4.0'</b>을 맞춤 추천했습니다.`);
-    } else {
-      reasonList.push(`• <b>[암 유전 성향 예방]</b> 가족력 내 암 이력에 대응하여, 암 진단비 5,000만원 설계와 더불어 값비싼 표적항암 허가치료 특약을 결합한 <b>'한화 더건강한 한아름종합보험'</b>의 든든한 종합 암 처방을 적용했습니다.`);
-    }
-  }
-
-  // 가족력 선택이 없는 경우의 지표 기반 기본 분석 사유 조립
-  if (reasonList.length === 0) {
-    if (glucose >= 100 || sysBp >= 130 || bmiVal >= 25) {
-      reasonList.push(`• <b>[검진 대사항목 집중 보완]</b> 현재 공복식전혈당(${glucose} mg/dL) 또는 혈압(${sysBp} mmHg) 등의 기초 대사 지표가 주의 경계 영역에 분포해 있으므로, 만성질환으로의 발전을 사전에 상쇄하고 향후 합병증 치료비를 예방 적립할 수 있도록 만성질약 특별보완과 3대 주요 진단비를 결합했습니다.`);
-    } else {
+    isCancerRisk = true;
+    let addedSpecificCancer = false;
+    
+    if (fatherFactors.includes("갑상선암") || motherFactors.includes("갑상선암")) {
+      addedSpecificCancer = true;
       if (isFemale) {
-        reasonList.push(`• <b>[기초 웰니스 보장 적립]</b> 현재 5개년 건강 검진 수치는 대단히 훌륭한 수준으로 잘 보존되고 있습니다. 다만, 현 시점의 건강함을 기반으로 한화손보의 웰니스 케어 첫해 월 보험료 최대 10% 우대 할인 제도(AMH 난소 기능 2.0 이상 할인 등)를 적용받아 가장 최저의 월 납입액으로 장기 안심 포트폴리오를 마련하도록 추천했습니다.`);
+        reasonList.push("• <b>[갑상선암 가족력 & 여성 특화 암 연계]</b> 모친/부친의 갑상선암 병력이 확인되어, 여성 발생률 1위인 갑상선암(소액암) 및 유사암 진단비를 최대 2,000만원까지 보강하고 표적치료를 강화한 설계로 유전적 취약성을 보완했습니다.");
       } else {
-        reasonList.push(`• <b>[기초 웰니스 보장 적립]</b> 현재 5개년 건강 검진 수치는 대단히 훌륭한 수준으로 잘 보존되고 있습니다. 다만, 현 시점의 건강함을 기반으로 한화손보의 3N5 무사고 할인 혜택 등을 활용하여 가장 합리적인 월 납입액으로 장기 안심 종합 포트폴리오를 마련하도록 추천했습니다.`);
+        reasonList.push("• <b>[갑상선암 가족력 대응]</b> 가족력 중 갑상선암 이력이 확인되어, 소액암/유사암 보장 한도를 증액하고 갑상선암 수술 및 치료 특약을 보강하였습니다.");
+      }
+    }
+    
+    if (fatherFactors.includes("유방암/자궁암") || motherFactors.includes("유방암/자궁암")) {
+      addedSpecificCancer = true;
+      if (isFemale) {
+        reasonList.push("• <b>[여성특화 암 가족력 & 여성 시그니처 연계]</b> 가족력상 유방암/자궁암 이력이 확인되어, 여성 특화 암 진단비를 일반암 대비 최대 150% 수준으로 상향 보장하는 <b>'한화 시그니처 여성 건강보험'</b>을 추천하여 암 예방 및 치료 체계를 정밀 강화했습니다.");
+      } else {
+        reasonList.push("• <b>[유방암/자궁암 가족력 대응]</b> 모계 가족력 중 여성 암 이력이 존재하여, 남성 발생 가능한 관련 암 및 일반암 보장 설계의 기초 한도를 상향 조정했습니다.");
+      }
+    }
+
+    if (!addedSpecificCancer) {
+      if (isFemale) {
+        reasonList.push("• <b>[암 가족력 & 여성 특화 연계]</b> 가족력상 암 이력이 확인되어, 유방/자궁 등 여성 특화 다빈도 암을 일반 암 대비 최대 150% 수준으로 크게 상향 보장하는 여성 특화 다빈도 암 집중 특약이 탑재된 <b>'한화 시그니처 여성 건강보험'</b>을 맞춤 추천했습니다.");
+      } else {
+        reasonList.push("• <b>[암 유전 성향 예방]</b> 가족력 내 암 이력에 대응하여, 암 진단비 5,000만원 설계와 더불어 값비싼 표적항암 허가치료 특약을 결합한 <b>'한화 더건강한 한아름종합보험'</b>의 든든한 종합 암 처방을 적용했습니다.");
       }
     }
   }
+ 
+  // 고혈압 가족력 + 혈압 수치 연계
+  if (fatherFactors.includes("고혈압") || motherFactors.includes("고혈압")) {
+    if (sysBp >= 130) {
+      isHypertensionRisk = true;
+      reasonList.push("• <b>[고혈압 가족력 & 혈행 압력 연동]</b> 고혈압 유전 소인과 함께 수축기 혈압(" + sysBp + " mmHg)의 고혈압 경계선 진입이 확인됨에 따라, 심뇌혈관 상속성 위험 방어를 위해 <b>'뇌혈관질환 및 허혈성심장질환 진단비'를 각 3,000만원씩 정밀 보강</b> 처방했습니다.");
+    } else {
+      reasonList.push("• <b>[고혈압 유전 위험 대비]</b> 부모님의 고혈압 이력이 확인되어, 향후 나이 누적에 따른 뇌/심장 2대 진단비 기본 설계를 탄탄하게 메웠습니다.");
+    }
+  }
+ 
+  // 뇌졸중/심장질환/협심증/심근경색 가족력
+  if (fatherFactors.includes("뇌졸중/뇌혈관") || motherFactors.includes("뇌졸중/뇌혈관") || 
+      fatherFactors.includes("심장질환") || motherFactors.includes("심장질환") ||
+      fatherFactors.includes("협심증/심근경색") || motherFactors.includes("협심증/심근경색")) {
+    isHypertensionRisk = true;
+    if (fatherFactors.includes("협심증/심근경색") || motherFactors.includes("협심증/심근경색")) {
+      reasonList.push("• <b>[심장질환 가족력 & 허혈성 심장 연동]</b> 가족력 내 협심증/심근경색 이력이 확인되어, 급성 심근경색증뿐만 아니라 협심증까지 보장 범위가 가장 넓은 <b>'허혈성심장질환 진단비' 3,000만원</b>을 든든하게 보강했습니다.");
+    } else {
+      reasonList.push("• <b>[뇌/심혈관 가족력 대비]</b> 부모님의 뇌혈관 및 심장 병력이 기재되어, 급성 혈관 파열/막힘 사고를 보상하는 한화손보의 <b>'2대 주요 만성 혈관질환 진단비'</b> 보장 한도를 보강했습니다.");
+    }
+  }
+ 
+  // 당뇨 가족력 + 식전혈당 연계
+  if (fatherFactors.includes("당뇨병") || motherFactors.includes("당뇨병")) {
+    if (glucose >= 100) {
+      isMetabolicRisk = true;
+      reasonList.push("• <b>[당뇨 가족력 & 당대사 위험 연동]</b> 유전적 당뇨 위험군에 속하며 최근 공복혈당(" + glucose + " mg/dL) 경계성 상승이 확인되어, <b>'대사성 만성질환 특별보완 특약' 1,000만원</b>을 최우선 장착하여 향후 합병증 리스크에 대응했습니다.");
+    } else {
+      reasonList.push("• <b>[당뇨 유전 위험 대비]</b> 부모님 중 당뇨 병력이 검출되어, 현재 혈당 수치(" + glucose + " mg/dL)는 안전 상태이나 장기적 혈당 상승 시의 대사 합병증에 안심할 수 있도록 예방 보장을 추가 조율했습니다.");
+    }
+  }
 
-  const reasonHtml = reasonList.map(r => `<div class="text-slate-700 text-xs sm:text-xs font-semibold leading-relaxed break-keep">${r}</div>`).join("<div class='h-2.5'></div>");
+  // 고지혈증 / 만성신장질환 가족력 연계
+  if (fatherFactors.includes("고지혈증") || motherFactors.includes("고지혈증") ||
+      fatherFactors.includes("만성신장질환") || motherFactors.includes("만성신장질환")) {
+    isMetabolicRisk = true;
+    if (fatherFactors.includes("고지혈증") || motherFactors.includes("고지혈증")) {
+      reasonList.push("• <b>[고지혈증 가족력 & 대사 관리 연계]</b> 가족력 내 고지혈증 이력이 감지되어, 혈중 콜레스테롤 상승으로 발생할 수 있는 이상지질혈증 및 혈관 내 플라크 축적 방어 목적의 대사 질환 케어를 보강하였습니다.");
+    }
+    if (fatherFactors.includes("만성신장질환") || motherFactors.includes("만성신장질환")) {
+      reasonList.push("• <b>[신장질환 가족력 & 만성신장질환 보완]</b> 가족력 내 만성신장질환 이력이 기재되어, 만성 신부전증 및 혈액 투석 등 고액 치료비가 유발되는 중증 신장 질환에 대비한 신장 케어 보장을 강화하였습니다.");
+    }
+  }
+ 
+  // 가족력 선택이 없는 경우의 지표 기반 기본 분석 사유 조립
+  if (reasonList.length === 0) {
+    if (glucose >= 100 || sysBp >= 130 || bmiVal >= 25) {
+      if (glucose >= 100) isMetabolicRisk = true;
+      if (sysBp >= 130) isHypertensionRisk = true;
+      reasonList.push("• <b>[검진 대사항목 집중 보완]</b> 현재 공복식전혈당(" + glucose + " mg/dL) 또는 혈압(" + sysBp + " mmHg) 등의 기초 대사 지표가 주의 경계 영역에 분포해 있으므로, 만성질환으로의 발전을 사전에 상쇄하고 향후 합병증 치료비를 예방 적립할 수 있도록 만성질약 특별보완과 3대 주요 진단비를 결합했습니다.");
+    } else {
+      if (isFemale) {
+        reasonList.push("• <b>[기초 웰니스 보장 적립]</b> 현재 5개년 건강 검진 수치는 대단히 훌륭한 수준으로 잘 보존되고 있습니다. 다만, 현 시점의 건강함을 기반으로 한화손보의 웰니스 케어 첫해 월 보험료 최대 10% 우대 할인 제도(AMH 난소 기능 2.0 이상 할인 등)를 적용받아 가장 최저의 월 납입액으로 장기 안심 포트폴리오를 마련하도록 추천했습니다.");
+      } else {
+        reasonList.push("• <b>[기초 웰니스 보장 적립]</b> 현재 5개년 건강 검진 수치는 대단히 훌륭한 수준으로 잘 보존되고 있습니다. 다만, 현 시점의 건강함을 기반으로 한화손보의 3N5 무사고 할인 혜택 등을 활용하여 가장 합리적인 월 납입액으로 장기 안심 종합 포트폴리오를 마련하도록 추천했습니다.");
+      }
+    }
+  }
+ 
+  const reasonHtml = reasonList.map(r => '<div class="text-slate-700 text-xs sm:text-xs font-semibold leading-relaxed break-keep">' + r + '</div>').join("<div class='h-2.5'></div>");
+ 
+  // 4. 동적 계리적 보험료 산출 프로세스 시작
+  // 만성질환자용 유병자 간편 요율 할증인자
+  const simplifiedSurcharge = isSimplifiedTarget ? 1.25 : 1.0;
+  
+  // 연령 지수 (40세를 1.0 기준으로 하여 매년 4.5% 비율로 증감 계산)
+  const ageFactor = Math.max(0.35, Math.min(2.2, 1.0 + (userAge - 40) * 0.045));
 
+  // 각 담보별 기준 요율 및 가입금액 설정
+  let cancerAmount = "3,000만원";
+  let cancerBaseRate = isFemale ? 6100 : 6800; // 1,000만원당 기본 보험료 (40세 기준)
+  let cancerSurcharge = 1.0;
+  if (isCancerRisk) {
+    cancerAmount = "5,000만원";
+    cancerSurcharge = 1.15; // 암 가족력 할증
+  }
+  const cancerCoverageVal = isCancerRisk ? 5000 : 3000;
+  const cancerPremium = Math.round(cancerBaseRate * (cancerCoverageVal / 1000) * ageFactor * cancerSurcharge * simplifiedSurcharge);
+ 
+  let brainAmount = "2,000만원";
+  let brainBaseRate = isFemale ? 4900 : 5600; // 1,000만원당 기본 보험료
+  let brainSurcharge = 1.0;
+  if (isHypertensionRisk) {
+    brainAmount = "3,000만원";
+    brainSurcharge = 1.20; // 고혈압/뇌혈관 가족력/지표 할증
+  }
+  const brainCoverageVal = isHypertensionRisk ? 3000 : 2000;
+  const brainPremium = Math.round(brainBaseRate * (brainCoverageVal / 1000) * ageFactor * brainSurcharge * simplifiedSurcharge);
+ 
+  let heartAmount = "2,000만원";
+  let heartBaseRate = isFemale ? 3400 : 4450; // 1,000만원당 기본 보험료
+  let heartSurcharge = 1.0;
+  if (isHypertensionRisk) {
+    heartAmount = "3,000만원";
+    heartSurcharge = 1.15; // 심혈관 가족력 할증
+  }
+  const heartCoverageVal = isHypertensionRisk ? 3000 : 2000;
+  const heartPremium = Math.round(heartBaseRate * (heartCoverageVal / 1000) * ageFactor * heartSurcharge * simplifiedSurcharge);
+ 
+  let metabolicAmount = "500만원";
+  let metabolicBaseRate = isFemale ? 780 : 980; // 100만원당 기본 보험료
+  let metabolicSurcharge = 1.0;
+  if (isMetabolicRisk) {
+    metabolicAmount = "1,000만원";
+    metabolicSurcharge = 1.25; // 당뇨 지표/가족력 할증
+  }
+  const metabolicCoverageVal = isMetabolicRisk ? 1000 : 500;
+  const metabolicPremium = Math.round(metabolicBaseRate * (metabolicCoverageVal / 100) * ageFactor * metabolicSurcharge * simplifiedSurcharge);
+ 
+  const surgeryAmount = "500만원";
+  const surgeryBaseRate = isFemale ? 1380 : 1540; // 100만원당 기본 보험료
+  const surgeryCoverageVal = 500;
+  const surgeryPremium = Math.round(surgeryBaseRate * (surgeryCoverageVal / 100) * ageFactor * simplifiedSurcharge);
+ 
   const coverages = [
-    { id: "cov-cancer", name: "일반암 진단비 (표적항암 허가치료 포함 보강)", amount: "5,000만원", premium: 22400 },
-    { id: "cov-brain", name: "뇌혈관질환 진단비 (2대 고위험 혈관 보강)", amount: "3,000만원", premium: 14800 },
-    { id: "cov-heart", name: "허혈성심장질환 진단비 (협심증 진단 케어)", amount: "3,000만원", premium: 11200 },
-    { id: "cov-metabolic", name: "대사성 만성질환(당뇨/고혈압 합병증 등) 특별보완 특약", amount: "1,000만원", premium: 6300 },
-    { id: "cov-surgery", name: "일반 질병 수술비 및 120대 다빈도 특정질병수술비", amount: "500만원", premium: 5100 }
+    { id: "cov-cancer", name: isFemale ? "여성특화 암 진단비 (표적치료 포함)" : "일반암 진단비 (표적치료 포함)", amount: cancerAmount, premium: cancerPremium, basis: isCancerRisk ? "가족력 또는 병력 반영 및 가입 한도 5,000만원 집중 보강" : "가족력 또는 병력 없음 반영, 기본형 3,000만원 적정 유지" },
+    { id: "cov-brain", name: "뇌혈관질환 진단비 (2대 고위험 혈관 보강)", amount: brainAmount, premium: brainPremium, basis: isHypertensionRisk ? "고혈압/뇌혈관 가족력 또는 수축기혈압(" + sysBp + " mmHg) 경계 단계를 반영한 가입 한도 3,000만원 특별 증액" : "가족력 및 혈압 안전 상태 반영, 기본형 2,000만원 보장 배정" },
+    { id: "cov-heart", name: "허혈성심장질환 진단비 (협심증 진단 케어)", amount: heartAmount, premium: heartPremium, basis: isHypertensionRisk ? "심장질환 가족력 및 혈압 수치(" + sysBp + " mmHg) 경계 연동에 따른 3,000만원 집중 처방" : "심장 유전 리스크 없음 반영, 기본형 2,000만원 일반 처방" },
+    { id: "cov-metabolic", name: "대사성 만성질환(당뇨/고혈압 등) 특별보완 특약", amount: metabolicAmount, premium: metabolicPremium, basis: isMetabolicRisk ? "당뇨/대사 가족력 또는 식전혈당(" + glucose + " mg/dL) 주의 단계를 연계한 보장 한도 1,000만원 특별 탑재" : "당뇨/대사 지표 안전 상태 반영, 기본형 500만원 배정" },
+    { id: "cov-surgery", name: "일반 질병 수술비 및 120대 다빈도 수술비", amount: surgeryAmount, premium: surgeryPremium, basis: "기본 종합 수술 치료비 보장 플랜 (500만원 한도 고정)" }
   ];
-
-  let totalPremium = 0;
+ 
+  // 5. 건강 점수별 우량체 할인 설정 (간편인수 적용 유병자는 우량체 할인 대상 제외하되 매년 무사고 시 3N5 할인 전환안내문 표시)
+  const score = analysisResult ? analysisResult.overallScore : 84;
+  let discountRate = 0;
+  let discountGrade = "";
+  
+  if (isSimplifiedTarget) {
+    discountRate = 0;
+    discountGrade = "유병자 간편보험 가입 (건강 할인 미적용 - 매년 무사고 시 3N5 할인 전환 대상)";
+  } else {
+    if (score >= 90) {
+      discountRate = 0.20;
+      discountGrade = "슈퍼 건강체 등급 (20% 보험료 감면 적용)";
+    } else if (score >= 80) {
+      discountRate = 0.10;
+      discountGrade = "우량 건강체 등급 (10% 보험료 감면 적용)";
+    } else if (score >= 70) {
+      discountRate = 0.05;
+      discountGrade = "준우량 건강체 등급 (5% 보험료 감면 적용)";
+    } else {
+      discountGrade = "일반체 승인 (할인 미적용)";
+    }
+  }
+ 
+  let totalBasePremium = 0;
+  coverages.forEach((c) => totalBasePremium += c.premium);
+  const discountAmount = Math.round(totalBasePremium * discountRate);
+  const finalTotalPremium = totalBasePremium - discountAmount;
+ 
+  const formattedTotal = finalTotalPremium.toLocaleString();
+ 
   const coveragesHtml = coverages.map((cov) => {
-    totalPremium += cov.premium;
     const formattedPremium = cov.premium.toLocaleString();
     return `
       <tr class="border-b border-slate-100 last:border-b-0">
@@ -1943,9 +2098,7 @@ function renderConsultingTab() {
       </tr>
     `;
   }).join("");
-
-  const formattedTotal = totalPremium.toLocaleString();
-
+ 
   container.innerHTML = `
     <div class="bg-white p-5 sm:p-8 shadow-xs space-y-6 animate-fade-in text-left">
         <!-- Header -->
@@ -1953,12 +2106,12 @@ function renderConsultingTab() {
           <span class="text-xs font-black text-[#f37321] tracking-wider uppercase">Hanwha General Insurance Custom Consulting</span>
           <h3 class="font-black text-slate-900 text-xl sm:text-2xl mt-1 flex items-center gap-1.5">
             <svg class="w-6 h-6 text-[#f37321] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             AI 건강 맞춤형 컨설팅
           </h3>
           <p class="text-slate-500 text-xs sm:text-sm mt-2 leading-relaxed">
-            고객님의 최근 건강검진 종합 지표(<span id="consulting-score-badge" class="font-bold text-slate-800">${analysisResult?.overallScore || 84}점</span>)와 기재해주신 건강 상태를 토대로 <strong class="text-slate-800 font-extrabold">한화손해보험 상품공시실 지식 위키</strong>에 현재 정식 판매 중인 건강보장형 상품들을 대조 분석하여, 고객님께 가장 완벽하게 보완된 비대면 맞춤 포트폴리오를 제공합니다.
+            고객님의 최근 건강검진 종합 지표(<span id="consulting-score-badge" class="font-bold text-slate-800">${analysisResult?.overallScore || 84}점</span>), 만 연령(<strong>만 ${userAge}세</strong>) 및 기재해주신 건강 상태를 토대로 <strong class="text-slate-800 font-extrabold">한화손해보험 상품공시실 지식 위키</strong>에 현재 정식 판매 중인 건강보장형 상품들을 대조 분석하여, 고객님께 가장 완벽하게 보완된 비대면 맞춤 포트폴리오를 제공합니다.
           </p>
         </div>
         
@@ -1971,7 +2124,7 @@ function renderConsultingTab() {
             </div>
             <div class="space-y-2">
                 <div class="flex flex-col gap-1 items-start">
-                    <span class="text-[10px] px-2 py-0.5 rounded-md bg-[#f37321] text-white font-black">AI 추천 최적상품 (공시실 위키 연동)</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-md bg-[#f37321] text-white font-black">${isSimplifiedTarget ? "AI 유병자 간편 맞춤설계" : "AI 추천 최적상품 (공시실 위키 연동)"}</span>
                     <h4 class="font-black text-slate-900 text-sm sm:text-base">${productName}</h4>
                 </div>
                 <p class="text-slate-600 text-xs sm:text-sm leading-relaxed break-keep">${productDescription}</p>
@@ -1981,7 +2134,7 @@ function renderConsultingTab() {
             <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 relative z-10">
               <a href="${productUrl}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-[#f37321] bg-white text-[#f37321] hover:bg-[#fff5ee] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                   <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
                 공식 상품 정보
               </a>
@@ -2040,7 +2193,15 @@ function renderConsultingTab() {
             <p class="text-2xl sm:text-3.5xl font-black text-[#f37321] tracking-tight mt-1">
               <span id="consulting-display-bold-total" class="font-extrabold text-3xl sm:text-4xl text-[#f37321]">${formattedTotal}</span> 원
             </p>
+            ${discountRate > 0 ? `<p class="text-[10px] text-emerald-600 font-extrabold mt-1">✓ 건강등급 우량체 특별 할인 완료 (-${discountAmount.toLocaleString()}원)</p>` : ""}
+            ${isSimplifiedTarget ? `<p class="text-[10px] text-[#f37321] font-extrabold mt-1">✓ 만성질환 보장 우대 유병자형 간편인수 적용</p>` : ""}
           </div>
+          <button type="button" id="btn-open-premium-basis" class="w-full sm:w-auto bg-[#353968] hover:bg-[#24274d] text-white rounded-xl py-3 px-4 font-bold text-xs tracking-wide flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            산출 및 가입 적정성 근거 보기
+          </button>
         </div>
         
         <!-- 📂 다른 설계서와 비교 분석 섹션 (독립 하단 섹션으로 분리) -->
@@ -2092,6 +2253,89 @@ function renderConsultingTab() {
     });
   }
 
+  // Attach opening event listener for the premium basis modal
+  const btnOpenBasis = $("btn-open-premium-basis");
+  const modalBasis = $("premium-basis-modal");
+
+  if (btnOpenBasis && modalBasis) {
+    btnOpenBasis.addEventListener("click", () => {
+      // 1. Populate details container
+      const detailsContainer = $("modal-premium-basis-details");
+      if (detailsContainer) {
+        detailsContainer.innerHTML = coverages.map(cov => `
+          <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 space-y-1 text-left shadow-3xs">
+            <div class="flex justify-between items-center">
+              <span class="font-extrabold text-slate-800 text-xs">${cov.name}</span>
+              <span class="text-[10px] text-[#f37321] font-black">${cov.amount} (월 ${cov.premium.toLocaleString()}원)</span>
+            </div>
+            <p class="text-[10px] text-slate-500 leading-relaxed font-semibold break-keep">${cov.basis}</p>
+          </div>
+        `).join("");
+      }
+
+      // 2. Populate intro text with metrics
+      const introText = $("modal-premium-basis-intro");
+      if (introText) {
+        introText.innerHTML = `고객님의 최근 5개년 누적 검진 지표와 패밀리 유전 병력을 매칭하여 산출된 예방 특약 비중입니다. (공복혈당: ${glucose} mg/dL, 수축기혈압: ${sysBp} mmHg)`;
+      }
+
+      // 3. Populate discount badge
+      const discountBadge = $("modal-discount-badge");
+      if (discountBadge) {
+        if (isSimplifiedTarget) {
+          discountBadge.innerText = "간편가입 (할인 제외)";
+          discountBadge.className = "bg-slate-400 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-3xs";
+        } else {
+          discountBadge.innerText = discountRate > 0 ? `${Math.round(discountRate * 100)}% 할인 적용` : "할인 미적용";
+          discountBadge.className = "bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-3xs";
+        }
+      }
+
+      // 4. Highlight rows in discount table
+      const rowSuper = $("row-super-health");
+      const rowGood = $("row-good-health");
+      const rowFair = $("row-fair-health");
+      if (rowSuper) rowSuper.style.backgroundColor = "transparent";
+      if (rowGood) rowGood.style.backgroundColor = "transparent";
+      if (rowFair) rowFair.style.backgroundColor = "transparent";
+
+      if (!isSimplifiedTarget) {
+        if (discountRate === 0.20 && rowSuper) rowSuper.style.backgroundColor = "#ecfdf5";
+        else if (discountRate === 0.10 && rowGood) rowGood.style.backgroundColor = "#ecfdf5";
+        else if (discountRate === 0.05 && rowFair) rowFair.style.backgroundColor = "#ecfdf5";
+      }
+
+      // 5. Populate appropriateness ratio gauge
+      const estimatedMonthlyIncome = 3000000 + Math.max(0, (userAge - 25)) * 100000;
+      const ratio = (finalTotalPremium / estimatedMonthlyIncome) * 100;
+      const ratioText = $("adequacy-ratio-text");
+      const ratioBar = $("adequacy-ratio-bar");
+
+      if (ratioText) {
+        ratioText.innerText = `월 ${ratio.toFixed(1)}% (${ratio <= 3 ? "매우 안전" : ratio <= 6 ? "안전" : "적정"})`;
+      }
+      if (ratioBar) {
+        ratioBar.style.width = `${Math.min(100, (ratio / 8) * 100)}%`;
+        if (ratio <= 6) {
+          ratioBar.className = "h-full bg-emerald-500 rounded-full";
+        } else if (ratio <= 8) {
+          ratioBar.className = "h-full bg-amber-500 rounded-full";
+        } else {
+          ratioBar.className = "h-full bg-rose-500 rounded-full";
+        }
+      }
+
+      // 6. Set official prospectus / term links
+      const linkOfficial = $("modal-link-official-site") as HTMLAnchorElement | null;
+      const linkPdf = $("modal-link-pdf-guide") as HTMLAnchorElement | null;
+      if (linkOfficial) linkOfficial.href = productUrl;
+      if (linkPdf) linkPdf.href = guidePdfUrl;
+
+      // 7. Show modal
+      modalBasis.classList.remove("hidden");
+    });
+  }
+
   // Upload handlers
   $("upload-zone")?.addEventListener("click", () => {
     $("existing-plan-file")?.click();
@@ -2127,12 +2371,70 @@ function renderConsultingTab() {
             method: "POST",
             body: formData
         });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorMsg = "서버 에러가 발생했습니다.";
+            try {
+                const errData = JSON.parse(errorText);
+                errorMsg = errData.error || errData.message || errorMsg;
+            } catch (e) {
+                errorMsg = errorText || errorMsg;
+            }
+            throw new Error(errorMsg);
+        }
+
         const data = await response.json();
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
         const comparison = data.comparison;
+        if (!comparison || !Array.isArray(comparison)) {
+            throw new Error("비교 분석 데이터를 올바르게 로드하지 못했습니다.");
+        }
         
         if (resultDiv) {
+            const cardsHtml = comparison.map((item: any) => {
+                let statusClass = "";
+                if (item.status === "적정" || item.status === "우수") {
+                    statusClass = "text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-bold";
+                } else if (item.status === "과다") {
+                    statusClass = "text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-bold";
+                } else {
+                    statusClass = "text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded font-bold";
+                }
+                return `
+                    <div class="bg-slate-50 border border-slate-200/50 rounded-xl p-3.5 space-y-2.5 text-left shadow-3xs">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                            <span class="font-extrabold text-slate-800 text-xs sm:text-sm">${item.category || item.item || ""}</span>
+                            <span class="${statusClass} text-[10px]">${item.status || ""}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-white rounded-lg p-2 border border-slate-100">
+                                <span class="text-[9px] text-slate-400 block mb-0.5 font-bold">기존 보장</span>
+                                <span class="font-bold text-slate-600">${item.existing || item.old || ""}</span>
+                            </div>
+                            <div class="bg-orange-50/30 rounded-lg p-2 border border-orange-100/30">
+                                <span class="text-[9px] text-orange-400 block mb-0.5 font-bold">한화 추천</span>
+                                <span class="font-black text-[#f37321]">${item.recommended || item.new || ""}</span>
+                            </div>
+                        </div>
+                        <div class="text-[11px] text-slate-600 leading-relaxed pt-1 break-keep">
+                            <span class="font-bold text-slate-700">★ 분석 소견:</span> ${item.opinion || item.reason || ""}
+                        </div>
+                    </div>
+                `;
+            }).join("");
+
             const tableHtml = `
-                <div class="overflow-x-auto w-full">
+                <!-- 모바일용 카드 리스트 (모바일 전용, 횡스크롤 방지) -->
+                <div class="block sm:hidden space-y-3">
+                    ${cardsHtml}
+                </div>
+
+                <!-- 태블릿/데스크톱용 테이블 뷰 (sm 이상 해상도에서 노출) -->
+                <div class="hidden sm:block overflow-x-auto w-full">
                     <table class="w-full text-xs sm:text-sm text-left border-collapse min-w-[450px]">
                         <thead>
                             <tr class="border-b border-slate-200 text-slate-500 font-bold text-[11px] sm:text-xs">
@@ -2140,50 +2442,63 @@ function renderConsultingTab() {
                                 <th class="py-3 pr-2 w-[18%] min-w-[70px] whitespace-nowrap">기존</th>
                                 <th class="py-3 pr-2 w-[18%] min-w-[70px] whitespace-nowrap">AI추천</th>
                                 <th class="py-3 pr-2 w-[18%] min-w-[70px] whitespace-nowrap">적합여부</th>
-                                <th class="py-3 w-[28%] min-w-[120px]">사유</th>
+                                <th class="py-3 w-[28%] min-w-[120px]">상세 의견</th>
                             </tr>
                         </thead>
-                        <tbody class="text-slate-700">
-                            ${comparison.map((row: any) => {
-                                const badgeColor = row.status === "매우적합" 
-                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200/60" 
-                                    : "bg-blue-50 text-blue-700 border-blue-200/60";
+                        <tbody class="text-slate-700 font-medium">
+                            ${comparison.map((item: any) => {
+                                let statusClass = "";
+                                if (item.status === "적정" || item.status === "우수") {
+                                    statusClass = "text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-bold";
+                                } else if (item.status === "과다") {
+                                    statusClass = "text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-bold";
+                                } else {
+                                    statusClass = "text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded font-bold";
+                                }
                                 return `
                                     <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50/50">
-                                        <td class="py-3.5 pr-2 font-bold text-slate-900 whitespace-nowrap">${row.item}</td>
-                                        <td class="py-3.5 pr-2 text-slate-500 whitespace-nowrap">${row.old}</td>
-                                        <td class="py-3.5 pr-2 font-bold text-[#f37321] whitespace-nowrap">${row.new}</td>
-                                        <td class="py-3.5 pr-2 whitespace-nowrap">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold ${badgeColor} border">
-                                                ${row.status}
-                                            </span>
-                                        </td>
-                                        <td class="py-3.5 text-slate-500 text-xs sm:text-sm break-keep leading-relaxed">${row.reason}</td>
+                                        <td class="py-3 pr-2 font-bold text-slate-900">${item.category || item.item || ""}</td>
+                                        <td class="py-3 pr-2 text-slate-500 whitespace-nowrap">${item.existing || item.old || ""}</td>
+                                        <td class="py-3 pr-2 text-[#f37321] font-bold whitespace-nowrap">${item.recommended || item.new || ""}</td>
+                                        <td class="py-3 pr-2"><span class="${statusClass}">${item.status || ""}</span></td>
+                                        <td class="py-3 text-slate-600 leading-relaxed break-keep">${item.opinion || item.reason || ""}</td>
                                     </tr>
                                 `;
-                            }).join('')}
+                            }).join("")}
                         </tbody>
                     </table>
                 </div>
             `;
-            resultDiv.innerHTML = tableHtml;
             
-            // 비교 분석 완료 상태 저장
+            resultDiv.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#f37321]"></span>
+                        <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm">보장 분석 비교 결과</h4>
+                    </div>
+                    ${tableHtml}
+                    <div class="bg-[#fffcf7] border border-[#f37321]/20 rounded-xl p-3.5 text-[11px] sm:text-xs leading-relaxed font-semibold text-slate-700 break-keep">
+                        <span class="text-[#f37321] font-black">★ AI 융합 분석 리포트 요약:</span> ${data.summary || '기존 설계서 분석 요약 정보가 존재하지 않습니다.'}
+                    </div>
+                </div>
+            `;
+            
             isComparisonCompleted = true;
-            comparisonResultHtml = tableHtml;
-
-            // 상담 신청하기 버튼 노출 처리
+            comparisonResultHtml = resultDiv.innerHTML;
+            
+            // 상담 신청 버튼 노출
             $("btn-consulting-consult-submit")?.classList.remove("hidden");
         }
-    } catch(e) {
-      if (resultDiv) resultDiv.innerText = "분석 중 오류가 발생했습니다.";
+    } catch (err: any) {
+        console.error(err);
+        if (resultDiv) {
+            resultDiv.innerHTML = `<div class="text-rose-500 font-bold text-xs sm:text-sm">분석 중 에러가 발생했습니다: ${err.message || 'Unknown error'}</div>`;
+        }
     }
   });
 }
 
-// ========================================================
-// 6-5. 대시보드 고객명 및 생년월일 동적 메타데이터 동기화
-// ========================================================
+
 function updateDashboardHeaderMeta() {
   const dUsername = $("dashboard-user-name");
   const bBirth = $("badge-birth");
@@ -3567,7 +3882,7 @@ function dummyOldFunctionUnused(metric: string) {
   });
 
   // 그리드 배치로 주사 설계
-  chartContainer.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4.5 w-full";
+  chartContainer.className = "grid grid-cols-5 gap-1.5 w-full";
   chartContainer.innerHTML = cardsHtml;
   chartContainer.style.transform = "";
 }
@@ -3576,6 +3891,47 @@ function dummyOldFunctionUnused(metric: string) {
 // 9. [생활 수칙 실천방 탭] 렌더링
 // ========================================================
 function renderActionTab() {
+  // 서브 탭 버튼 클릭 리스너 바인딩
+  $$(".sub-tab-btn").forEach((btn) => {
+    if ((btn as any)._hasSubTabListener) return;
+    (btn as any)._hasSubTabListener = true;
+
+    btn.addEventListener("click", () => {
+      const subTab = btn.getAttribute("data-sub-tab");
+      if (!subTab) return;
+
+      // 서브 탭 버튼 스타일 업데이트
+      $$(".sub-tab-btn").forEach((b) => {
+        if (b.getAttribute("data-sub-tab") === subTab) {
+          b.classList.remove("text-slate-500", "hover:bg-slate-100/50");
+          b.classList.add("bg-white", "text-slate-800", "shadow-3xs");
+        } else {
+          b.classList.add("text-slate-500", "hover:bg-slate-100/50");
+          b.classList.remove("bg-white", "text-slate-800", "shadow-3xs");
+        }
+      });
+
+      // 서브 탭 콘텐츠 디스플레이
+      $$(".sub-tab-content").forEach((c) => {
+        c.classList.add("hidden");
+      });
+      $(`sub-section-${subTab}`)?.classList.remove("hidden");
+
+      // 서브 탭별 렌더링 핸들러 호출
+      if (subTab === "action-chat") {
+        renderChatTab();
+      } else if (subTab === "action-prescription") {
+        step4Dashboard.renderPrescriptionSection(dashboardCtx);
+      }
+    });
+  });
+
+  // 메인 탭 전환 시 항상 첫 번째 서브 탭('action-lifestyle')이 활성화되도록 자동 클릭 트리거
+  const activeBtn = document.querySelector(".sub-tab-btn[data-sub-tab='action-lifestyle']") as HTMLButtonElement | null;
+  if (activeBtn && !activeBtn.classList.contains("bg-white")) {
+    activeBtn.click();
+  }
+
   if (!analysisResult) return;
 
   const dietContainer = $("checklist-diet-container");
@@ -4298,6 +4654,73 @@ function setupConsentCheckboxes() {
         (c) => (c as HTMLInputElement).checked
       );
       checkAll.checked = allChecked;
+    });
+  });
+}
+
+// ========================================================
+// 8. 보험료 산출 근거 팝업 모달 제어 및 연령 계산 (NEW)
+// ========================================================
+function calculateAge(birthStr: string): number {
+  if (!birthStr) return 35; // 기본값
+  const cleanBirth = birthStr.replace(/[^0-9]/g, "");
+  let birthYear = 1990;
+  if (cleanBirth.length === 6) {
+    const yy = parseInt(cleanBirth.substring(0, 2), 10);
+    // 현재 기준 시각이 2026년이므로 26 이하는 20xx년생, 초과는 19xx년생으로 판단
+    if (yy <= 26) {
+      birthYear = 2000 + yy;
+    } else {
+      birthYear = 1900 + yy;
+    }
+  } else if (cleanBirth.length === 8) {
+    birthYear = parseInt(cleanBirth.substring(0, 4), 10);
+  }
+  return 2026 - birthYear;
+}
+
+function setupPremiumBasisModal() {
+  const modalBasis = $("premium-basis-modal");
+  const btnCloseBasis = $("btn-close-premium-basis");
+  const btnConfirmBasis = $("btn-confirm-premium-basis");
+  const overlayBasis = $("premium-basis-overlay");
+
+  const closeModal = () => {
+    modalBasis?.classList.add("hidden");
+  };
+
+  btnCloseBasis?.addEventListener("click", closeModal);
+  btnConfirmBasis?.addEventListener("click", closeModal);
+  overlayBasis?.addEventListener("click", closeModal);
+
+  // Tab switching inside premium-basis-modal
+  const tabButtons = [
+    $("tab-btn-basis-coverages"),
+    $("tab-btn-basis-formula"),
+    $("tab-btn-basis-adequacy")
+  ];
+  const tabContents = [
+    $("basis-content-coverages"),
+    $("basis-content-formula"),
+    $("basis-content-adequacy")
+  ];
+
+  tabButtons.forEach((btn, idx) => {
+    btn?.addEventListener("click", () => {
+      tabButtons.forEach(b => {
+        b?.classList.remove("bg-white", "text-slate-900", "shadow-3xs", "active");
+        b?.classList.add("text-slate-500", "hover:text-slate-800");
+      });
+      btn?.classList.add("bg-white", "text-slate-900", "shadow-3xs", "active");
+      btn?.classList.remove("text-slate-500", "hover:text-slate-800");
+
+      tabContents.forEach((content, cidx) => {
+        if (cidx === idx) {
+          content?.classList.remove("hidden");
+        } else {
+          content?.classList.add("hidden");
+        }
+      });
     });
   });
 }

@@ -296,7 +296,7 @@ export function renderCodefSummary(ctx: DashboardContext): void {
   if (metricsList) {
     metricsList.innerHTML = `
       <!-- 1. 혈압 -->
-      <div class="bg-white border border-slate-100/80 rounded-xl p-3 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-2 shadow-xs transition-all hover:border-[#f37321]/20">
+      <div class="bg-white border border-slate-100/80 rounded-xl p-3 flex flex-row justify-between items-center gap-2 shadow-xs transition-all hover:border-[#f37321]/20">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
             <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -308,7 +308,7 @@ export function renderCodefSummary(ctx: DashboardContext): void {
             <div class="text-[9px] text-[#767676] mt-0.5">${sys}/${dia} mmHg 기재 데이터 파싱 완료</div>
           </div>
         </div>
-        <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+        <div class="flex items-center gap-2 shrink-0">
           <div class="text-right">
             <span class="text-xs font-black text-slate-800">${sys}/${dia}</span>
             <span class="text-[9px] text-slate-400">mmHg</span>
@@ -319,7 +319,7 @@ export function renderCodefSummary(ctx: DashboardContext): void {
       <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">${bpDesc}</p>
 
       <!-- 2. 혈당 -->
-      <div class="bg-white border border-slate-100/80 rounded-xl p-3 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-2 shadow-xs transition-all hover:border-[#f37321]/20">
+      <div class="bg-white border border-slate-100/80 rounded-xl p-3 flex flex-row justify-between items-center gap-2 shadow-xs transition-all hover:border-[#f37321]/20">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
             <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -331,7 +331,7 @@ export function renderCodefSummary(ctx: DashboardContext): void {
             <div class="text-[9px] text-[#767676] mt-0.5">${gl} mg/dL 인슐린 대조 유입 분석 완료</div>
           </div>
         </div>
-        <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+        <div class="flex items-center gap-2 shrink-0">
           <div class="text-right">
             <span class="text-xs font-black text-slate-800">${gl}</span>
             <span class="text-[9px] text-slate-400">mg/dL</span>
@@ -342,7 +342,7 @@ export function renderCodefSummary(ctx: DashboardContext): void {
       <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">${glDesc}</p>
 
       <!-- 3. 콜레스테롤 -->
-      <div class="bg-white border border-slate-100/80 rounded-xl p-3 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-2 shadow-xs transition-all hover:border-[#f37321]/20">
+      <div class="bg-white border border-slate-100/80 rounded-xl p-3 flex flex-row justify-between items-center gap-2 shadow-xs transition-all hover:border-[#f37321]/20">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
             <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -355,7 +355,7 @@ export function renderCodefSummary(ctx: DashboardContext): void {
             <div class="text-[9px] text-[#767676] mt-0.5">${chol} mg/dL 고화 지질 농도 안전 측정 연동</div>
           </div>
         </div>
-        <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+        <div class="flex items-center gap-2 shrink-0">
           <div class="text-right">
             <span class="text-xs font-black text-slate-800">${chol}</span>
             <span class="text-[9px] text-slate-400">mg/dL</span>
@@ -366,7 +366,7 @@ export function renderCodefSummary(ctx: DashboardContext): void {
       <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">${cholDesc}</p>
 
       <!-- 4. 체질량지수 (BMI) -->
-      <div class="bg-white border border-slate-100/80 rounded-xl p-3 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-2 shadow-xs transition-all hover:border-[#f37321]/20">
+      <div class="bg-white border border-slate-100/80 rounded-xl p-3 flex flex-row justify-between items-center gap-2 shadow-xs transition-all hover:border-[#f37321]/20">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
             <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -378,7 +378,7 @@ export function renderCodefSummary(ctx: DashboardContext): void {
             <div class="text-[9px] text-[#767676] mt-0.5">${bmiVal.toFixed(1)} kg/㎡ 신장 대비 고유 비만 비율 대조</div>
           </div>
         </div>
-        <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+        <div class="flex items-center gap-2 shrink-0">
           <div class="text-right">
             <span class="text-xs font-black text-slate-800">${bmiVal.toFixed(1)}</span>
             <span class="text-[9px] text-slate-400">kg/㎡</span>
@@ -605,7 +605,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
     if (isBPParsed) {
       cardsContent += `
         <!-- 지표 1: 최고/최저 혈압 수치 -->
-        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
+        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex flex-row justify-between items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-red-50 text-[#f37321] flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
               <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -617,7 +617,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
               <div class="text-[10px] text-slate-400 mt-0.5">${systolic}/${diastolic} mmHg 기재 데이터 실시간 매칭 완료</div>
             </div>
           </div>
-          <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+          <div class="flex items-center gap-2 shrink-0">
             <div class="text-right">
               <span class="text-base font-black text-slate-900">${systolic}/${diastolic}</span>
               <span class="text-[10px] text-slate-400">mmHg</span>
@@ -633,7 +633,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
     if (isGlucoseParsed) {
       cardsContent += `
         <!-- 지표 2: 공복 식전 혈당 -->
-        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
+        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex flex-row justify-between items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
               <svg class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -645,7 +645,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
               <div class="text-[10px] text-slate-400 mt-0.5">${glucose} mg/dL 인슐린 분비 대조 조율 검경</div>
             </div>
           </div>
-          <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+          <div class="flex items-center gap-2 shrink-0">
             <div class="text-right">
               <span class="text-base font-black text-slate-900">${glucose}</span>
               <span class="text-[10px] text-slate-400">mg/dL</span>
@@ -661,7 +661,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
     if (isCholesterolParsed) {
       cardsContent += `
         <!-- 지표 3: 총 콜레스테롤 -->
-        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
+        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex flex-row justify-between items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
               <svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -673,7 +673,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
               <div class="text-[10px] text-slate-400 mt-0.5">${cholesterol} mg/dL 고화 지질 누적 비례 대조</div>
             </div>
           </div>
-          <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+          <div class="flex items-center gap-2 shrink-0">
             <div class="text-right">
               <span class="text-base font-black text-slate-900">${cholesterol}</span>
               <span class="text-[10px] text-slate-400">mg/dL</span>
@@ -689,7 +689,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
     if (isBmiParsed) {
       cardsContent += `
         <!-- 지표 4: 체질량 지수 (BMI) -->
-        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
+        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex flex-row justify-between items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
               <svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -701,7 +701,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
               <div class="text-[10px] text-slate-400 mt-0.5">${bmiVal} kg/m² 고유 비만 비율 대시</div>
             </div>
           </div>
-          <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center font-semibold">
+          <div class="flex items-center gap-2 shrink-0 font-semibold">
             <div class="text-right">
               <span class="text-base font-black text-slate-900">${bmiVal}</span>
               <span class="text-[9px] text-[#767676]">kg/m²</span>
@@ -718,7 +718,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
       if (file.metrics) {
         if (file.metrics.fattyLiver && !cardsContent.includes("지방간 소견")) {
           cardsContent += `
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
+            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex flex-row justify-between items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-orange-50 text-[#f37321] flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
                   <svg class="w-5 h-5 text-[#f37321]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -730,7 +730,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
                   <div class="text-[10px] text-slate-400 mt-0.5">상복부 초음파 검출 지방 관택 배합</div>
                 </div>
               </div>
-              <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center font-semibold">
+              <div class="flex items-center gap-2 shrink-0 font-semibold">
                 <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border bg-amber-50 text-amber-700 border-amber-200/60 font-semibold">지방간 소견</span>
               </div>
             </div>
@@ -739,7 +739,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
         }
         if (file.metrics.hba1c && !cardsContent.includes("당화혈색소")) {
           cardsContent += `
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
+            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex flex-row justify-between items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
                   <svg class="w-5 h-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -751,7 +751,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
                   <div class="text-[10px] text-slate-400 mt-0.5">최근 3개월간 평균 혈당 누적지 기준</div>
                 </div>
               </div>
-              <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center font-semibold">
+              <div class="flex items-center gap-2 shrink-0 font-semibold">
                 <div class="text-right">
                   <span class="text-base font-black text-slate-900">${file.metrics.hba1c}</span>
                   <span class="text-[10px] text-slate-400">%</span>
@@ -764,7 +764,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
         }
         if (file.metrics.cdRatio && !cardsContent.includes("시신경 안저 함몰비")) {
           cardsContent += `
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
+            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex flex-row justify-between items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
                   <svg class="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -777,7 +777,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
                   <div class="text-[10px] text-slate-400 mt-0.5">안저 촬영 소견 상 유두 시경 함몰 비율</div>
                 </div>
               </div>
-              <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center font-semibold">
+              <div class="flex items-center gap-2 shrink-0 font-semibold">
                 <div class="text-right">
                   <span class="text-base font-black text-slate-900">${file.metrics.cdRatio}</span>
                 </div>
@@ -795,7 +795,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
           const astStatus = file.metrics.ast > 40 ? "주의" : "정상";
           const astBadge = file.metrics.ast > 40 ? "bg-amber-50 text-amber-700 border-amber-200/60" : "bg-emerald-50 text-emerald-700 border-emerald-200/60";
           cardsContent += `
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
+            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex flex-row justify-between items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">🧪</div>
                 <div>
@@ -803,7 +803,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
                   <div class="text-[10px] text-slate-400 mt-0.5">간세포 손상 지표 (기준: 0~40 IU/L)</div>
                 </div>
               </div>
-              <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center font-semibold">
+              <div class="flex items-center gap-2 shrink-0 font-semibold">
                 <span class="text-base font-black text-slate-900">${file.metrics.ast}</span>
                 <span class="text-[10px] text-slate-400">IU/L</span>
                 <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${astBadge}">${astStatus}</span>
@@ -817,7 +817,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
           const altStatus = file.metrics.alt > 35 ? "주의" : "정상";
           const altBadge = file.metrics.alt > 35 ? "bg-amber-50 text-amber-700 border-amber-200/60" : "bg-emerald-50 text-emerald-700 border-emerald-200/60";
           cardsContent += `
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
+            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex flex-row justify-between items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">🧪</div>
                 <div>
@@ -825,7 +825,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
                   <div class="text-[10px] text-slate-400 mt-0.5">간세포 손상 지표 (기준: 0~35 IU/L)</div>
                 </div>
               </div>
-              <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center font-semibold">
+              <div class="flex items-center gap-2 shrink-0 font-semibold">
                 <span class="text-base font-black text-slate-900">${file.metrics.alt}</span>
                 <span class="text-[10px] text-slate-400">IU/L</span>
                 <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${altBadge}">${altStatus}</span>
@@ -839,7 +839,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
           const rgtpStatus = file.metrics.rGtp > 63 ? "주의" : "정상";
           const rgtpBadge = file.metrics.rGtp > 63 ? "bg-amber-50 text-amber-700 border-amber-200/60" : "bg-emerald-50 text-emerald-700 border-emerald-200/60";
           cardsContent += `
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
+            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex flex-row justify-between items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-violet-50 text-violet-500 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">🍷</div>
                 <div>
@@ -847,7 +847,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
                   <div class="text-[10px] text-slate-400 mt-0.5">간/담도 알코올 대사 지표 (기준: 남 11~63 IU/L)</div>
                 </div>
               </div>
-              <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center font-semibold">
+              <div class="flex items-center gap-2 shrink-0 font-semibold">
                 <span class="text-base font-black text-slate-900">${file.metrics.rGtp}</span>
                 <span class="text-[10px] text-slate-400">IU/L</span>
                 <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${rgtpBadge}">${rgtpStatus}</span>
@@ -861,7 +861,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
           const crStatus = file.metrics.creatinine > 1.2 ? "주의" : "정상";
           const crBadge = file.metrics.creatinine > 1.2 ? "bg-amber-50 text-amber-700 border-amber-200/60" : "bg-emerald-50 text-emerald-700 border-emerald-200/60";
           cardsContent += `
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
+            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex flex-row justify-between items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">🫘</div>
                 <div>
@@ -869,7 +869,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
                   <div class="text-[10px] text-slate-400 mt-0.5">신장 기능 대사 척도 (기준: 0.5~1.2 mg/dL)${file.metrics.egfr !== undefined ? ` · eGFR ${file.metrics.egfr} mL/min` : ""}</div>
                 </div>
               </div>
-              <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center font-semibold">
+              <div class="flex items-center gap-2 shrink-0 font-semibold">
                 <span class="text-base font-black text-slate-900">${file.metrics.creatinine}</span>
                 <span class="text-[10px] text-slate-400">mg/dL</span>
                 <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${crBadge}">${crStatus}</span>
@@ -883,7 +883,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
           const hbStatus = file.metrics.hemoglobin < 13.0 ? "빈혈 주의" : "정상";
           const hbBadge = file.metrics.hemoglobin < 13.0 ? "bg-amber-50 text-amber-700 border-amber-200/60" : "bg-emerald-50 text-emerald-700 border-emerald-200/60";
           cardsContent += `
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
+            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex flex-row justify-between items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">🩸</div>
                 <div>
@@ -891,7 +891,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
                   <div class="text-[10px] text-slate-400 mt-0.5">빈혈 여부 판단 기준 (남 13~17, 여 12~16 g/dL)</div>
                 </div>
               </div>
-              <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center font-semibold">
+              <div class="flex items-center gap-2 shrink-0 font-semibold">
                 <span class="text-base font-black text-slate-900">${file.metrics.hemoglobin}</span>
                 <span class="text-[10px] text-slate-400">g/dL</span>
                 <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${hbBadge}">${hbStatus}</span>
@@ -903,7 +903,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
         // 5-12~14. HDL, LDL, 중성지방 (지질 패널)
         if (file.metrics.hdlCholesterol !== undefined && !cardsContent.includes("HDL 콜레스테롤")) {
           cardsContent += `
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
+            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex flex-row justify-between items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-green-50 text-green-500 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">💚</div>
                 <div>
@@ -911,7 +911,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
                   <div class="text-[10px] text-slate-400 mt-0.5">좋은 콜레스테롤 (기준: 60 이상 양호)</div>
                 </div>
               </div>
-              <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center font-semibold">
+              <div class="flex items-center gap-2 shrink-0 font-semibold">
                 <span class="text-base font-black text-slate-900">${file.metrics.hdlCholesterol}</span>
                 <span class="text-[10px] text-slate-400">mg/dL</span>
                 <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${file.metrics.hdlCholesterol >= 60 ? "bg-emerald-50 text-emerald-700 border-emerald-200/60" : "bg-amber-50 text-amber-700 border-amber-200/60"}">${file.metrics.hdlCholesterol >= 60 ? "양호" : "낮음 주의"}</span>
@@ -922,7 +922,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
 
         if (file.metrics.ldlCholesterol !== undefined && !cardsContent.includes("LDL 콜레스테롤")) {
           cardsContent += `
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
+            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex flex-row justify-between items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">🧡</div>
                 <div>
@@ -930,7 +930,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
                   <div class="text-[10px] text-slate-400 mt-0.5">나쁜 콜레스테롤 (기준: 130 이하 양호)</div>
                 </div>
               </div>
-              <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center font-semibold">
+              <div class="flex items-center gap-2 shrink-0 font-semibold">
                 <span class="text-base font-black text-slate-900">${file.metrics.ldlCholesterol}</span>
                 <span class="text-[10px] text-slate-400">mg/dL</span>
                 <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${file.metrics.ldlCholesterol <= 130 ? "bg-emerald-50 text-emerald-700 border-emerald-200/60" : "bg-red-50 text-red-700 border-red-200/60"}">${file.metrics.ldlCholesterol <= 130 ? "정상" : "위험"}</span>
@@ -941,7 +941,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
 
         if (file.metrics.triglycerides !== undefined && !cardsContent.includes("중성지방")) {
           cardsContent += `
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
+            <div class="bg-white border border-slate-100 rounded-2xl p-4 flex flex-row justify-between items-center gap-3 shadow-xs hover:border-[#f37321]/20 transition-all font-semibold">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-yellow-50 text-yellow-600 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">🫧</div>
                 <div>
@@ -949,7 +949,7 @@ ${uploadedFiles.map(f => `• ${f.name}: ${f.parseErrorMessage || "국민건강�
                   <div class="text-[10px] text-slate-400 mt-0.5">이상지질혈증 판정 (기준: 150 이하 정상)</div>
                 </div>
               </div>
-              <div class="flex items-center gap-2.5 shrink-0 self-end sm:self-center font-semibold">
+              <div class="flex items-center gap-2 shrink-0 font-semibold">
                 <span class="text-base font-black text-slate-900">${file.metrics.triglycerides}</span>
                 <span class="text-[10px] text-slate-400">mg/dL</span>
                 <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${file.metrics.triglycerides <= 150 ? "bg-emerald-50 text-emerald-700 border-emerald-200/60" : "bg-amber-50 text-amber-700 border-amber-200/60"}">${file.metrics.triglycerides <= 150 ? "정상" : "경계"}</span>
@@ -1416,7 +1416,6 @@ export function renderPrescriptionSection(ctx: DashboardContext): void {
   const resultContainer = $("prescription-result-container");
   const summaryText = $("prescription-summary-text");
   const cardsGrid = $("medication-cards-grid");
-  const btnReanalyze = $("btn-reanalyze-with-prescription");
 
   if (!uploadZone || !loadingBar || !resultContainer || !cardsGrid) return;
 
@@ -1456,17 +1455,6 @@ export function renderPrescriptionSection(ctx: DashboardContext): void {
         </div>
       </div>
     `).join("");
-
-    // 재분석 이벤트 바이패스
-    if (btnReanalyze) {
-      // 리스너가 여러 번 쌓이지 않도록 복사 교체
-      const newBtn = btnReanalyze.cloneNode(true) as HTMLButtonElement;
-      btnReanalyze.parentNode?.replaceChild(newBtn, btnReanalyze);
-      newBtn.addEventListener("click", () => {
-        // 재분석 트리거
-        ctx.triggerRecalculateAnalysis();
-      });
-    }
   } else {
     // 2. 처방전이 아직 등록되지 않은 초기 상태
     if (badge) {

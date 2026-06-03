@@ -16,34 +16,72 @@
       }
     </style>
   </head>
-  <body class="h-full text-slate-900 flex flex-col antialiased">
+  <body class="h-full text-slate-900 antialiased sm:bg-[#111216] sm:flex sm:items-center sm:justify-center sm:min-h-screen sm:overflow-y-auto sm:py-6">
 
-    <!-- ⚕️ 상단 글로벌 탑바 (한화손보 브랜드 스타일) -->
-    <header class="bg-white sticky top-0 z-40 shadow-sm border-b-2 border-[#f37321]">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-2 select-none hover:opacity-90 transition-opacity cursor-pointer">
+    <!-- 배경 장식 (데스크탑 화면에서 보일 프리미엄 백드롭 그라데이션) -->
+    <div class="hidden sm:block absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#fff8f3] via-[#111216] to-[#08090c] opacity-95 pointer-events-none z-0"></div>
+    <div class="hidden sm:block absolute top-[20%] left-[10%] w-[30rem] h-[30rem] bg-[#f37321]/5 rounded-full blur-[120px] pointer-events-none z-0 animate-pulse" style="animation-duration: 8s;"></div>
+
+    <!-- 스마트폰 프레임 컨테이너 (데스크탑에서만 보이고, 모바일에서는 풀스크린으로 꽉참) -->
+    <div class="w-full h-auto sm:h-[90vh] sm:max-h-[880px] sm:min-h-[720px] sm:w-[420px] sm:bg-white sm:rounded-[48px] sm:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.8)] sm:border-[12px] sm:border-slate-800 sm:relative sm:flex sm:flex-col sm:overflow-hidden sm:[transform:translate3d(0,0,0)] z-10 transition-all">
+      
+      <!-- 📱 데스크탑용 스마트폰 전면 노치 -->
+      <div class="hidden sm:flex absolute top-3 left-1/2 -translate-x-1/2 w-28 h-5.5 bg-slate-800 rounded-full z-50 items-center justify-between px-3.5 shadow-inner">
+        <!-- 카메라 렌즈 -->
+        <div class="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700/50 flex items-center justify-center">
+          <div class="w-1 h-1 rounded-full bg-blue-900/60"></div>
+        </div>
+        <!-- 센서 -->
+        <div class="w-1.5 h-1.5 rounded-full bg-slate-900"></div>
+      </div>
+
+      <!-- 🔋 데스크탑용 상단 상태바 (Mock Status Bar) -->
+      <div class="hidden sm:flex h-9 bg-white text-slate-800 text-[10px] font-extrabold items-center justify-between px-6 select-none shrink-0 border-b border-slate-100/50 z-40">
+        <span id="mock-status-time">09:41</span>
+        <div class="flex items-center gap-1.5">
+          <span>5G</span>
+          <div class="flex items-end gap-0.5 h-2">
+            <div class="w-0.5 h-1 bg-slate-800 rounded-2xs"></div>
+            <div class="w-0.5 h-1.5 bg-slate-800 rounded-2xs"></div>
+            <div class="w-0.5 h-2 bg-slate-800 rounded-2xs"></div>
+            <div class="w-0.5 h-2.5 bg-slate-800 rounded-2xs"></div>
+          </div>
+          <!-- 배터리 -->
+          <div class="w-5 h-2.5 border border-slate-800 rounded-xs p-0.5 flex items-center">
+            <div class="bg-slate-800 h-full w-[85%] rounded-3xs"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 📱 실제 앱 컨텐츠 뷰포트 영역 (모바일에서는 본문 스크롤, 데스크탑에서는 스마트폰 내부 스크롤) -->
+      <div class="flex-1 overflow-y-visible sm:overflow-y-auto flex flex-col bg-[#efeee8] h-auto sm:min-h-0 relative" id="app-viewport">
+
+        <!-- ⚕️ 상단 글로벌 탑바 (한화손보 브랜드 스타일) -->
+        <header class="bg-white sticky top-0 z-40 shadow-sm border-b-2 border-[#f37321]">
+      <div class="max-w-7xl mx-auto px-3.5 h-14 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-1.5 select-none hover:opacity-90 transition-opacity cursor-pointer shrink-0">
           <!-- 한화그룹 심볼 이미지 -->
-          <div class="w-24 h-[72px] overflow-hidden relative shrink-0 flex items-center justify-center bg-white rounded-md">
+          <div class="w-16 h-11 overflow-hidden relative shrink-0 flex items-center justify-center bg-white rounded-md">
             <img src="/src/assets/images/hanwha_Insurance_logo.jpg" alt="한화손보" class="w-full h-full object-contain transform scale-[1.3] origin-center" referrerPolicy="no-referrer" />
           </div>
-          <div class="flex items-center gap-2">
-            <span class="font-sans font-semibold text-lg text-[#f37321] tracking-tight leading-none">AI Wellness <span class="text-[#000000]">Care Center</span></span>
+          <div class="flex items-center shrink-0">
+            <span class="font-sans font-bold text-sm sm:text-base text-[#f37321] tracking-tighter leading-none whitespace-nowrap">AI Wellness <span class="text-[#000000]">Care Center</span></span>
           </div>
         </a>
         
       </div>
     </header>
-
-    <!-- 메인 컨텐츠 영역 -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-6 flex flex-col">
-
-      <section id="auth-container" class="space-y-8 animate-fade-in">
-        
-        <!-- 타이틀 히어로 헤더 -->
-        <div class="text-center max-w-2xl mx-auto space-y-3 pb-2">
-          <h1 class="text-3xl font-extrabold sm:text-4xl text-[#f37321] tracking-tight leading-tight">
-            AI Wellness <br class="sm:hidden" /> <span class="text-[#000000]">Care Center</span>
-          </h1>
+ 
+     <!-- 메인 컨텐츠 영역 -->
+     <main class="flex-initial shrink-0 max-w-7xl w-full mx-auto px-3.5 py-3 flex flex-col gap-4">
+ 
+       <section id="auth-container" class="space-y-5 animate-fade-in">
+         
+         <!-- 타이틀 히어로 헤더 -->
+         <div class="text-center max-w-2xl mx-auto space-y-2 pb-1">
+           <h1 class="text-xl sm:text-2xl font-black text-[#f37321] tracking-tighter leading-tight whitespace-nowrap">
+             AI Wellness <span class="text-[#000000]">Care Center</span>
+           </h1>
           <p class="text-slate-600 text-sm sm:text-base break-keep">
             국민건강보험공단 검진 데이터와 보유하신 건강검진 결과서(PDF)를 융합하여,<br class="hidden sm:inline"/>
             한화손보 Wellness AI Agent가 건강한 삶을 위한 가이드를 생성합니다.
@@ -51,10 +89,10 @@
         </div>
 
         <!-- 1열 매끄러운 수직 타임라인 시스템 (Step 1 -> Step 2 -> Step 3) -->
-        <div class="max-w-2xl mx-auto space-y-8 animate-fade-in relative">
+        <div class="max-w-2xl mx-auto space-y-5 animate-fade-in relative">
           
           <!-- [Step 1] 고객정보 입력 -->
-          <div class="bg-white rounded-2xl border border-slate-200/95 p-6 sm:p-8 shadow-xs hover:shadow-md transition-all relative">
+          <div class="bg-white rounded-2xl border border-slate-200/95 p-4 shadow-xs hover:shadow-md transition-all relative">
             <div class="space-y-5">
               <div class="flex items-center gap-2.5">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-black bg-[#f37321] text-white uppercase tracking-wider shadow-xs">Step 1</span>
@@ -114,7 +152,7 @@
           </div>
 
           <!-- [Step 2] 가족력 입력 (신규 추가) -->
-          <div id="step-2-card" class="hidden bg-white rounded-2xl border border-slate-200/95 p-6 sm:p-8 shadow-xs hover:shadow-md transition-all relative animate-fade-in">
+          <div id="step-2-card" class="hidden bg-white rounded-2xl border border-slate-200/95 p-4 shadow-xs hover:shadow-md transition-all relative animate-fade-in">
             <div class="space-y-6">
               <div class="flex items-center gap-2.5">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-black bg-[#f37321] text-white uppercase tracking-wider shadow-xs">Step 2</span>
@@ -137,10 +175,13 @@
                   <div class="flex flex-wrap gap-2" id="father-factors-container">
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="father" data-factor="고혈압">고혈압</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="father" data-factor="당뇨병">당뇨병</button>
+                    <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="father" data-factor="고지혈증">고지혈증</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="father" data-factor="뇌졸중/뇌혈관">뇌졸중/뇌혈관</button>
+                    <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="father" data-factor="협심증/심근경색">협심증/심근경색</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="father" data-factor="심장질환">심장질환</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="father" data-factor="위암/대장암">위암/대장암</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="father" data-factor="폐암/간암">폐암/간암</button>
+                    <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="father" data-factor="만성신장질환">만성신장질환</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="father" data-factor="치매">치매</button>
                   </div>
                 </div>
@@ -155,10 +196,14 @@
                   <div class="flex flex-wrap gap-2" id="mother-factors-container">
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="mother" data-factor="고혈압">고혈압</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="mother" data-factor="당뇨병">당뇨병</button>
+                    <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="mother" data-factor="고지혈증">고지혈증</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="mother" data-factor="뇌졸중/뇌혈관">뇌졸중/뇌혈관</button>
+                    <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="mother" data-factor="협심증/심근경색">협심증/심근경색</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="mother" data-factor="심장질환">심장질환</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="mother" data-factor="위암/대장암">위암/대장암</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="mother" data-factor="유방암/자궁암">유방암/자궁암</button>
+                    <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="mother" data-factor="갑상선암">갑상선암</button>
+                    <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="mother" data-factor="만성신장질환">만성신장질환</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="mother" data-factor="치매">치매</button>
                   </div>
                 </div>
@@ -183,7 +228,7 @@
           </div>
 
           <!-- [Step 3] 건강검진 기록 가져오기 (기존 Step 2) -->
-          <div id="step-3-card" class="hidden bg-white rounded-2xl border border-slate-200/95 p-6 sm:p-8 shadow-xs hover:shadow-md transition-all relative animate-fade-in">
+          <div id="step-3-card" class="hidden bg-white rounded-2xl border border-slate-200/95 p-4 shadow-xs hover:shadow-md transition-all relative animate-fade-in">
             <div class="space-y-5">
               <div class="flex items-center gap-2.5">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-black bg-[#f37321] text-white uppercase tracking-wider shadow-xs">Step 3</span>
@@ -195,7 +240,7 @@
               </p>
 
               <!-- 동기화 강점 보드 구성 -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div class="grid grid-cols-1 gap-3 pt-2">
                 <div class="flex items-start gap-3 bg-[#fff5ee]/35 rounded-xl p-3.5 border border-[#f37321]/10">
                   <div class="w-7 h-7 bg-[#fff5ee] rounded-lg flex items-center justify-center text-[#f37321] shrink-0 mt-0.5">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -233,7 +278,7 @@
             </div>
 
             <!-- 📊 CODEF 동기화 건강검진 데이터 실시간 파싱 및 요약 패널 (전면 노출 개정) -->
-            <div id="codef-summary-section" class="hidden bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6 animate-fade-in text-left max-w-md mx-auto w-full mt-6">
+            <div id="codef-summary-section" class="hidden bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-6 animate-fade-in text-left max-w-md mx-auto w-full mt-6">
               <!-- 헤더 영역 (닫기 버튼 제거됨) -->
               <div class="flex flex-col border-b border-slate-100 pb-3 gap-1">
                 <div class="flex items-center gap-2">
@@ -250,7 +295,7 @@
               </div>
 
               <!-- 💡 AI 건강 스코어 및 종합 소견 영역 (도넛 서클 확대 및 사유 요약 하단 배치 구현) -->
-              <div id="codef-summary-health-report" class="bg-[#fff5ee]/40 border border-[#f37321]/15 rounded-2xl p-6 flex flex-col items-center gap-5 shadow-xs text-center transition-all hover:shadow-md w-full">
+              <div id="codef-summary-health-report" class="bg-[#fff5ee]/40 border border-[#f37321]/15 rounded-2xl p-4 flex flex-col items-center gap-5 shadow-xs text-center transition-all hover:shadow-md w-full">
                 <!-- 도넛 그래프 (w-28 h-28로 대폭 확대) -->
                 <div class="relative w-28 h-28 flex items-center justify-center filter drop-shadow-sm shrink-0">
                   <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
@@ -313,7 +358,7 @@
                   <span class="w-1 h-3.5 bg-[#f37321] rounded-full"></span>
                   <span class="text-xs font-black text-slate-500 uppercase tracking-wider">최근 5개년 건강 추세 트랙</span>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="grid grid-cols-2 gap-3">
                   <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all">
                     <div class="flex justify-between items-center px-1">
                       <span class="text-xs text-slate-400 font-extrabold">수축기 혈압</span>
@@ -358,7 +403,7 @@
           </div>
 
           <!-- [Step 4] 건강검진 기록 업로드 (기존 Step 3) -->
-          <div id="step-4-card" class="hidden bg-white rounded-2xl border border-slate-200/95 p-6 sm:p-8 shadow-xs hover:shadow-md transition-all relative animate-fade-in">
+          <div id="step-4-card" class="hidden bg-white rounded-2xl border border-slate-200/95 p-4 shadow-xs hover:shadow-md transition-all relative animate-fade-in">
             <div class="space-y-5 flex flex-col justify-start text-left">
               <div class="flex items-center gap-2.5">
                 <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black bg-emerald-500 text-white uppercase tracking-wider shadow-xs">Step 4</span>
@@ -370,11 +415,11 @@
               </p>
 
               <!-- 히든 컨트롤러 -->
-              <input type="file" id="file-input-pdf" class="hidden" multiple accept="image/*,application/pdf" />
-              <input type="file" id="file-input-camera" class="hidden" accept="image/*" capture="environment" />
+              <input type="file" id="file-input-pdf" class="hidden" multiple accept=".jpg,.jpeg,.png,.pdf" />
+              <input type="file" id="file-input-camera" class="hidden" accept=".jpg,.jpeg,.png" capture="environment" />
 
               <!-- 드래그 앤 드롭 존 시연 -->
-              <div id="pdf-drag-zone" class="border-2 border-dashed border-slate-200 hover:border-[#f37321] bg-slate-50/70 hover:bg-[#fff5ee] rounded-xl p-6 text-center cursor-pointer transition-all space-y-3">
+              <div id="pdf-drag-zone" class="border-2 border-dashed border-slate-200 hover:border-[#f37321] bg-slate-50/70 hover:bg-[#fff5ee] rounded-xl p-4 text-center cursor-pointer transition-all space-y-3">
                 <div class="w-10 h-10 rounded-full bg-white mx-auto flex items-center justify-center shadow-xs border border-slate-100" id="pdf-icon-wrapper">
                   <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -425,7 +470,7 @@
           <div id="parsed-file-summary-overlay" class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs select-none"></div>
 
           <!-- 📁 업로드 파일 건강검진 데이터 실시간 파싱 및 요약 패널 -->
-          <div id="parsed-file-summary-section" class="bg-gradient-to-br from-white to-[#fffbf9] border border-[#f37321]/30 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 animate-fade-in text-left relative z-10 max-w-4xl w-full max-h-[85vh] overflow-y-auto">
+          <div id="parsed-file-summary-section" class="bg-gradient-to-br from-white to-[#fffbf9] border border-[#f37321]/30 rounded-3xl p-4 shadow-2xl space-y-6 animate-fade-in text-left relative z-10 max-w-4xl w-full max-h-[85vh] overflow-y-auto">
             <!-- 우측 상단 닫기 x 버튼 -->
             <button type="button" id="btn-close-parsed-file-summary" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-lg transition-all cursor-pointer">
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -451,7 +496,7 @@
             </div>
 
             <!-- 💡 AI 건강 스코어 및 종합 소견 영역 (도넛 서클 확대 및 사유 요약 하단 배치 구현) -->
-            <div id="parsed-file-summary-health-report" class="bg-gradient-to-r from-orange-50/50 to-amber-50/30 border border-[#f37321]/15 rounded-2xl p-6 flex flex-col items-center gap-5 shadow-xs text-center transition-all hover:shadow-md w-full">
+            <div id="parsed-file-summary-health-report" class="bg-gradient-to-r from-orange-50/50 to-amber-50/30 border border-[#f37321]/15 rounded-2xl p-4 flex flex-col items-center gap-5 shadow-xs text-center transition-all hover:shadow-md w-full">
               <!-- 도넛 그래프 (w-28 h-28로 대폭 확대) -->
               <div class="relative w-28 h-28 flex items-center justify-center filter drop-shadow-sm shrink-0">
                 <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
@@ -484,9 +529,9 @@
             </div>
 
             <!-- 요약 대시 카드 그리드 및 지표 상태 보드 -->
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <div class="flex flex-col gap-4">
               <!-- 좌측: 최신 종합 지표 소견 보드 -->
-              <div class="md:col-span-7 space-y-4">
+              <div class="space-y-4">
                 <h5 class="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-1.5">
                   <span class="w-1 h-3 bg-[#f37321] rounded-full"></span>
                   최신 성적 지표 상세 분석 (한화손보 가이드 라인)
@@ -497,7 +542,7 @@
               </div>
 
               <!-- 우측: 5개년 건강 인덱스 타임트랙 일람 -->
-              <div class="md:col-span-5 bg-slate-50 border border-slate-100/90 rounded-xl p-4.5 space-y-4">
+              <div class="bg-slate-50 border border-slate-100/90 rounded-xl p-4.5 space-y-4">
                 <h5 class="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-1.5">
                   <span class="w-1 h-3 bg-[#f37321] rounded-full"></span>
                   연도별 종합 검진 지표 추이
@@ -580,7 +625,7 @@
       <!-- ======================================================== -->
       <!-- 2. AI 보고서 융합 처리 로딩 단계 (STEP 2: Loading) -->
       <!-- ======================================================== -->
-      <section id="loading-container" class="hidden max-w-xl mx-auto bg-white rounded-3xl border border-slate-200 p-8 shadow-md text-center space-y-6 animate-fade-in">
+      <section id="loading-container" class="hidden max-w-xl mx-auto bg-white rounded-3xl border border-slate-200 p-5 shadow-md text-center space-y-6 animate-fade-in">
         <div class="relative w-20 h-20 mx-auto">
           <!-- 기어 회전 휠 모사 인공지능 로더 -->
           <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
@@ -617,7 +662,7 @@
       <section id="dashboard-container" class="hidden space-y-6 animate-fade-in">
         
         <!-- 대시보드 탑 웰컴 카드 -->
-        <div class="bg-gradient-to-r from-[#353968] via-[#24274d] to-[#353968] rounded-none sm:rounded-3xl -mx-4 sm:mx-0 p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
+        <div class="bg-gradient-to-r from-[#353968] via-[#24274d] to-[#353968] rounded-2xl p-4.5 text-white shadow-xl flex flex-col justify-between items-start gap-4 relative overflow-hidden">
           <div class="absolute right-0 top-0 opacity-10 pointer-events-none transform translate-x-20 -translate-y-10">
             <!-- 시그니처 형상 마크 백그라운드 디자인 -->
             <svg viewBox="0 0 100 100" class="w-96 h-96" fill="currentColor">
@@ -660,30 +705,30 @@
         </div>
 
         <!-- 탭 네비게이션 메커니즘 (4대 테마 융합 구성) -->
-        <div class="bg-white rounded-none sm:rounded-2xl border-y sm:border border-slate-200 -mx-4 sm:mx-0 p-2 shadow-sm grid grid-cols-4 gap-1.5">
-          <button type="button" class="tab-btn py-3 px-1 rounded-xl font-extrabold text-[11px] sm:text-[13px] tracking-tight transition-all text-center focus:outline-none flex flex-col sm:flex-row items-center justify-center gap-1 bg-[#f37321] text-white" data-tab="trends">
+        <div class="bg-white rounded-2xl border border-slate-200 p-2 shadow-sm grid grid-cols-4 gap-1">
+          <button type="button" class="tab-btn py-2.5 px-0.5 rounded-xl font-black text-[10.5px] tracking-tighter transition-all text-center focus:outline-none flex flex-col items-center justify-center gap-0.5 bg-[#f37321] text-white" data-tab="trends">
             <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
             </svg>
             건강 시계열
           </button>
-          <button type="button" class="tab-btn py-3 px-1 rounded-xl font-extrabold text-[11px] sm:text-[13px] tracking-tight transition-all text-center focus:outline-none flex flex-col sm:flex-row items-center justify-center gap-1 text-slate-600 hover:bg-slate-50" data-tab="report">
+          <button type="button" class="tab-btn py-2.5 px-0.5 rounded-xl font-black text-[10.5px] tracking-tighter transition-all text-center focus:outline-none flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-slate-50" data-tab="report">
             <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             AI 보고서
           </button>
-          <button type="button" class="tab-btn py-3 px-1 rounded-xl font-extrabold text-[11px] sm:text-[13px] tracking-tight transition-all text-center focus:outline-none flex flex-col sm:flex-row items-center justify-center gap-1 text-slate-600 hover:bg-slate-50" data-tab="consulting">
-            <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            AI 컨설팅
-          </button>
-          <button type="button" class="tab-btn py-3 px-1 rounded-xl font-extrabold text-[11px] sm:text-[13px] tracking-tight transition-all text-center focus:outline-none flex flex-col sm:flex-row items-center justify-center gap-1 text-slate-600 hover:bg-slate-50" data-tab="action">
+          <button type="button" class="tab-btn py-2.5 px-0.5 rounded-xl font-black text-[10.5px] tracking-tighter transition-all text-center focus:outline-none flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-slate-50" data-tab="action">
             <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
             AI 주치의
+          </button>
+          <button type="button" class="tab-btn py-2.5 px-0.5 rounded-xl font-black text-[10.5px] tracking-tighter transition-all text-center focus:outline-none flex flex-col items-center justify-center gap-0.5 text-slate-600 hover:bg-slate-50" data-tab="consulting">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            AI 컨설팅
           </button>
         </div>
 
@@ -691,13 +736,13 @@
         <!-- 3-A-1. AI 컨설팅 (CONSULTING TAB) -->
         <!-- ========================================== -->
         <div id="section-consulting" class="tab-section hidden space-y-6">
-          <div class="bg-white rounded-none sm:rounded-3xl border-y sm:border border-slate-200/80 -mx-4 sm:mx-0 p-8 shadow-xs space-y-4">
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs space-y-4">
              <h3 class="font-extrabold text-lg text-slate-900">다른 설계서와 비교 분석</h3>
              <p class="text-slate-500 text-sm">기존에 설계받은 보험 설계서를 업로드하거나 사진을 찍어 올려주시면, 현재 추천 상품과 비교하여 보장 차이점을 분석해 드립니다.</p>
 
-             <input type="file" id="existing-plan-file" class="hidden" accept="image/*,application/pdf" />
+             <input type="file" id="existing-plan-file" class="hidden" accept=".jpg,.jpeg,.png,.pdf" />
 
-             <div id="upload-zone" class="border-2 border-dashed border-slate-200 hover:border-[#f37321] bg-slate-50/70 hover:bg-[#fff5ee] rounded-xl p-6 text-center cursor-pointer transition-all">
+             <div id="upload-zone" class="border-2 border-dashed border-slate-200 hover:border-[#f37321] bg-slate-50/70 hover:bg-[#fff5ee] rounded-xl p-4 text-center cursor-pointer transition-all">
                 <span class="text-xs font-semibold text-slate-700">설계서 파일 / 사진 선택</span>
              </div>
 
@@ -713,20 +758,20 @@
         <div id="section-report" class="tab-section hidden space-y-6">
           
           <!-- 상위 2열 패널 (스코어 기어 및 종합 문장) -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             
             <!-- 점수판 카드 (모바일 웅장한 볼륨 확대 개정) -->
-            <div class="bg-white rounded-none sm:rounded-3xl border-y sm:border border-slate-200/80 -mx-4 sm:mx-0 p-6 flex flex-col items-center justify-center text-center shadow-xs">
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-4 flex flex-col items-center justify-center text-center shadow-xs">
               <span class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Health Score 지수</span>
               
               <!-- 서클 점수 연출 -->
-              <div class="relative w-40 h-40 md:w-36 md:h-36 flex items-center justify-center">
+              <div class="relative w-32 h-32 flex items-center justify-center">
                 <svg class="absolute w-full h-full transform -rotate-90 filter drop-shadow-[0_0_6px_rgba(243,115,33,0.15)]" viewBox="0 0 100 100">
                   <circle cx="50" cy="50" r="42" stroke="#f4f5f7" stroke-width="8" fill="transparent" />
                   <circle id="score-circle-arc" cx="50" cy="50" r="42" stroke="#f37321" stroke-width="8" fill="transparent" stroke-dasharray="263.8" stroke-dashoffset="52.7" stroke-linecap="round" class="progress-transition" />
                 </svg>
                 <div class="flex flex-col items-center">
-                  <span id="rendered-score-num" class="text-5xl md:text-4xl font-black text-slate-900 leading-none">84</span>
+                  <span id="rendered-score-num" class="text-4xl font-black text-slate-900 leading-none">84</span>
                   <span class="text-[10px] text-slate-400 font-bold mt-1.5">/ 100 점</span>
                 </div>
               </div>
@@ -738,7 +783,7 @@
             </div>
 
             <!-- 종합 소견서 말풍선 카드 -->
-            <div class="md:col-span-2 bg-white rounded-none sm:rounded-3xl border-y sm:border border-slate-200/80 -mx-4 sm:mx-0 p-6 sm:p-8 flex flex-col justify-center space-y-4 shadow-xs">
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-4 flex flex-col justify-center space-y-3 shadow-xs">
               <div class="flex items-center gap-1.5 text-[#f37321]">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 113.536 0V21h2v-2.243a5 5 0 013.536 0V21h2v-5.071" />
@@ -752,7 +797,7 @@
           </div>
 
           <!-- 유해 경보 세부 지표 분석 목록 -->
-          <div class="bg-white rounded-none sm:rounded-3xl border-y sm:border border-slate-200/80 -mx-4 sm:mx-0 p-6 shadow-xs space-y-4">
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs space-y-4">
             <div class="flex items-center gap-2 mb-2">
               <div class="w-7 h-7 rounded-lg bg-orange-100 text-[#f37321] flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -769,7 +814,7 @@
           </div>
 
           <!-- 내년도 추천 정밀 검사 항목 추천 구역 -->
-          <div class="bg-white rounded-none sm:rounded-3xl border-y sm:border border-slate-200/80 -mx-4 sm:mx-0 p-6 shadow-xs space-y-4">
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs space-y-4">
             <div class="flex items-center gap-2 mb-2">
               <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -779,78 +824,18 @@
               <h3 class="font-extrabold text-slate-900 text-base">대사 연동기반 내년 추천 검진 항목</h3>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="rendered-recommended-checks">
+            <div class="grid grid-cols-1 gap-3" id="rendered-recommended-checks">
               <!-- Grid items injected dynamically -->
             </div>
           </div>
 
-          <!-- 💊 복용 약물 및 처방전 비전 분석 섹션 (NEW) -->
-          <div class="bg-white rounded-none sm:rounded-3xl border-y sm:border border-slate-200/80 -mx-4 sm:mx-0 p-6 shadow-xs space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </div>
-                <h3 class="font-extrabold text-slate-900 text-base">현재 복용 약물 및 처방전 분석</h3>
-              </div>
-              <span id="prescription-status-badge" class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-200">미등록</span>
-            </div>
 
-            <!-- 업로드 드롭존 -->
-            <div id="prescription-upload-zone" class="border-2 border-dashed border-slate-200 hover:border-teal-500 bg-slate-50/50 hover:bg-teal-50/10 rounded-2xl p-6 text-center cursor-pointer transition-all space-y-3">
-              <input type="file" id="prescription-file-input" class="hidden" accept="image/*" />
-              <div class="w-10 h-10 rounded-full bg-white mx-auto flex items-center justify-center shadow-xs border border-slate-100" id="prescription-icon-wrapper">
-                <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                </svg>
-              </div>
-              <div class="space-y-1">
-                <span class="text-xs sm:text-sm font-bold text-slate-700 block" id="prescription-filename-text">처방전이나 약 봉투 사진 업로드</span>
-                <span class="text-[10px] text-slate-400 block">카메라로 촬영한 사진이나 약 설명서 이미지를 넣어주세요.</span>
-              </div>
-            </div>
-
-            <!-- 로딩바 (업로드 및 분석 시 노출) -->
-            <div id="prescription-loading-bar" class="hidden space-y-2 py-4 text-center">
-              <div class="relative w-10 h-10 mx-auto">
-                <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
-                <div class="absolute inset-0 rounded-full border-4 border-t-teal-500 animate-spin border-r-transparent border-b-transparent border-l-transparent"></div>
-              </div>
-              <p class="text-xs text-teal-600 font-bold animate-pulse">Gemini Vision이 약 처방 이미지를 정밀 분석하는 중입니다...</p>
-            </div>
-
-            <!-- 분석 결과 렌더링 영역 -->
-            <div id="prescription-result-container" class="hidden space-y-3">
-              <div class="p-4 bg-teal-50/50 border border-teal-100 rounded-2xl text-left">
-                <span class="text-[9px] font-extrabold text-teal-600 block uppercase tracking-wider mb-1">약사 AI 총평</span>
-                <p id="prescription-summary-text" class="text-slate-700 text-xs sm:text-sm leading-relaxed font-semibold break-keep"></p>
-              </div>
-
-              <!-- 약물 상세 카드 그리드 -->
-              <div id="medication-cards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-left">
-                <!-- Medications will be injected here -->
-              </div>
-
-              <!-- 재분석 알림 & 버튼 -->
-              <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3">
-                <div class="space-y-1 text-left">
-                  <h4 class="text-xs font-black text-amber-900">💡 처방 정보 반영 완료</h4>
-                  <p class="text-[10px] text-amber-700 font-semibold leading-relaxed break-keep">새로 등록된 약물 성분과 건강 검진 수치 간의 상호작용 및 조심해야 할 합병증 분석이 필요합니다.</p>
-                </div>
-                <button type="button" id="btn-reanalyze-with-prescription" class="w-full sm:w-auto bg-[#f37321] hover:bg-[#dd6216] text-white rounded-xl py-2.5 px-4 font-bold text-xs tracking-wide shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                  🔄 건강 진단 업데이트
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- ========================================== -->
         <!-- 3-B. 건강 트렌드 시계열 분석 (TRENDS TAB) -->
         <!-- ========================================== -->
-        <div id="section-trends" class="tab-section bg-white rounded-none sm:rounded-3xl -mx-4 sm:mx-0 border-y sm:border border-slate-200 p-0 py-4 sm:p-4 md:p-6 shadow-xs space-y-4">
+        <div id="section-trends" class="tab-section bg-white rounded-2xl border border-slate-200 p-4 sm:p-4 md:p-4 shadow-xs space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 sm:px-0">
             <div class="space-y-1">
               <h3 class="font-extrabold text-slate-900 text-base">연도별 정밀 건강 지표 추이</h3>
@@ -888,10 +873,10 @@
           </div>
 
           <!-- 📈 다이나믹 년도별 건강검진 카드 캐러샐 -->
-          <div class="relative bg-slate-50 border-y sm:border border-slate-200/80 rounded-none sm:rounded-3xl p-0 py-3 sm:p-3 overflow-hidden space-y-3">
+          <div class="relative bg-slate-50 border border-slate-200/80 rounded-2xl p-3 overflow-hidden space-y-3">
             
             <!-- 📅 상단 컨트롤 패널 (모바일 극대화 배치 및 와이드 화살표 양옆 콤팩트 연결) -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-none sm:rounded-2xl border-y sm:border border-slate-200/60 shadow-3xs">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-xl border border-slate-200/60 shadow-3xs">
               <div class="flex items-center gap-2 px-1 sm:px-0">
                 <span class="text-lg">📊</span>
                 <div class="text-left row-span-2">
@@ -924,13 +909,26 @@
         <!-- ========================================== -->
         <!-- 3-C. AI 생활추천 & 주치의 (ACTION & CHAT COMBINED) -->
         <!-- ========================================== -->
-        <div id="section-action" class="tab-section hidden grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        <div id="section-action" class="tab-section hidden flex flex-col gap-5">
           
-          <!-- 좌측: 생활 추천 가이드 (7-grid column) -->
-          <div class="lg:col-span-7 flex flex-col space-y-4">
+          <!-- 3-C-Sub. AI 주치의 내부 서브 탭 메뉴 -->
+          <div class="flex border border-slate-200 p-1 bg-slate-100/60 rounded-2xl gap-1">
+            <button type="button" class="sub-tab-btn flex-1 py-2.5 rounded-xl font-extrabold text-xs tracking-tight transition-all text-center focus:outline-none bg-white text-slate-800 shadow-3xs" data-sub-tab="action-lifestyle">
+              생활 교정
+            </button>
+            <button type="button" class="sub-tab-btn flex-1 py-2.5 rounded-xl font-extrabold text-xs tracking-tight transition-all text-center focus:outline-none text-slate-500 hover:bg-slate-100/50" data-sub-tab="action-chat">
+              AI 주치의 3.1
+            </button>
+            <button type="button" class="sub-tab-btn flex-1 py-2.5 rounded-xl font-extrabold text-xs tracking-tight transition-all text-center focus:outline-none text-slate-500 hover:bg-slate-100/50" data-sub-tab="action-prescription">
+              약봉투·처방전
+            </button>
+          </div>
+
+          <!-- 1. AI생활 교정처방 서브 섹션 -->
+          <div id="sub-section-action-lifestyle" class="sub-tab-content space-y-4">
             
             <!-- 상단 인트로 배너 -->
-            <div class="bg-gradient-to-br from-slate-900 via-[#1a233a] to-[#0e1424] rounded-none sm:rounded-3xl -mx-4 sm:mx-0 p-5 text-white shadow-xs space-y-1.5 border-y sm:border border-slate-800">
+            <div class="bg-gradient-to-br from-slate-900 via-[#1a233a] to-[#0e1424] rounded-2xl p-5 text-white shadow-xs space-y-1.5 border border-slate-800">
               <div class="inline-flex gap-1 items-center bg-[#f37321] text-white px-2.5 py-0.5 rounded-full text-[9px] font-black tracking-widest uppercase animate-pulse">
                 한화손보 Wellness
               </div>
@@ -942,11 +940,10 @@
               </p>
             </div>
 
-            <!-- 3대 교정전략 세부 지침 (체크리스트 대신 깔끔한 추천 보드 형상화) -->
+            <!-- 3대 교정전략 세부 지침 -->
             <div class="space-y-4 flex-1">
-              
               <!-- 1. 식단 관리 -->
-              <div class="bg-white rounded-none sm:rounded-3xl border-y sm:border border-slate-200/80 -mx-4 sm:mx-0 p-5 shadow-2xs space-y-2.5">
+              <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-2.5">
                 <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5 text-[#f37321]">
                   🍳 맞춤 영양 식습관 지침 처방
                 </h4>
@@ -956,7 +953,7 @@
               </div>
 
               <!-- 2. 운동 관리 -->
-              <div class="bg-white rounded-none sm:rounded-3xl border-y sm:border border-slate-200/80 -mx-4 sm:mx-0 p-5 shadow-2xs space-y-2.5">
+              <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-2.5">
                 <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5 text-indigo-600">
                   🚴 개인 맞춤 체력 운동 지침 처방
                 </h4>
@@ -965,8 +962,8 @@
                 </div>
               </div>
 
-              <!-- 3. 생활 습관 모니터링 -->
-              <div class="bg-white rounded-none sm:rounded-3xl border-y sm:border border-slate-200/80 -mx-4 sm:mx-0 p-5 shadow-2xs space-y-2.5">
+              <!-- 3. 생활 습관 모니럼 -->
+              <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-2.5">
                 <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5 text-emerald-600">
                   🌙 코어 수면 및 라이프케어 권장 가이드
                 </h4>
@@ -977,61 +974,117 @@
             </div>
           </div>
 
-          <!-- 우측: AI 맞춤 주치의 상담 (5-grid column, 컴팩트 및 내장화) -->
-          <div id="section-chat-standalone" class="lg:col-span-5 bg-white rounded-none sm:rounded-3xl border-y sm:border border-slate-200/80 -mx-4 sm:mx-0 overflow-hidden shadow-xs h-[500px] lg:h-auto min-h-[480px] flex flex-col">
-            
-            <!-- 채팅 헤더 정보바 (컴팩트화) -->
-            <div class="bg-slate-50 border-b border-slate-200 px-4 py-3.5 flex items-center justify-between gap-3">
-              <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-[#fff5ee] border border-orange-200 text-[#f37321] flex items-center justify-center shrink-0 shadow-3xs">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          <!-- 2. AI 주치의 3.1 서브 섹션 -->
+          <div id="sub-section-action-chat" class="sub-tab-content hidden">
+            <div id="section-chat-standalone" class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs h-[740px] min-h-[660px] flex flex-col">
+              
+              <!-- 채팅 헤더 정보바 -->
+              <div class="bg-slate-50 border-b border-slate-200 px-4 py-3.5 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-full bg-[#fff5ee] border border-orange-200 text-[#f37321] flex items-center justify-center shrink-0 shadow-3xs">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="font-black text-slate-900 text-xs sm:text-sm flex items-center gap-1">
+                      한화손보 AI 주치의 3.1
+                    </h4>
+                    <p class="text-[9px] text-slate-400">당뇨전단계 / 자율 식사 수칙 / 맞춤 예방 처방</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 메시지 스크롤 허브 -->
+              <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-55/70 text-xs">
+                <!-- Injected standard messenger logs inside -->
+              </div>
+
+              <!-- 추천 질문 칩 -->
+              <div class="px-4 py-3 border-t border-slate-200/60 bg-[#fafafa]">
+                <div class="flex items-center gap-1 text-[10px] font-black text-slate-400 mb-2 select-none leading-none">
+                  <span>💡 빠른 추천 질문 (클릭 시 전송):</span>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2" id="chat-recommendation-chips-container">
+                  <button type="button" class="chat-chip bg-orange-50 hover:bg-orange-100 text-[#f37321] border border-orange-200/40 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all cursor-pointer text-left shadow-3xs w-full sm:w-auto shrink-0 flex items-center justify-between sm:justify-start gap-1.5" data-query="공복혈당 조절을 위한 맞춤 핵심 식습관 순서와 꿀팁을 알려주세요.">
+                    <span>식습관 처방 🍳</span>
+                    <svg class="w-3.5 h-3.5 sm:hidden text-[#f37321]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                  </button>
+                  <button type="button" class="chat-chip bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/40 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all cursor-pointer text-left shadow-3xs w-full sm:w-auto shrink-0 flex items-center justify-between sm:justify-start gap-1.5" data-query="체중 감량과 대사 지표 안정을 위한 최적의 유산소 운동 강도와 빈도를 알려주세요.">
+                    <span>맞춤 운동 처방 🚴</span>
+                    <svg class="w-3.5 h-3.5 sm:hidden text-indigo-600/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                  </button>
+                  <button type="button" class="chat-chip bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/40 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all cursor-pointer text-left shadow-3xs w-full sm:w-auto shrink-0 flex items-center justify-between sm:justify-start gap-1.5" data-query="수면에 활력회복을 극대화해 주는 저녁 시간 생활 수칙을 가이드해 주세요.">
+                    <span>피로회복 수면법 🌙</span>
+                    <svg class="w-3.5 h-3.5 sm:hidden text-emerald-600/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 하단 입력바 -->
+              <form id="chat-input-form" class="bg-white border-t border-slate-200/60 p-2.5 flex gap-1.5 items-center">
+                <input type="text" id="chat-user-message-input" autocomplete="off" placeholder="예: 공복혈당 극복 운동 주기는?" class="flex-1 bg-slate-50 border border-slate-200 focus:bg-white rounded-xl px-3 py-2 text-xs sm:text-xs.5 focus:ring-1 focus:ring-[#f37321] outline-none transition-all" />
+                <button type="submit" id="btn-chat-send" class="bg-[#f37321] hover:bg-[#dd6216] text-white rounded-xl px-3.5 py-2 text-xs font-bold transition-all flex justify-center items-center shrink-0">
+                  <svg class="w-3.5 h-3.5 transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- 3. AI 약봉투, 처방전 분석 vision 서브 섹션 -->
+          <div id="sub-section-action-prescription" class="sub-tab-content hidden">
+            <!-- 💊 복용 약물 및 처방전 비전 분석 섹션 -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
+                  <h3 class="font-extrabold text-slate-900 text-base">현재 복용 약물 및 처방전 분석</h3>
+                </div>
+                <span id="prescription-status-badge" class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-200">미등록</span>
+              </div>
+
+              <!-- 업로드 드롭존 -->
+              <div id="prescription-upload-zone" class="border-2 border-dashed border-slate-200 hover:border-teal-500 bg-slate-50/50 hover:bg-teal-50/10 rounded-2xl p-4 text-center cursor-pointer transition-all space-y-3">
+                <input type="file" id="prescription-file-input" class="hidden" accept=".jpg,.jpeg,.png,.pdf" />
+                <div class="w-10 h-10 rounded-full bg-white mx-auto flex items-center justify-center shadow-xs border border-slate-100" id="prescription-icon-wrapper">
+                  <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                   </svg>
                 </div>
-                <div>
-                  <h4 class="font-black text-slate-900 text-xs sm:text-sm flex items-center gap-1">
-                    한화손보 AI 주치의 3.1
-                  </h4>
-                  <p class="text-[9px] text-slate-400">당뇨전단계 / 자율 식사 수칙 / 맞춤 예방 처방</p>
+                <div class="space-y-1">
+                  <span class="text-xs sm:text-sm font-bold text-slate-700 block" id="prescription-filename-text">처방전이나 약 봉투 사진 업로드</span>
+                  <span class="text-[10px] text-slate-400 block">카메라로 촬영한 사진이나 약 설명서 이미지를 넣어주세요.</span>
+                </div>
+              </div>
+
+              <!-- 로딩바 -->
+              <div id="prescription-loading-bar" class="hidden space-y-2 py-4 text-center">
+                <div class="relative w-10 h-10 mx-auto">
+                  <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                  <div class="absolute inset-0 rounded-full border-4 border-t-teal-500 animate-spin border-r-transparent border-b-transparent border-l-transparent"></div>
+                </div>
+                <p class="text-xs text-teal-600 font-bold animate-pulse">Gemini Vision이 약 처방 이미지를 정밀 분석하는 중입니다...</p>
+              </div>
+
+              <!-- 분석 결과 렌더링 영역 -->
+              <div id="prescription-result-container" class="hidden space-y-3">
+                <div class="p-4 bg-teal-50/50 border border-teal-100 rounded-2xl text-left">
+                  <span class="text-[9px] font-extrabold text-teal-600 block uppercase tracking-wider mb-1">약사 AI 총평</span>
+                  <p id="prescription-summary-text" class="text-slate-700 text-xs sm:text-sm leading-relaxed font-semibold break-keep"></p>
+                </div>
+
+                <!-- 약물 상세 카드 그리드 -->
+                <div id="medication-cards-grid" class="grid grid-cols-1 gap-3 text-left">
+                  <!-- Medications will be injected here -->
                 </div>
               </div>
             </div>
-
-            <!-- 메시지 스크롤 허브 (조금 더 작고 아담하게 조율) -->
-            <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-55/70 text-xs">
-              <!-- Injected standard messenger logs inside -->
-            </div>
-
-            <!-- 추천 질문 칩 (Thematic Suggested Queries - 모바일 터치 최적화) -->
-            <div class="px-4 py-3 border-t border-slate-200/60 bg-[#fafafa]">
-              <div class="flex items-center gap-1 text-[10px] font-black text-slate-400 mb-2 select-none leading-none">
-                <span>💡 빠른 추천 질문 (클릭 시 전송):</span>
-              </div>
-              <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2" id="chat-recommendation-chips-container">
-                <button type="button" class="chat-chip bg-orange-50 hover:bg-orange-100 text-[#f37321] border border-orange-200/40 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all cursor-pointer text-left shadow-3xs w-full sm:w-auto shrink-0 flex items-center justify-between sm:justify-start gap-1.5" data-query="공복혈당 조절을 위한 맞춤 핵심 식습관 순서와 꿀팁을 알려주세요.">
-                  <span>식습관 처방 🍳</span>
-                  <svg class="w-3.5 h-3.5 sm:hidden text-[#f37321]/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </button>
-                <button type="button" class="chat-chip bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/40 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all cursor-pointer text-left shadow-3xs w-full sm:w-auto shrink-0 flex items-center justify-between sm:justify-start gap-1.5" data-query="체중 감량과 대사 지표 안정을 위한 최적의 유산소 운동 강도와 빈도를 알려주세요.">
-                  <span>맞춤 운동 처방 🚴</span>
-                  <svg class="w-3.5 h-3.5 sm:hidden text-indigo-600/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </button>
-                <button type="button" class="chat-chip bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/40 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all cursor-pointer text-left shadow-3xs w-full sm:w-auto shrink-0 flex items-center justify-between sm:justify-start gap-1.5" data-query="수면에 활력회복을 극대화해 주는 저녁 시간 생활 수칙을 가이드해 주세요.">
-                  <span>피로회복 수면법 🌙</span>
-                  <svg class="w-3.5 h-3.5 sm:hidden text-emerald-600/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </button>
-              </div>
-            </div>
-
-            <!-- 하단 입력바 (컴팩트화) -->
-            <form id="chat-input-form" class="bg-white border-t border-slate-200/60 p-2.5 flex gap-1.5 items-center">
-              <input type="text" id="chat-user-message-input" autocomplete="off" placeholder="예: 공복혈당 극복 운동 주기는?" class="flex-1 bg-slate-50 border border-slate-200 focus:bg-white rounded-xl px-3 py-2 text-xs sm:text-xs.5 focus:ring-1 focus:ring-[#f37321] outline-none transition-all" />
-              <button type="submit" id="btn-chat-send" class="bg-[#f37321] hover:bg-[#dd6216] text-white rounded-xl px-3.5 py-2 text-xs font-bold transition-all flex justify-center items-center shrink-0">
-                <svg class="w-3.5 h-3.5 transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-              </button>
-            </form>
           </div>
 
         </div>
@@ -1042,7 +1095,7 @@
     <div id="auth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs select-none"></div>
       
-      <div class="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl relative z-10 space-y-6">
+      <div class="bg-white rounded-3xl border border-slate-200 max-w-sm w-full p-4 shadow-2xl relative z-10 space-y-6">
         
         <!-- 헤더 및 닫기 버튼 -->
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -1247,7 +1300,7 @@
     <div id="provider-detail-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs select-none" id="provider-detail-overlay"></div>
       
-      <div class="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl relative z-10 space-y-6 animate-fade-in text-left">
+      <div class="bg-white rounded-3xl border border-slate-200 max-w-sm w-full p-4 shadow-2xl relative z-10 space-y-6 animate-fade-in text-left">
         <!-- 헤더 및 닫기 버튼 -->
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
@@ -1306,7 +1359,7 @@
     <div id="consent-detail-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs select-none" id="consent-detail-overlay"></div>
       
-      <div class="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl relative z-10 space-y-6 animate-fade-in text-left">
+      <div class="bg-white rounded-3xl border border-slate-200 max-w-sm w-full p-4 shadow-2xl relative z-10 space-y-6 animate-fade-in text-left">
         <!-- 헤더 및 닫기 버튼 -->
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
@@ -1403,7 +1456,7 @@
     <div id="upload-choice-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs select-none" id="upload-choice-overlay"></div>
       
-      <div class="bg-white rounded-3xl border border-slate-200 max-w-sm w-full p-6 shadow-2xl relative z-10 space-y-6 animate-fade-in text-left">
+      <div class="bg-white rounded-3xl border border-slate-200 max-w-sm w-full p-4 shadow-2xl relative z-10 space-y-6 animate-fade-in text-left">
         <!-- 헤더 -->
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
@@ -1461,7 +1514,7 @@
     <!-- 📄 상담 예약 완료 알림 모달 -->
     <div id="consultation-success-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs select-none"></div>
-      <div class="bg-white rounded-3xl border border-slate-200 max-w-sm w-full p-6 shadow-2xl relative z-10 space-y-4 text-center animate-fade-in">
+      <div class="bg-white rounded-3xl border border-slate-200 max-w-sm w-full p-4 shadow-2xl relative z-10 space-y-4 text-center animate-fade-in">
         <div class="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-500">
           <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
@@ -1475,13 +1528,291 @@
       </div>
     </div>
 
+    <!-- 📄 보험료 산출 및 특약 적정성 근거 팝업 모달 -->
+    <div id="premium-basis-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+      <!-- 어두운 백그라운드 오버레이 -->
+      <div id="premium-basis-overlay" class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs select-none"></div>
+
+      <!-- 콘텐츠 박스 -->
+      <div class="bg-white rounded-3xl border border-slate-200 max-w-sm w-full p-4 shadow-2xl relative z-10 space-y-5 animate-fade-in text-left">
+        <!-- 헤더 -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 bg-[#fff5ee] rounded-lg text-[#f37321] flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 class="font-extrabold text-[#f37321] text-sm">보험료 산출 및 특약 가입적정성 근거</h3>
+          </div>
+          <button type="button" id="btn-close-premium-basis" class="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-lg transition-all cursor-pointer">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- 스크롤 가능한 본문 내용 -->
+        <div class="space-y-4 max-h-[420px] overflow-y-auto pr-1 text-xs sm:text-sm text-slate-700">
+          <div class="bg-[#fff5ee]/30 rounded-xl p-3 border border-[#f37321]/15 space-y-1">
+            <div class="font-bold text-slate-900 text-xs">피보험자 맞춤 지표 기반 설계</div>
+            <p class="text-[10px] text-slate-500 leading-relaxed break-keep" id="modal-premium-basis-intro">
+              고객님의 최근 5개년 누적 검진 지표와 패밀리 유전 병력을 매칭하여 산출한 예방적 특약 비중입니다.
+            </p>
+          </div>
+
+          <!-- 탭 버튼바 -->
+          <div class="flex border border-slate-150 text-slate-505 text-[11px] font-bold bg-slate-50 p-0.5 rounded-lg mb-2">
+            <button type="button" id="tab-btn-basis-coverages" class="flex-1 py-1.5 text-center rounded-md bg-white text-slate-900 shadow-3xs cursor-pointer basis-tab-btn active">담보별 사유</button>
+            <button type="button" id="tab-btn-basis-formula" class="flex-1 py-1.5 text-center rounded-md hover:text-slate-800 cursor-pointer basis-tab-btn">산출 공식</button>
+            <button type="button" id="tab-btn-basis-adequacy" class="flex-1 py-1.5 text-center rounded-md hover:text-slate-800 cursor-pointer basis-tab-btn">납입 적정성</button>
+          </div>
+
+          <!-- [탭 1] 담보별 사유 -->
+          <div id="basis-content-coverages" class="space-y-3">
+            <div class="space-y-3" id="modal-premium-basis-details">
+              <!-- JS dynamic inject -->
+            </div>
+          </div>
+
+          <!-- [탭 2] 산출 공식 및 계리요율 -->
+          <div id="basis-content-formula" class="hidden space-y-3">
+            <div class="bg-slate-50 border border-slate-150 rounded-xl p-3.5 space-y-2 text-left">
+              <div class="font-bold text-slate-900 text-[11px]">⚙️ 공식 계리적 산출 공식</div>
+              <div class="bg-white border border-slate-100 p-2.5 rounded-lg text-center font-mono text-[10px] text-slate-700 leading-normal">
+                <div class="font-bold text-slate-900 mb-1">월 보험료 = 합계 (가입금액 × 요율)</div>
+                <div class="text-[9px] text-slate-400">
+                  [기저 요율(40세)] × [연령지수] × [위험할증률] × [간편인수할증]
+                </div>
+              </div>
+              
+              <div class="text-[10px] text-slate-500 leading-relaxed font-medium space-y-1.5">
+                <div>• <b>연령지수 (Age Factor):</b> 40세 기준(1.0)으로 매년 4.5%씩 복리 가중 적용됩니다. (30세는 약 0.55배, 50세는 약 1.45배)</div>
+                <div>• <b>위험할증률 (Risk Surcharge):</b> 임상 검진 지표상 위험 수치 또는 직계 가족력 발견 시 15%~25%의 리스크 보장 할증이 산식에 가산됩니다.</div>
+                <div>• <b>간편인수할증 (Simplified Surcharge):</b> 만성질환 정기 복약자(유병자)의 경우 가입조건 완화에 맞춰 약 +25% 할증률이 적용됩니다.</div>
+              </div>
+            </div>
+
+            <!-- 공식 요율표 안내 -->
+            <div class="border border-slate-150 rounded-xl overflow-hidden text-[10px] font-semibold text-slate-650">
+              <table class="w-full text-center border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-slate-200 text-slate-450 font-bold text-[9px]">
+                    <th class="py-1.5 px-1 text-left pl-2.5">담보명</th>
+                    <th class="py-1.5 px-1">남성(40세)</th>
+                    <th class="py-1.5 px-1">여성(40세)</th>
+                    <th class="py-1.5 px-1">할증조건</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-600 bg-white">
+                  <tr>
+                    <td class="py-1.5 px-1 text-left pl-2.5 font-bold text-slate-700">암 진단비 (1천만)</td>
+                    <td class="py-1.5 px-1">6,800 원</td>
+                    <td class="py-1.5 px-1">6,100 원</td>
+                    <td class="py-1.5 px-1 text-emerald-600 font-bold">+15% (암가족력)</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-1 text-left pl-2.5 font-bold text-slate-700">뇌혈관 진단 (1천만)</td>
+                    <td class="py-1.5 px-1">5,600 원</td>
+                    <td class="py-1.5 px-1">4,900 원</td>
+                    <td class="py-1.5 px-1 text-emerald-600 font-bold">+20% (혈압/가족)</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-1 text-left pl-2.5 font-bold text-slate-700">심장질환 진단 (1천만)</td>
+                    <td class="py-1.5 px-1">4,450 원</td>
+                    <td class="py-1.5 px-1">3,400 원</td>
+                    <td class="py-1.5 px-1 text-emerald-600 font-bold">+15% (혈압/가족)</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-1 text-left pl-2.5 font-bold text-slate-700">대사성 질환 (1백만)</td>
+                    <td class="py-1.5 px-1">980 원</td>
+                    <td class="py-1.5 px-1">780 원</td>
+                    <td class="py-1.5 px-1 text-emerald-600 font-bold">+25% (당뇨/가족)</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-1 text-left pl-2.5 font-bold text-slate-700">질병수술비 (1백만)</td>
+                    <td class="py-1.5 px-1">1,540 원</td>
+                    <td class="py-1.5 px-1">1,380 원</td>
+                    <td class="py-1.5 px-1 text-slate-400 font-medium">없음</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- [탭 3] 가입 적정성 평가 -->
+          <div id="basis-content-adequacy" class="hidden space-y-3">
+            <div class="bg-slate-50 border border-slate-150 rounded-xl p-3.5 space-y-3.5 text-left">
+              <div class="space-y-1">
+                <div class="font-bold text-slate-900 text-[11px]">💳 가입 보험료의 재무적 적정성 검증</div>
+                <p class="text-[10px] text-slate-450 leading-relaxed font-semibold">
+                  한국재무설계학회 및 금융감독원 권고 기준에 따르면, 전체 월 보험료는 가구 월 평균 실소득의 <b>5% ~ 8% 이내</b>로 포지셔닝해야 자금 사정의 제약 없이 장기 유지가 가능합니다.
+                </p>
+              </div>
+
+              <!-- 가입 적정 게이지 그래프 -->
+              <div class="space-y-1.5 bg-white p-3 rounded-lg border border-slate-100">
+                <div class="flex justify-between items-center text-[10px] font-extrabold text-slate-600">
+                  <span>가구 소득 대비 추천 보험료 비중</span>
+                  <span id="adequacy-ratio-text" class="text-[#f37321]">약 1.8% (매우 안전)</span>
+                </div>
+                <!-- Progress bar -->
+                <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden flex">
+                  <div id="adequacy-ratio-bar" class="h-full bg-emerald-500 rounded-full" style="width: 25%"></div>
+                </div>
+                <div class="flex justify-between items-center text-[8px] text-slate-400 font-bold px-0.5">
+                  <span>0%</span>
+                  <span>적정선 (5%~8%)</span>
+                  <span>초과 (10%+)</span>
+                </div>
+              </div>
+
+              <div class="text-[10px] text-slate-500 leading-relaxed space-y-1 font-semibold">
+                <div>• <b>보장 설계 수준:</b> 통상 3대 질병 진단비는 환자 본인 및 외벌이 기준 1.5년치 연봉 수준을 확보해야 완치 후 복귀 기간 동안 생계비 보전이 가능하여 <b>가입금액 3,000만원~5,000만원</b> 수준이 안전 기준선으로 평가됩니다.</div>
+                <div>• <b>결론:</b> 현재 고객님의 추천 포트폴리오는 소득 대비 비중이 매우 낮아 <b>가입 유지에 따른 해지 리스크가 극히 최소화</b>된 우량한 적정 설계 포지셔닝입니다.</div>
+              </div>
+            </div>
+
+            <!-- 건강 스코어 우량체 할인표 재배치 -->
+            <div class="space-y-2">
+              <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5 pl-0.5">
+                <span>🩺 한화손보 건강지표 우량체 할인 제도</span>
+                <span id="modal-discount-badge" class="bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-3xs">할인 미적용</span>
+              </div>
+              <table class="w-full text-center border-collapse text-[10px] font-semibold text-slate-650">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-slate-150 font-bold text-slate-400 text-[9px]">
+                    <th class="py-1">종합 건강점수</th>
+                    <th class="py-1">우량등급 구분</th>
+                    <th class="py-1">특별 할인율</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white">
+                  <tr id="row-super-health" class="bg-white">
+                    <td class="py-1.5 font-mono">90점 이상</td>
+                    <td class="py-1.5">슈퍼 우량건강체</td>
+                    <td class="py-1.5 text-emerald-600 font-bold">20% 할인 적용</td>
+                  </tr>
+                  <tr id="row-good-health" class="bg-white">
+                    <td class="py-1.5 font-mono">80점 ~ 89점</td>
+                    <td class="py-1.5">일반 우량건강체</td>
+                    <td class="py-1.5 text-emerald-600 font-bold">10% 할인 적용</td>
+                  </tr>
+                  <tr id="row-fair-health" class="bg-white">
+                    <td class="py-1.5 font-mono">70점 ~ 79점</td>
+                    <td class="py-1.5">준우량건강체</td>
+                    <td class="py-1.5 text-emerald-600 font-bold">5% 할인 적용</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 🔗 하단 공식 링크 바로가기 카드 배너 -->
+          <div class="bg-indigo-50/40 border border-indigo-100 rounded-2xl p-3.5 space-y-2 text-left relative overflow-hidden">
+            <div class="font-bold text-indigo-900 text-xs flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+              한화손보 공식 공시실 약관 다운로드
+            </div>
+            <p class="text-[9px] text-slate-450 leading-relaxed font-semibold break-keep">
+              아래 링크를 클릭하시면 해당 추천 상품의 상세 보장 범위, 제외 질병 규정, 해약환급금 및 약관 전문을 다운로드하여 법적 약관의 효력을 직접 조회할 수 있습니다.
+            </p>
+            <div class="grid grid-cols-2 gap-2 pt-1 relative z-10">
+              <a id="modal-link-official-site" href="#" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg border border-indigo-300 bg-white text-indigo-700 hover:bg-indigo-50 font-bold text-[10px] transition-all tracking-tight cursor-pointer text-center no-underline">
+                공식 상품공시 정보
+              </a>
+              <a id="modal-link-pdf-guide" href="#" target="_blank" download class="flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 font-bold text-[10px] transition-all tracking-tight cursor-pointer text-center no-underline">
+                공식 약관 PDF
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" id="btn-confirm-premium-basis" class="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl py-3 text-xs font-bold leading-none tracking-wide transition-all shadow-xs cursor-pointer">
+          확인
+        </button>
+      </div>
+    </div>
+
     <!--  Footer -->
-    <footer class="bg-white border-t border-slate-200 mt-20 select-none">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between text-[#767676] text-xs gap-4">
-        <p>© 2026 한화손해보험<span class="text-[#000000] font-semibold"> AI Wellness Care Center</span>. 모든 권리 보유. 이 의료적 분석은 건강 관리 참고용으로 진료를 대체하지 않습니다.</p>
-        <!-- links removed -->
+    <footer class="bg-transparent mt-4 select-none pb-6 text-center">
+      <div class="max-w-7xl mx-auto px-4 py-3 text-[#767676] text-[10px] sm:text-xs">
+        <p class="leading-relaxed break-keep">© 2026 한화손해보험<span class="text-[#000000] font-semibold"> AI Wellness Care Center</span>. 모든 권리 보유.<br/>이 의료적 분석은 건강 관리 참고용으로 진료를 대체하지 않습니다.</p>
       </div>
     </footer>
+
+      </div> <!-- /#app-viewport -->
+
+      <!-- 🏠 스마트폰 하단 홈 바 -->
+      <div class="hidden sm:flex h-5 bg-white items-center justify-center shrink-0 z-40 border-t border-slate-50">
+        <div class="w-28 h-1 bg-slate-800 rounded-full opacity-40"></div>
+      </div>
+
+    </div> <!-- /.w-full (phone-frame) -->
+
+    <!-- 상단 상태바 시각 실시간 동기화 스크립트 -->
+    <script>
+      function updateMockTime() {
+        const timeDisplay = document.getElementById("mock-status-time");
+        if (!timeDisplay) return;
+        const now = new Date();
+        const hrs = now.getHours().toString().padStart(2, '0');
+        const mins = now.getMinutes().toString().padStart(2, '0');
+        timeDisplay.innerText = `${hrs}:${mins}`;
+      }
+      setInterval(updateMockTime, 1000);
+      document.addEventListener("DOMContentLoaded", updateMockTime);
+    </script>
+
+    <!-- PC 스마트폰 내부 드래그 스크롤 스크립트 -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const viewport = document.getElementById("app-viewport");
+        if (!viewport) return;
+        
+        let isDown = false;
+        let startY;
+        let scrollTop;
+        
+        viewport.addEventListener("mousedown", (e) => {
+          if (e.target.closest("button, input, select, a, textarea, [role='button']")) return;
+          isDown = true;
+          viewport.style.cursor = "grabbing";
+          viewport.style.userSelect = "none";
+          startY = e.pageY - viewport.offsetTop;
+          scrollTop = viewport.scrollTop;
+        });
+        
+        viewport.addEventListener("mouseleave", () => {
+          isDown = false;
+          viewport.style.cursor = "default";
+          viewport.style.removeProperty("user-select");
+        });
+        
+        viewport.addEventListener("mouseup", () => {
+          isDown = false;
+          viewport.style.cursor = "default";
+          viewport.style.removeProperty("user-select");
+        });
+        
+        viewport.addEventListener("mousemove", (e) => {
+          if (!isDown) return;
+          e.preventDefault();
+          const y = e.pageY - viewport.offsetTop;
+          const walk = (y - startY) * 1.5;
+          viewport.scrollTop = scrollTop - walk;
+        });
+
+        // 배경 휠 스크롤 이벤트를 스마트폰 뷰포트 내부로 전달하여 데스크탑/태블릿 스크롤 편의성 극대화
+        document.addEventListener("wheel", (e) => {
+          if (window.innerWidth >= 640) {
+            viewport.scrollTop += e.deltaY;
+          }
+        }, { passive: true });
+      });
+    </script>
 
     <!-- Vanilla Script 실행 -->
     <script type="module" src="/src/main.tsx"></script>

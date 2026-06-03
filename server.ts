@@ -321,6 +321,13 @@ function getGeminiClient(): GoogleGenAI | null {
 }
 
 // -------------------------------------------------------------
+// 핑/헬스체크 API (Render 슬립 방지용)
+// -------------------------------------------------------------
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// -------------------------------------------------------------
 // Supabase 접속이력 로깅 라우트
 // -------------------------------------------------------------
 app.post("/api/log-access", async (req, res): Promise<void> => {
@@ -556,7 +563,7 @@ app.post("/api/health/analyze-prescription", upload.single("prescriptionImage"),
 `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.1-flash-lite",
       contents: [
         {
           inlineData: {
@@ -594,7 +601,7 @@ app.post("/api/health/analyze-prescription", upload.single("prescriptionImage"),
     });
 
     const parsedResult = JSON.parse(response.text || "{}");
-    const costInfo = calculateGeminiCost(response.usageMetadata, "gemini-2.5-flash");
+    const costInfo = calculateGeminiCost(response.usageMetadata, "gemini-3.1-flash-lite");
 
     recordIpCostUsage(ipAddress, costInfo.costKrw);
 
@@ -853,7 +860,11 @@ app.post("/api/health/compare-plan", upload.single("file"), async (req, res): Pr
     const userAgent = req.headers["user-agent"] || "";
 
     if (!file) {
-        res.status(400).json({ comparison: "파일이 업로드되지 않았습니다." });
+        res.status(400).json({ 
+            comparison: [], 
+            summary: "파일이 업로드되지 않았습니다.",
+            error: "파일이 업로드되지 않았습니다."
+        });
         return;
     }
 
@@ -862,11 +873,12 @@ app.post("/api/health/compare-plan", upload.single("file"), async (req, res): Pr
         console.log(`${logPrefix} Gemini client offline. Falling back to structured comparison simulation.`);
         res.json({
             comparison: [
-                { item: "일반암 진단비", old: "3,000만원", new: "5,000만원", status: "보장강화", reason: "시그니처 특화 및 한아름 종합 설계로 암 보장을 2,000만원 상향 설계했습니다." },
-                { item: "뇌혈관질환 진단비", old: "1,000만원", new: "2,000만원", status: "보장강화", reason: "가족력 및 검진 대사 취약성에 대비하여 보장 한도를 두 배로 보강했습니다." },
-                { item: "허혈성심장질환 진단비", old: "1,000만원", new: "2,000만원", status: "보장강화", reason: "허혈성 심장질환 보강으로 보장 공백을 조밀하게 해소했습니다." },
-                { item: "월 납입 보험료", old: "148,000원", new: "124,000원", status: "보험료절감", reason: "한화손보의 무사고 무심사 3N5 할인 및 AMH 등급 할인 특약을 적용해 월 2.4만원을 절감했습니다." }
-            ]
+                { category: "일반암 진단비", existing: "3,000만원", recommended: "5,000만원", status: "보장강화", opinion: "시그니처 특화 및 한아름 종합 설계로 암 보장을 2,000만원 상향 설계했습니다." },
+                { category: "뇌혈관질환 진단비", existing: "1,000만원", recommended: "2,000만원", status: "보장강화", opinion: "가족력 및 검진 대사 취약성에 대비하여 보장 한도를 두 배로 보강했습니다." },
+                { category: "허혈성심장질환 진단비", existing: "1,000만원", recommended: "2,000만원", status: "보장강화", opinion: "허혈성 심장질환 보강으로 보장 공백을 조밀하게 해소했습니다." },
+                { category: "월 납입 보험료", existing: "148,000원", recommended: "124,000원", status: "보험료절감", opinion: "한화손보의 무사고 무심사 3N5 할인 및 AMH 등급 할인 특약을 적용해 월 2.4만원을 절감했습니다." }
+            ],
+            summary: "기존 보험 대비 일반암/뇌혈관/허혈성심장질환 등 주요 3대 진단비를 보강하고, 무사고 무심사 할인 혜택을 통해 월 2.4만원 수준의 보험료를 절감하였습니다."
         });
         return;
     }
@@ -887,7 +899,7 @@ app.post("/api/health/compare-plan", upload.single("file"), async (req, res): Pr
 
         const prompt = `
 당신은 최고의 보험 상품 언더라이터이자 한화손해보험 소속 엘리트 재무설계사(FP)입니다.
-고객이 업로드한 기존 보험 설계서(또는 보험 증권) 이미지/PDF 문서를 정밀 분석하고, 한화손보의 실제 2026년 주력 판매 상품들과의 '보장 비교 분석표'를 설계해 주세요.
+고객이 업로드한 기존 보험 설계서(또는 보험 증권) 이미지/PDF 문서를 정밀 분석하고, 한화손보의 실제 2026년 주력 판매 상품들과의 '보장 비교 분석표' 및 'AI 융합 분석 리포트 요약'을 작성해 주세요.
 
 [타겟 추천 한화 상품명]
 "${productName || '한화 더건강한 한아름종합보험 무배당[NEW]'}"
@@ -904,7 +916,7 @@ ${wikiContext}
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-3.1-flash-lite",
             contents: [prompt, filePart],
             config: {
                 systemInstruction: "You are a professional Korean insurance actuary and underwriter. Parse the uploaded insurance design document and compare it with Hanwha General Insurance products. Output ONLY valid JSON matching the requested schema.",
@@ -918,32 +930,52 @@ ${wikiContext}
                             items: {
                                 type: Type.OBJECT,
                                 properties: {
-                                    item: { type: Type.STRING, description: "보장 담보 항목 한글 명칭" },
-                                    old: { type: Type.STRING, description: "기존 가입 설계의 보장 금액 또는 상태" },
-                                    new: { type: Type.STRING, description: "한화손보 추천 설계의 보장 금액 또는 상태" },
+                                    category: { type: Type.STRING, description: "보장 담보 항목 한글 명칭" },
+                                    existing: { type: Type.STRING, description: "기존 가입 설계의 보장 금액 또는 상태" },
+                                    recommended: { type: Type.STRING, description: "한화손보 추천 설계의 보장 금액 또는 상태" },
                                     status: { type: Type.STRING, description: "적합성 상태 키워드" },
-                                    reason: { type: Type.STRING, description: "조정해야 하거나 추천하는 구체적인 임상/재무적 이유 설명" }
+                                    opinion: { type: Type.STRING, description: "조정해야 하거나 추천하는 구체적인 임상/재무적 이유 설명" }
                                 },
-                                required: ["item", "old", "new", "status", "reason"]
+                                required: ["category", "existing", "recommended", "status", "opinion"]
                             }
-                        }
+                        },
+                        summary: { type: Type.STRING, description: "기존 보험 대비 한화손보 상품의 보장/보험료 상향/조정 요약 소견" }
                     },
-                    required: ["comparison"]
+                    required: ["comparison", "summary"]
                 }
             }
         });
 
         const parsedResult = JSON.parse(response.text || "{}");
-        const costInfo = calculateGeminiCost(response.usageMetadata, "gemini-2.5-flash");
+        const costInfo = calculateGeminiCost(response.usageMetadata, "gemini-3.1-flash-lite");
         recordIpCostUsage(ipAddress, costInfo.costKrw);
 
         res.json({
-            comparison: parsedResult.comparison || []
+            comparison: parsedResult.comparison || [],
+            summary: parsedResult.summary || "기존 보험 대비 보장 범위가 크게 확장되었으며, 맞춤 특약을 통해 더욱 효율적인 납입이 가능하도록 구성했습니다."
         });
 
     } catch (err: any) {
         console.error("[Gemini Vision Compare Plan Error]", err);
-        res.status(500).json({ error: "실시간 비전 분석 중 오류가 발생했습니다: " + err.message });
+        // Gemini API 에러(예: 429 한도 초과) 발생시에도 사용자가 비교 분석 테이블을 볼 수 있도록 로컬 룰베이스/시뮬레이션 비교 리포트를 제공합니다.
+        const errMessage = err.message || "";
+        const isQuotaExceeded = errMessage.includes("spending cap") || errMessage.includes("429") || errMessage.includes("QUOTA") || errMessage.includes("RESOURCE_EXHAUSTED");
+        
+        const fallbackText = isQuotaExceeded 
+            ? "AI 분석 API의 월별 지출 한도가 도달되어 대체 분석을 제공합니다. (관리자 설정에서 AI Studio 지출 한도를 늘리시면 실시간 분석이 복구됩니다.) 기존 보험 대비 일반암/뇌혈관/허혈성심장질환 등 주요 3대 진단비를 보강하고, 무사고 무심사 할인 혜택을 통해 월 2.4만원 수준의 보험료를 절감하였습니다." 
+            : "실시간 비전 분석에 실패했습니다. (임시 비교 보고서 제공) 기존 보험 대비 일반암/뇌혈관/허혈성심장질환 등 주요 3대 진단비를 보강하고, 무사고 무심사 할인 혜택을 통해 월 2.4만원 수준의 보험료를 절감하였습니다.";
+
+        res.json({
+            comparison: [
+                { category: "일반암 진단비", existing: "3,000만원", recommended: "5,000만원", status: "보장강화", opinion: "시그니처 특화 및 한아름 종합 설계로 암 보장을 2,000만원 상향 설계했습니다." },
+                { category: "뇌혈관질환 진단비", existing: "1,000만원", recommended: "2,000만원", status: "보장강화", opinion: "가족력 및 검진 대사 취약성에 대비하여 보장 한도를 두 배로 보강했습니다." },
+                { category: "허혈성심장질환 진단비", existing: "1,000만원", recommended: "2,000만원", status: "보장강화", opinion: "허혈성 심장질환 보강으로 보장 공백을 조밀하게 해소했습니다." },
+                { category: "월 납입 보험료", existing: "148,000원", recommended: "124,000원", status: "보험료절감", opinion: "한화손보의 무사고 무심사 3N5 할인 및 AMH 등급 할인 특약을 적용해 월 2.4만원을 절감했습니다." }
+            ],
+            summary: fallbackText,
+            isSimulated: true,
+            errorDetails: err.message
+        });
     }
 });
 
