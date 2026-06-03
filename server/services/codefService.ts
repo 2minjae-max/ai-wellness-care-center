@@ -405,7 +405,7 @@ export async function requestNhisSync(params: {
       return {
         result: {
           code: "CF-00013",
-          message: "CODEF API 요청 도메인/IP 차단 오류가 의심됩니다. CODEF 대시보드에서 허용할 IP(180.230.92.146)를 등록했는지 확인해 주세요."
+          message: "CODEF API 요청 도메인/IP 차단 오류가 의심됩니다. CODEF 대시보드에서 허용할 IP(로컬 개발환경 IP 또는 Render 서버 아웃바운드 IP)를 등록했는지 확인해 주세요."
         },
         data: {}
       };
