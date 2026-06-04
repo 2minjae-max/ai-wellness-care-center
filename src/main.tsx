@@ -260,12 +260,12 @@ function renderPersonaPresets() {
   container.innerHTML = samplePersonas.map((persona) => {
     const isSelected = persona.name === userName;
     return `
-      <div class="preset-card p-3 rounded-xl border border-slate-200 hover:border-[#f37321] hover:bg-[#fff5ee] bg-white cursor-pointer transition-all flex items-center justify-between group" data-id="${persona.id}">
+      <div class="preset-card p-3 rounded-xl border border-slate-200 hover:border-[#f37321] hover:bg-[#fff5ee] bg-white cursor-pointer transition-all flex items-center justify-between group" data-id="$persona.id">
         <div class="flex items-center gap-2.5">
-          <span class="text-xl">${persona.icon}</span>
+          <span class="text-xl">$persona.icon</span>
           <div class="text-left">
-            <span class="text-xs font-extrabold text-[#231f20] group-hover:text-[#f37321] block">${persona.name} (${persona.genderText}, ${persona.age}세)</span>
-            <span class="text-[10px] text-slate-400 block mt-0.5 max-w-[190px] truncate leading-tight">${persona.diseaseHint}</span>
+            <span class="text-xs font-extrabold text-[#231f20] group-hover:text-[#f37321] block">$persona.name ($persona.genderText, $persona.age세)</span>
+            <span class="text-[10px] text-slate-400 block mt-0.5 max-w-[190px] truncate leading-tight">$persona.diseaseHint</span>
           </div>
         </div>
         <svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-[#f37321]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -657,7 +657,7 @@ function setupEventListeners() {
     // 2단계: 실패 시 → 생년월일 기반 비밀번호 자동 시도
     if (!pdf && birthDate) {
       const candidates = generateBirthPasswordCandidates(birthDate);
-      console.log(`[PDF] 암호화 PDF 감지 → 생년월일 기반 ${candidates.length}개 비밀번호 자동 시도 중...`);
+      console.log(`[PDF] 암호화 PDF 감지 → 생년월일 기반 $candidates.length개 비밀번호 자동 시도 중...`);
       
       for (const pwd of candidates) {
         pdf = await tryOpenPdf(pwd);
@@ -679,7 +679,7 @@ function setupEventListeners() {
           `🔒 암호화된 PDF 파일입니다.\n\n` +
           `국민건강보험 건강검진 결과 통보서는 보통\n` +
           `생년월일 6자리(예: 900101)로 암호가 설정되어 있습니다.\n\n` +
-          `비밀번호를 입력해 주세요 (${userAttempts}/${MAX_ATTEMPTS} 시도):`
+          `비밀번호를 입력해 주세요 ($userAttempts/$MAX_ATTEMPTS 시도):`
         );
 
         if (userPassword === null) {
@@ -835,14 +835,14 @@ function setupEventListeners() {
     // 0. 연도 추출
     // ────────────────────────────────────────────────────
     let year = new Date().getFullYear();
-    const fileYearMatch = filename.match(/(20\d{2})/);
+    const fileYearMatch = filename.match(/(20\d2)/);
     if (fileYearMatch) {
       year = parseInt(fileYearMatch[1]);
     } else {
       // 텍스트에서 "검진일", "검사일", "발급일" 근처 연도 우선
       for (const line of lines) {
         if (/검진일|검사일|발급일|검진.*일자|수검일/.test(line)) {
-          const ym = line.match(/(20\d{2})/);
+          const ym = line.match(/(20\d2)/);
           if (ym) { year = parseInt(ym[1]); break; }
         }
       }
@@ -1208,7 +1208,7 @@ function setupEventListeners() {
           logAccessEvent("step2_file_parse_success", { fileName: file.name, metrics: metricsResult });
         }
       } catch (err: any) {
-        uploadedFiles[fileIndex].customText = `[가독오류 발령]\n파일명: ${file.name}\n사유: ${err.message || err}`;
+        uploadedFiles[fileIndex].customText = `[가독오류 발령]\n파일명: $file.name\n사유: ${err.message || err}`;
         uploadedFiles[fileIndex].isParsing = false;
         uploadedFiles[fileIndex].parseFailed = true;
         uploadedFiles[fileIndex].parseErrorMessage = err.message || "파일을 텍스트로 읽는 데 실패했습니다.";
@@ -1754,8 +1754,8 @@ function triggerAIAnalysis() {
       const step = loadingSteps[stepIdx];
       if (loadingText) loadingText.innerText = step.text;
       const pct = Math.min(100, Math.floor(((stepIdx + 1) / loadingSteps.length) * 100));
-      if (loadingFill) loadingFill.style.width = `${pct}%`;
-      if (loadingPct) loadingPct.innerText = `${pct}%`;
+      if (loadingFill) loadingFill.style.width = `$pct%`;
+      if (loadingPct) loadingPct.innerText = `$pct%`;
 
       setTimeout(() => {
         stepIdx++;
@@ -1819,7 +1819,7 @@ async function executeAIReportFetch() {
     const topBadge = $("top-user-badge");
     const topUser = $("top-username");
     if (topBadge && topUser) {
-      topUser.innerText = `${userName}님`;
+      topUser.innerText = `$userName님`;
       topBadge.classList.remove("hidden");
     }
 
@@ -1877,7 +1877,7 @@ function switchTab(tabName: "report" | "trends" | "action" | "chat" | "consultin
   $$(".tab-section").forEach((sec) => {
     sec.classList.add("hidden");
   });
-  $(`section-${tabName}`)?.classList.remove("hidden");
+  $(`section-$tabName`)?.classList.remove("hidden");
 
   // 🔄 년도별 건강검진 카드 자동 캐러샐 회전 타이머 조율
   if (tabName === "trends") {
@@ -2170,11 +2170,11 @@ function renderConsultingTab() {
     return `
       <tr class="border-b border-slate-100 last:border-b-0">
         <td class="py-3 px-2">
-          <div class="font-bold text-slate-800 text-xs sm:text-sm">${cov.name}</div>
+          <div class="font-bold text-slate-800 text-xs sm:text-sm">$cov.name</div>
           <div class="text-[10px] text-slate-400 mt-0.5 font-bold">한화손해보험 최신 맞춤설계특약</div>
         </td>
-        <td class="py-3 px-2 text-right font-extrabold text-slate-900 text-xs sm:text-xs">${cov.amount}</td>
-        <td class="py-3 px-2 text-right font-bold text-[#f37321] text-xs sm:text-sm">${formattedPremium} 원</td>
+        <td class="py-3 px-2 text-right font-extrabold text-slate-900 text-xs sm:text-xs">$cov.amount</td>
+        <td class="py-3 px-2 text-right font-bold text-[#f37321] text-xs sm:text-sm">$formattedPremium 원</td>
       </tr>
     `;
   }).join("");
@@ -2191,7 +2191,7 @@ function renderConsultingTab() {
             AI 건강 맞춤형 컨설팅
           </h3>
           <p class="text-slate-500 text-xs sm:text-sm mt-2 leading-relaxed">
-            고객님의 최근 건강검진 종합 지표(<span id="consulting-score-badge" class="font-bold text-slate-800">${analysisResult?.overallScore || 84}점</span>), 만 연령(<strong>만 ${userAge}세</strong>) 및 기재해주신 건강 상태를 토대로 <strong class="text-slate-800 font-extrabold">한화손해보험 상품공시실 지식 위키</strong>에 현재 정식 판매 중인 건강보장형 상품들을 대조 분석하여, 고객님께 가장 완벽하게 보완된 비대면 맞춤 포트폴리오를 제공합니다.
+            고객님의 최근 건강검진 종합 지표(<span id="consulting-score-badge" class="font-bold text-slate-800">${analysisResult?.overallScore || 84}점</span>), 만 연령(<strong>만 $userAge세</strong>) 및 기재해주신 건강 상태를 토대로 <strong class="text-slate-800 font-extrabold">한화손해보험 상품공시실 지식 위키</strong>에 현재 정식 판매 중인 건강보장형 상품들을 대조 분석하여, 고객님께 가장 완벽하게 보완된 비대면 맞춤 포트폴리오를 제공합니다.
           </p>
         </div>
         
@@ -2205,20 +2205,20 @@ function renderConsultingTab() {
             <div class="space-y-2">
                 <div class="flex flex-col gap-1 items-start">
                     <span class="text-[10px] px-2 py-0.5 rounded-md bg-[#f37321] text-white font-black">${isSimplifiedTarget ? "AI 유병자 간편 맞춤설계" : "AI 추천 최적상품 (공시실 위키 연동)"}</span>
-                    <h4 class="font-black text-slate-900 text-sm sm:text-base">${productName}</h4>
+                    <h4 class="font-black text-slate-900 text-sm sm:text-base">$productName</h4>
                 </div>
-                <p class="text-slate-600 text-xs sm:text-sm leading-relaxed break-keep">${productDescription}</p>
+                <p class="text-slate-600 text-xs sm:text-sm leading-relaxed break-keep">$productDescription</p>
             </div>
             
             <!-- 🔗 상품 보러가기 / 설명서 다운로드 버튼 (모바일 한 손 조작 최적화) -->
             <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 relative z-10">
-              <a href="${productUrl}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-[#f37321] bg-white text-[#f37321] hover:bg-[#fff5ee] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline">
+              <a href="$productUrl" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-[#f37321] bg-white text-[#f37321] hover:bg-[#fff5ee] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
                 공식 상품 정보
               </a>
-              <a href="${guidePdfUrl}" target="_blank" download class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#f37321] text-white hover:bg-[#dd6216] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline">
+              <a href="$guidePdfUrl" target="_blank" download class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#f37321] text-white hover:bg-[#dd6216] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
@@ -2246,7 +2246,7 @@ function renderConsultingTab() {
                   </tr>
                 </thead>
                 <tbody class="text-xs text-slate-700">
-                  ${coveragesHtml}
+                  $coveragesHtml
                 </tbody>
               </table>
             </div>
@@ -2261,7 +2261,7 @@ function renderConsultingTab() {
             가족력 및 검진 지표 융합 분석 사유
           </h4>
           <div class="space-y-3 pl-0.5">
-            ${reasonHtml}
+            $reasonHtml
           </div>
         </div>
 
@@ -2271,9 +2271,9 @@ function renderConsultingTab() {
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calculated Monthly Premium</span>
             <h5 class="text-xs sm:text-sm font-black text-slate-750 block sm:inline">최종 월 납입 보험료</h5>
             <p class="text-2xl sm:text-3.5xl font-black text-[#f37321] tracking-tight mt-1">
-              <span id="consulting-display-bold-total" class="font-extrabold text-3xl sm:text-4xl text-[#f37321]">${formattedTotal}</span> 원
+              <span id="consulting-display-bold-total" class="font-extrabold text-3xl sm:text-4xl text-[#f37321]">$formattedTotal</span> 원
             </p>
-            ${discountRate > 0 ? `<p class="text-[10px] text-emerald-600 font-extrabold mt-1">✓ 건강등급 우량체 특별 할인 완료 (-${discountAmount.toLocaleString()}원)</p>` : ""}
+            ${discountRate > 0 ? `<p class="text-[10px] text-emerald-600 font-extrabold mt-1">✓ 건강등급 우량체 특별 할인 완료 (-$discountAmount.toLocaleString()원)</p>` : ""}
             ${isSimplifiedTarget ? `<p class="text-[10px] text-[#f37321] font-extrabold mt-1">✓ 만성질환 보장 우대 유병자형 간편인수 적용</p>` : ""}
           </div>
           <button type="button" id="btn-open-premium-basis" class="w-full sm:w-auto bg-[#353968] hover:bg-[#24274d] text-white rounded-xl py-3 px-4 font-bold text-xs tracking-wide flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0">
@@ -2344,10 +2344,10 @@ function renderConsultingTab() {
         detailsContainer.innerHTML = coverages.map(cov => `
           <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 space-y-1 text-left shadow-3xs">
             <div class="flex justify-between items-center">
-              <span class="font-extrabold text-slate-800 text-xs">${cov.name}</span>
-              <span class="text-[10px] text-[#f37321] font-black">${cov.amount} (월 ${cov.premium.toLocaleString()}원)</span>
+              <span class="font-extrabold text-slate-800 text-xs">$cov.name</span>
+              <span class="text-[10px] text-[#f37321] font-black">$cov.amount (월 $cov.premium.toLocaleString()원)</span>
             </div>
-            <p class="text-[10px] text-slate-500 leading-relaxed font-semibold break-keep">${cov.basis}</p>
+            <p class="text-[10px] text-slate-500 leading-relaxed font-semibold break-keep">$cov.basis</p>
           </div>
         `).join("");
       }
@@ -2355,7 +2355,7 @@ function renderConsultingTab() {
       // 2. Populate intro text with metrics
       const introText = $("modal-premium-basis-intro");
       if (introText) {
-        introText.innerHTML = `고객님의 최근 5개년 누적 검진 지표와 패밀리 유전 병력을 매칭하여 산출된 예방 특약 비중입니다. (공복혈당: ${glucose} mg/dL, 수축기혈압: ${sysBp} mmHg)`;
+        introText.innerHTML = `고객님의 최근 5개년 누적 검진 지표와 패밀리 유전 병력을 매칭하여 산출된 예방 특약 비중입니다. (공복혈당: $glucose mg/dL, 수축기혈압: $sysBp mmHg)`;
       }
 
       // 3. Populate discount badge
@@ -2391,7 +2391,7 @@ function renderConsultingTab() {
       const ratioBar = $("adequacy-ratio-bar");
 
       if (ratioText) {
-        ratioText.innerText = `월 ${ratio.toFixed(1)}% (${ratio <= 3 ? "매우 안전" : ratio <= 6 ? "안전" : "적정"})`;
+        ratioText.innerText = `월 $ratio.toFixed(1)% (${ratio <= 3 ? "매우 안전" : ratio <= 6 ? "안전" : "적정"})`;
       }
       if (ratioBar) {
         ratioBar.style.width = `${Math.min(100, (ratio / 8) * 100)}%`;
@@ -2446,8 +2446,8 @@ function renderConsultingTab() {
       if (progress < 92) {
         progress += Math.floor(Math.random() * 4) + 2; // 2%~5% increment
         if (progress > 92) progress = 92;
-        if (bar) bar.style.width = `${progress}%`;
-        if (percentText) percentText.innerText = `${progress}%`;
+        if (bar) bar.style.width = `$progress%`;
+        if (percentText) percentText.innerText = `$progress%`;
         
         if (progress < 25) {
           if (stepText) stepText.innerText = "설계서 파일에서 데이터 및 보장 내역을 해독하고 있습니다...";
@@ -2513,7 +2513,7 @@ function renderConsultingTab() {
                     <div class="bg-slate-50 border border-slate-200/50 rounded-xl p-3.5 space-y-2.5 text-left shadow-3xs">
                         <div class="flex justify-between items-center border-b border-slate-100 pb-2">
                             <span class="font-extrabold text-slate-800 text-xs sm:text-sm">${item.category || item.item || ""}</span>
-                            <span class="${statusClass} text-[10px]">${item.status || ""}</span>
+                            <span class="$statusClass text-[10px]">${item.status || ""}</span>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-xs">
                             <div class="bg-white rounded-lg p-2 border border-slate-100">
@@ -2535,7 +2535,7 @@ function renderConsultingTab() {
             const tableHtml = `
                 <!-- 모바일용 카드 리스트 (모바일 전용, 횡스크롤 방지) -->
                 <div class="block sm:hidden space-y-3">
-                    ${cardsHtml}
+                    $cardsHtml
                 </div>
 
                 <!-- 태블릿/데스크톱용 테이블 뷰 (sm 이상 해상도에서 노출) -->
@@ -2565,7 +2565,7 @@ function renderConsultingTab() {
                                         <td class="py-3 pr-2 font-bold text-slate-900">${item.category || item.item || ""}</td>
                                         <td class="py-3 pr-2 text-slate-500 whitespace-nowrap">${item.existing || item.old || ""}</td>
                                         <td class="py-3 pr-2 text-[#f37321] font-bold whitespace-nowrap">${item.recommended || item.new || ""}</td>
-                                        <td class="py-3 pr-2"><span class="${statusClass}">${item.status || ""}</span></td>
+                                        <td class="py-3 pr-2"><span class="$statusClass">${item.status || ""}</span></td>
                                         <td class="py-3 text-slate-600 leading-relaxed break-keep">${item.opinion || item.reason || ""}</td>
                                     </tr>
                                 `;
@@ -2581,7 +2581,7 @@ function renderConsultingTab() {
                         <span class="w-2.5 h-2.5 rounded-full bg-[#f37321]"></span>
                         <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm">보장 분석 비교 결과</h4>
                     </div>
-                    ${tableHtml}
+                    $tableHtml
                     <div class="bg-[#fffcf7] border border-[#f37321]/20 rounded-xl p-3.5 text-[11px] sm:text-xs leading-relaxed font-semibold text-slate-700 break-keep">
                         <span class="text-[#f37321] font-black">★ AI 융합 분석 리포트 요약:</span> ${data.summary || '기존 설계서 분석 요약 정보가 존재하지 않습니다.'}
                     </div>
@@ -2655,8 +2655,8 @@ function renderReportTab() {
     const r = 42;
     const circ = 2 * Math.PI * r; // 263.8
     const offset = circ * (1 - score / 100);
-    arc.style.strokeDasharray = `${circ}`;
-    arc.style.strokeDashoffset = `${offset}`;
+    arc.style.strokeDasharray = `$circ`;
+    arc.style.strokeDashoffset = `$offset`;
     
     // 종합 점수 색상 동적 치환
     if (score >= 90) arc.style.stroke = "#10b981"; // 에메랄드
@@ -2673,10 +2673,10 @@ function renderReportTab() {
   const diff = analysisResult.biologicalAgeDiff;
   if (ageText && ageWrapper) {
     if (diff < 0) {
-      ageText.innerText = `실제 나이 대비 ${Math.abs(diff)}년 젊음`;
+      ageText.innerText = `실제 나이 대비 $Math.abs(diff)년 젊음`;
       ageWrapper.className = "mt-4 px-3.5 py-1.5 rounded-full text-xs font-bold leading-none bg-emerald-50 text-emerald-700 border border-emerald-200";
     } else if (diff > 0) {
-      ageText.innerText = `실제 나이 대비 ${diff}년 노화 우려`;
+      ageText.innerText = `실제 나이 대비 $diff년 노화 우려`;
       ageWrapper.className = "mt-4 px-3.5 py-1.5 rounded-full text-xs font-bold leading-none bg-rose-50 text-rose-700 border border-rose-200";
     } else {
       ageText.innerText = "실제 나이 수준 및 평균 유지";
@@ -2741,18 +2741,18 @@ function renderReportTab() {
         }
 
         return `
-          <div class="p-5 ${cardBg} border rounded-2xl flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div class="p-5 $cardBg border rounded-2xl flex flex-col sm:flex-row justify-between items-start gap-4">
             <div class="space-y-2 flex-1">
               <div class="flex flex-wrap items-center gap-2">
-                ${statusTag}
-                <span class="font-bold text-[#231f20] text-sm">${w.item}</span>
-                <span class="text-xs font-mono font-bold text-slate-500 bg-white shadow-3xs px-2 py-0.5 rounded border border-slate-100 whitespace-nowrap">${w.value}</span>
+                $statusTag
+                <span class="font-bold text-[#231f20] text-sm">$w.item</span>
+                <span class="text-xs font-mono font-bold text-slate-500 bg-white shadow-3xs px-2 py-0.5 rounded border border-slate-100 whitespace-nowrap">$w.value</span>
               </div>
-              <p class="text-slate-600 text-xs sm:text-sm leading-relaxed break-keep">${w.analysis}</p>
+              <p class="text-slate-600 text-xs sm:text-sm leading-relaxed break-keep">$w.analysis</p>
             </div>
             <div class="bg-white/80 backdrop-blur-3xs rounded-xl p-3 border border-slate-100 w-full sm:max-w-[240px] shrink-0">
               <span class="text-[9px] font-extrabold uppercase text-[#f37321] block tracking-wider mb-1">한화손보 건강처방</span>
-              <span class="text-xs text-slate-700 font-semibold leading-relaxed block break-keep">${w.action}</span>
+              <span class="text-xs text-slate-700 font-semibold leading-relaxed block break-keep">$w.action</span>
             </div>
           </div>
         `;
@@ -2771,11 +2771,11 @@ function renderReportTab() {
         <div class="bg-white hover:bg-[#fff5ee]/10 p-5 rounded-2xl border border-slate-200 flex flex-col justify-between space-y-4 shadow-3xs transition-all hover:scale-[1.01]">
           <div class="space-y-2.5">
             <div class="flex items-center justify-between">
-              <span class="text-[10px] font-extrabold text-slate-400 font-mono uppercase">${item.category}</span>
-              <span class="text-[9px] font-bold px-2 py-0.5 rounded-md border ${badgeCls}">${isHigh ? "강력 권장" : "예방 권장"}</span>
+              <span class="text-[10px] font-extrabold text-slate-400 font-mono uppercase">$item.category</span>
+              <span class="text-[9px] font-bold px-2 py-0.5 rounded-md border $badgeCls">${isHigh ? "강력 권장" : "예방 권장"}</span>
             </div>
-            <h4 class="font-extrabold text-slate-800 text-sm tracking-tight break-keep">${item.checkItem}</h4>
-            <p class="text-[#767676] text-xs leading-relaxed min-h-[50px] break-keep">${item.reason}</p>
+            <h4 class="font-extrabold text-slate-800 text-sm tracking-tight break-keep">$item.checkItem</h4>
+            <p class="text-[#767676] text-xs leading-relaxed min-h-[50px] break-keep">$item.reason</p>
           </div>
           <div class="border-t border-slate-100 pt-3 flex items-center justify-between">
             <span class="text-[10px] text-slate-400 font-medium pb-px">검사 권장 기한 : 내년 상반기</span>
@@ -2796,7 +2796,7 @@ function renderReportTab() {
       // 3개월 뒤 재검사 기한 날짜 계산
       const targetDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
       const formattedDate = targetDate.toLocaleDateString("ko-KR", { month: "long", day: "numeric" });
-      checkupTimerText = `공복 식전혈당(${latestGl} mg/dL) 또는 체중 지표가 다소 높아, <b>3개월 뒤인 ${formattedDate}경</b> 자가혈당 측정 및 복부 대사지표 재추적 검사를 추천합니다.`;
+      checkupTimerText = `공복 식전혈당($latestGl mg/dL) 또는 체중 지표가 다소 높아, <b>3개월 뒤인 $formattedDate경</b> 자가혈당 측정 및 복부 대사지표 재추적 검사를 추천합니다.`;
       checkupTimerIcon = "⏳";
     }
 
@@ -2805,10 +2805,10 @@ function renderReportTab() {
         <div class="space-y-2.5">
           <div class="flex items-center justify-between">
             <span class="text-[10px] font-extrabold text-orange-400 font-mono uppercase">NEXT CHECKUP TIMER</span>
-            <span class="text-[9px] font-bold px-2 py-0.5 rounded-md border bg-orange-50 text-[#f37321] border-orange-100 flex items-center gap-1">${checkupTimerIcon} 정밀 추적</span>
+            <span class="text-[9px] font-bold px-2 py-0.5 rounded-md border bg-orange-50 text-[#f37321] border-orange-100 flex items-center gap-1">$checkupTimerIcon 정밀 추적</span>
           </div>
           <h4 class="font-extrabold text-slate-800 text-sm tracking-tight break-keep">대사 연동 차기 검진 권장 리마인더</h4>
-          <p class="text-slate-600 text-xs leading-relaxed min-h-[50px] break-keep">${checkupTimerText}</p>
+          <p class="text-slate-600 text-xs leading-relaxed min-h-[50px] break-keep">$checkupTimerText</p>
         </div>
         <div class="border-t border-orange-100/60 pt-3 flex items-center justify-between">
           <span class="text-[10px] text-orange-500 font-bold pb-px">건강 신호 리마인더 활성화 중</span>
@@ -2833,7 +2833,7 @@ function renderReportTab() {
             <span class="text-[9px] font-bold px-2 py-0.5 rounded-md border ${hasGap ? 'bg-rose-50 text-rose-700 border-rose-100' : 'bg-indigo-50 text-indigo-700 border-indigo-100'}">${hasGap ? '보장공백 위험' : '안정 상태'}</span>
           </div>
           <h4 class="font-extrabold text-slate-800 text-sm tracking-tight break-keep">한화손보 AI 보장 격차(Gap) 가이드</h4>
-          <p class="text-slate-600 text-xs leading-relaxed min-h-[50px] break-keep">${gapAnalysisText}</p>
+          <p class="text-slate-600 text-xs leading-relaxed min-h-[50px] break-keep">$gapAnalysisText</p>
         </div>
         <div class="border-t border-indigo-100/60 pt-3 flex items-center justify-between">
           <button type="button" onclick="document.querySelector('.tab-btn[data-tab=\\'consulting\\']')?.click();" class="text-[10px] text-indigo-600 font-bold hover:underline transition-all cursor-pointer flex items-center gap-1 bg-transparent border-0 outline-none">
@@ -2873,12 +2873,12 @@ function switchMetric(metric: string) {
 
 // 🎠 년도별 검진카드 슬라이딩 캐러샐 제어 로직 (데이터 한계 방어 및 공백 예방)
 function updateCategoryUI(key: string, index: number, records: any[]) {
-  const badge = document.getElementById(`badge-${key}`);
+  const badge = document.getElementById(`badge-$key`);
   if (badge && records[index]) {
     badge.innerText = `${records[index].year}년`;
   }
   
-  const dots = document.querySelectorAll(`#indicators-${key} button`);
+  const dots = document.querySelectorAll(`#indicators-$key button`);
   dots.forEach((dot, idx) => {
     if (idx === index) {
       dot.className = "w-1.5 h-1.5 rounded-full transition-all duration-300 bg-[#f37321]";
@@ -2887,8 +2887,8 @@ function updateCategoryUI(key: string, index: number, records: any[]) {
     }
   });
 
-  const prevBtn = document.getElementById(`btn-prev-${key}`) as HTMLButtonElement | null;
-  const nextBtn = document.getElementById(`btn-next-${key}`) as HTMLButtonElement | null;
+  const prevBtn = document.getElementById(`btn-prev-$key`) as HTMLButtonElement | null;
+  const nextBtn = document.getElementById(`btn-next-$key`) as HTMLButtonElement | null;
   if (prevBtn) {
     prevBtn.disabled = index === 0;
   }
@@ -2898,7 +2898,7 @@ function updateCategoryUI(key: string, index: number, records: any[]) {
 }
 
 (window as any).slideCategory = (key: string, direction: number) => {
-  const carousel = document.getElementById(`carousel-${key}`);
+  const carousel = document.getElementById(`carousel-$key`);
   if (!carousel) return;
   const records = [...nhisRecords].sort((a, b) => b.year - a.year);
   if (records.length === 0) return;
@@ -2927,7 +2927,7 @@ function bindCategoryScrollEvents() {
   if (records.length === 0) return;
   
   keys.forEach(key => {
-    const carousel = document.getElementById(`carousel-${key}`);
+    const carousel = document.getElementById(`carousel-$key`);
     if (!carousel) return;
     
     const handleScroll = () => {
@@ -2950,7 +2950,7 @@ function bindCategoryScrollEvents() {
     carousel.addEventListener("scroll", handleScroll);
     
     // 개별 닷 인디케이터 클릭 시 이동 바인딩
-    const dots = document.querySelectorAll(`#indicators-${key} button`);
+    const dots = document.querySelectorAll(`#indicators-$key button`);
     dots.forEach((dot, i) => {
       (dot as HTMLButtonElement).onclick = () => {
         (window as any).categorySlideIndices = (window as any).categorySlideIndices || {
@@ -2992,7 +2992,7 @@ function switchYearSlide(index: number, pauseAuto = false) {
     };
     (window as any).categorySlideIndices[key] = targetIndex;
     
-    const carousel = document.getElementById(`carousel-${key}`);
+    const carousel = document.getElementById(`carousel-$key`);
     if (carousel) {
       const width = carousel.clientWidth || (carousel.firstElementChild ? (carousel.firstElementChild as HTMLElement).offsetWidth : 0);
       carousel.scrollTo({
@@ -3094,11 +3094,11 @@ function drawWellnessScoreChart() {
   // Update indicators
   const indicator = $("trends-overall-score-indicator");
   if (indicator) {
-    indicator.textContent = `${avgScore}점`;
+    indicator.textContent = `$avgScore점`;
   }
   const currentText = $("trends-current-score-text");
   if (currentText) {
-    currentText.textContent = `${latestScore}점`;
+    currentText.textContent = `$latestScore점`;
   }
 
   // Layout parameters (Taller and wider casual graph)
@@ -3117,8 +3117,8 @@ function drawWellnessScoreChart() {
   gridLevels.forEach(scoreLevel => {
     const yVal = height - paddingY - ((scoreLevel - 50) / 50) * (height - 2 * paddingY);
     gridLinesHtml += `
-      <line x1="${paddingX - 10}" y1="${yVal}" x2="${width - paddingX + 10}" y2="${yVal}" stroke="#cbd5e1" stroke-opacity="0.65" stroke-dasharray="3,3" stroke-width="1.2" />
-      <text x="${paddingX - 16}" y="${yVal + 3.5}" fill="#475569" font-size="10px" font-weight="black" font-family="monospace" text-anchor="end">${scoreLevel}</text>
+      <line x1="${paddingX - 10}" y1="$yVal" x2="${width - paddingX + 10}" y2="$yVal" stroke="#cbd5e1" stroke-opacity="0.65" stroke-dasharray="3,3" stroke-width="1.2" />
+      <text x="${paddingX - 16}" y="${yVal + 3.5}" fill="#475569" font-size="10px" font-weight="black" font-family="monospace" text-anchor="end">$scoreLevel</text>
     `;
   });
 
@@ -3143,7 +3143,7 @@ function drawWellnessScoreChart() {
       const cpY1 = p0.y;
       const cpX2 = p0.x + 1.5 * (p1.x - p0.x) / 2.5;
       const cpY2 = p1.y;
-      path += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${p1.x} ${p1.y}`;
+      path += ` C $cpX1 $cpY1, $cpX2 $cpY2, $p1.x $p1.y`;
     }
     return path;
   };
@@ -3153,7 +3153,7 @@ function drawWellnessScoreChart() {
   // Render Area Gradient Fill Path
   let areaPathD = "";
   if (coords.length > 1 && smoothLinePath) {
-    areaPathD = `${smoothLinePath} L ${coords[coords.length - 1].x} ${height - paddingY + 12} L ${coords[0].x} ${height - paddingY + 12} Z`;
+    areaPathD = `$smoothLinePath L ${coords[coords.length - 1].x} ${height - paddingY + 12} L ${coords[0].x} ${height - paddingY + 12} Z`;
   }
 
   // Render HTML elements inside SVG
@@ -3165,38 +3165,38 @@ function drawWellnessScoreChart() {
     pointsHtml += `
       <!-- Connection vertical drop line to base for the selected active year -->
       ${isSelected ? `
-        <line x1="${pt.x}" y1="${pt.y}" x2="${pt.x}" y2="${height - paddingY + 12}" stroke="#f37321" stroke-opacity="0.32" stroke-dasharray="3,3" stroke-width="2.2" />
+        <line x1="$pt.x" y1="$pt.y" x2="$pt.x" y2="${height - paddingY + 12}" stroke="#f37321" stroke-opacity="0.32" stroke-dasharray="3,3" stroke-width="2.2" />
       ` : ''}
 
       <!-- Year text (with cursor feedback and reliable contrasts) -->
-      <text x="${pt.x}" y="${height - 8}" fill="${isSelected ? '#e05a00' : '#475569'}" font-size="12px" font-weight="${isSelected ? '900' : '900'}" text-anchor="middle" class="cursor-pointer transition-all select-none hover:fill-amber-500" onclick="window.switchYearSlideByScore(${slideIdxInCarousel})">
-        ${pt.year}년
+      <text x="$pt.x" y="${height - 8}" fill="${isSelected ? '#e05a00' : '#475569'}" font-size="12px" font-weight="${isSelected ? '900' : '900'}" text-anchor="middle" class="cursor-pointer transition-all select-none hover:fill-amber-500" onclick="window.switchYearSlideByScore($slideIdxInCarousel)">
+        $pt.year년
       </text>
       
       <!-- Casual Speech Bubble Tooltip for selected / Standard plain score label for inactive -->
       ${isSelected ? `
         <!-- SVG Tooltip background pill -->
-        <g class="cursor-pointer" onclick="window.switchYearSlideByScore(${slideIdxInCarousel})">
+        <g class="cursor-pointer" onclick="window.switchYearSlideByScore($slideIdxInCarousel)">
           <rect x="${pt.x - 24}" y="${pt.y - 31}" width="48" height="21" rx="6" fill="#f37321" />
-          <path d="M ${pt.x - 4} ${pt.y - 10} L ${pt.x} ${pt.y - 6} L ${pt.x + 4} ${pt.y - 10} Z" fill="#f37321" />
-          <text x="${pt.x}" y="${pt.y - 16}" fill="#ffffff" font-size="12.5px" font-weight="900" font-family="monospace" text-anchor="middle" class="select-none">${pt.score}점</text>
+          <path d="M ${pt.x - 4} ${pt.y - 10} L $pt.x ${pt.y - 6} L ${pt.x + 4} ${pt.y - 10} Z" fill="#f37321" />
+          <text x="$pt.x" y="${pt.y - 16}" fill="#ffffff" font-size="12.5px" font-weight="900" font-family="monospace" text-anchor="middle" class="select-none">$pt.score점</text>
         </g>
       ` : `
         <!-- Plain score text label -->
-        <text x="${pt.x}" y="${pt.y - 13}" fill="#334155" font-size="11.5px" font-weight="900" font-family="monospace" text-anchor="middle" class="cursor-pointer transition-all select-none hover:fill-[#e05a00]" onclick="window.switchYearSlideByScore(${slideIdxInCarousel})">
-          ${pt.score}점
+        <text x="$pt.x" y="${pt.y - 13}" fill="#334155" font-size="11.5px" font-weight="900" font-family="monospace" text-anchor="middle" class="cursor-pointer transition-all select-none hover:fill-[#e05a00]" onclick="window.switchYearSlideByScore($slideIdxInCarousel)">
+          $pt.score점
         </text>
       `}
 
       <!-- Active indicator dot / interactive node -->
-      <g class="cursor-pointer" onclick="window.switchYearSlideByScore(${slideIdxInCarousel})">
+      <g class="cursor-pointer" onclick="window.switchYearSlideByScore($slideIdxInCarousel)">
         <!-- Enlarged touch target -->
-        <circle cx="${pt.x}" cy="${pt.y}" r="20" fill="transparent" />
+        <circle cx="$pt.x" cy="$pt.y" r="20" fill="transparent" />
         ${isSelected ? `
-          <circle cx="${pt.x}" cy="${pt.y}" r="12" fill="#f37321" fill-opacity="0.25" class="animate-pulse" />
-          <circle cx="${pt.x}" cy="${pt.y}" r="7.5" fill="#f37321" stroke="#ffffff" stroke-width="2.5" />
+          <circle cx="$pt.x" cy="$pt.y" r="12" fill="#f37321" fill-opacity="0.25" class="animate-pulse" />
+          <circle cx="$pt.x" cy="$pt.y" r="7.5" fill="#f37321" stroke="#ffffff" stroke-width="2.5" />
         ` : `
-          <circle cx="${pt.x}" cy="${pt.y}" r="6" fill="#ffffff" stroke="#ffaa66" stroke-width="2.5" class="hover:stroke-[#e05a00] transition-all" />
+          <circle cx="$pt.x" cy="$pt.y" r="6" fill="#ffffff" stroke="#ffaa66" stroke-width="2.5" class="hover:stroke-[#e05a00] transition-all" />
         `}
       </g>
     `;
@@ -3217,19 +3217,19 @@ function drawWellnessScoreChart() {
     </defs>
     
     <!-- Grids -->
-    ${gridLinesHtml}
+    $gridLinesHtml
     
     <!-- Area gradient beneath line -->
-    ${areaPathD ? `<path d="${areaPathD}" fill="url(#score-chart-grad)" />` : ''}
+    ${areaPathD ? `<path d="$areaPathD" fill="url(#score-chart-grad)" />` : ''}
     
     <!-- Smooth casual connection line with a stylish filter look & soft orange stroke -->
     ${smoothLinePath ? `
-      <path d="${smoothLinePath}" stroke="#ffaa66" stroke-width="5" stroke-opacity="0.2" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#casual-glow)" />
-      <path d="${smoothLinePath}" stroke="#f37321" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="$smoothLinePath" stroke="#ffaa66" stroke-width="5" stroke-opacity="0.2" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#casual-glow)" />
+      <path d="$smoothLinePath" stroke="#f37321" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
     ` : ''}
     
     <!-- Score point markers & labels -->
-    ${pointsHtml}
+    $pointsHtml
   `;
 }
 
@@ -3285,18 +3285,18 @@ function renderTimelineChartNew() {
   }
 
   // 델타 표시용 헬퍼 함수
-  function renderDeltaPill(diff: number, isLowerBetter: boolean, unit: string = "") {
+  function renderDeltaPill(diff, isLowerBetter, unit = "") {
     if (diff > 0) {
       if (isLowerBetter) {
         return `
           <span class="inline-flex items-center gap-0.5 text-[11px] font-black text-red-650 bg-red-55 border border-red-200 px-2 py-0.5 rounded leading-none">
-            ▲ +${diff.toFixed(1)}${unit}
+            ▲ +$diff.toFixed(1)$unit
           </span>
         `;
       } else {
         return `
           <span class="inline-flex items-center gap-0.5 text-[11px] font-black text-emerald-600 bg-emerald-55 border border-emerald-250 px-2 py-0.5 rounded leading-none">
-            ▲ +${diff.toFixed(1)}${unit}
+            ▲ +$diff.toFixed(1)$unit
           </span>
         `;
       }
@@ -3305,13 +3305,13 @@ function renderTimelineChartNew() {
       if (isLowerBetter) {
         return `
           <span class="inline-flex items-center gap-0.5 text-[11px] font-black text-emerald-600 bg-emerald-55 border border-emerald-250 px-2 py-0.5 rounded leading-none">
-            ▼ -${absVal.toFixed(1)}${unit}
+            ▼ -$absVal.toFixed(1)$unit
           </span>
         `;
       } else {
         return `
           <span class="inline-flex items-center gap-0.5 text-[11px] font-black text-red-650 bg-red-55 border border-red-200 px-2 py-0.5 rounded leading-none">
-            ▼ -${absVal.toFixed(1)}${unit}
+            ▼ -$absVal.toFixed(1)$unit
           </span>
         `;
       }
@@ -3325,13 +3325,13 @@ function renderTimelineChartNew() {
   }
 
   // 건강 등급 헬퍼
-  function getStatusBadge(level: 1 | 2 | 3, label: string) {
+  function getStatusBadge(level, label) {
     if (level === 1) {
-      return `<span class="text-[12px] sm:text-[13px] font-black bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-1 rounded-md leading-none shadow-3xs">정상 (${label})</span>`;
+      return `<span class="text-[12px] sm:text-[13px] font-black bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-1 rounded-md leading-none shadow-3xs">정상 ($label)</span>`;
     } else if (level === 2) {
-      return `<span class="text-[12px] sm:text-[13px] font-black bg-amber-50 text-amber-500 border border-amber-100 px-2 py-1 rounded-md leading-none shadow-3xs">주의 (${label})</span>`;
+      return `<span class="text-[12px] sm:text-[13px] font-black bg-amber-50 text-amber-500 border border-amber-100 px-2 py-1 rounded-md leading-none shadow-3xs">주의 ($label)</span>`;
     } else {
-      return `<span class="text-[12px] sm:text-[13px] font-black bg-red-500 text-white border border-red-100 px-2 py-1 rounded-md animate-pulse leading-none shadow-3xs">경고 (${label})</span>`;
+      return `<span class="text-[12px] sm:text-[13px] font-black bg-red-500 text-white border border-red-100 px-2 py-1 rounded-md animate-pulse leading-none shadow-3xs">경고 ($label)</span>`;
     }
   }
 
@@ -3347,325 +3347,303 @@ function renderTimelineChartNew() {
   let categoriesHtml = "";
 
   categories.forEach(cat => {
-    let slidesHtml = "";
-    
-    records.forEach((r, i) => {
-      const prevRecord = records[i + 1];
-      let metricContent = "";
+    const r = records[currentYearSlideIndex];
+    const prevRecord = records[currentYearSlideIndex + 1];
+    let metricContent = "";
 
-      if (cat.key === "lipid") {
-        const gVal = r.fastingGlucose ?? 95;
-        const tcVal = r.totalCholesterol ?? 190;
-        const tgVal = r.triglycerides ?? 130;
-        const ldlVal = r.ldlcholesterol ?? 110;
-        const hdlVal = r.hdlcholesterol ?? 50;
+    if (cat.key === "lipid") {
+      const gVal = r.fastingGlucose ?? 95;
+      const tcVal = r.totalCholesterol ?? 190;
+      const tgVal = r.triglycerides ?? 130;
+      const ldlVal = r.ldlcholesterol ?? 110;
+      const hdlVal = r.hdlcholesterol ?? 50;
 
-        const prevG = prevRecord ? (prevRecord.fastingGlucose ?? 95) : gVal;
-        const prevTc = prevRecord ? (prevRecord.totalCholesterol ?? 190) : tcVal;
-        const prevTg = prevRecord ? (prevRecord.triglycerides ?? 130) : tgVal;
-        const prevLdl = prevRecord ? (prevRecord.ldlcholesterol ?? 110) : ldlVal;
-        const prevHdl = prevRecord ? (prevRecord.hdlcholesterol ?? 50) : hdlVal;
+      const prevG = prevRecord ? (prevRecord.fastingGlucose ?? 95) : gVal;
+      const prevTc = prevRecord ? (prevRecord.totalCholesterol ?? 190) : tcVal;
+      const prevTg = prevRecord ? (prevRecord.triglycerides ?? 130) : tgVal;
+      const prevLdl = prevRecord ? (prevRecord.ldlcholesterol ?? 110) : ldlVal;
+      const prevHdl = prevRecord ? (prevRecord.hdlcholesterol ?? 50) : hdlVal;
 
-        const getGlucoseStatus = (v: number) => {
-          if (v < 100) return { label: "정상", level: 1 as const };
-          if (v < 126) return { label: "전단계", level: 2 as const };
-          return { label: "고혈당", level: 3 as const };
-        };
-        const getTcStatus = (v: number) => {
-          if (v < 200) return { label: "적정", level: 1 as const };
-          if (v < 240) return { label: "경계", level: 2 as const };
-          return { label: "고콜레", level: 3 as const };
-        };
-        const getTgStatus = (v: number) => {
-          if (v < 150) return { label: "적정", level: 1 as const };
-          if (v < 200) return { label: "경계", level: 2 as const };
-          return { label: "고중성", level: 3 as const };
-        };
+      const getGlucoseStatus = (v) => {
+        if (v < 100) return { label: "정상", level: 1 };
+        if (v < 126) return { label: "전단계", level: 2 };
+        return { label: "고혈당", level: 3 };
+      };
+      const getTcStatus = (v) => {
+        if (v < 200) return { label: "적정", level: 1 };
+        if (v < 240) return { label: "경계", level: 2 };
+        return { label: "고콜레", level: 3 };
+      };
+      const getTgStatus = (v) => {
+        if (v < 150) return { label: "적정", level: 1 };
+        if (v < 200) return { label: "경계", level: 2 };
+        return { label: "고중성", level: 3 };
+      };
 
-        const gStat = getGlucoseStatus(gVal);
-        const tcStat = getTcStatus(tcVal);
-        const tgStat = getTgStatus(tgVal);
+      const gStat = getGlucoseStatus(gVal);
+      const tcStat = getTcStatus(tcVal);
+      const tgStat = getTgStatus(tgVal);
 
-        metricContent = `
-          <ul class="space-y-3">
-            <li class="flex flex-col space-y-1">
-              <div class="flex items-center justify-between text-xs sm:text-[13px]">
-                <span class="font-extrabold text-slate-700">공복 혈당</span>
-                <div class="flex items-center gap-1.5 leading-none">
-                  ${prevRecord ? renderDeltaPill(gVal - prevG, true, "") : ""}
-                  ${getStatusBadge(gStat.level, gStat.label)}
-                </div>
+      metricContent = `
+        <ul class="space-y-3">
+          <li class="flex flex-col space-y-1">
+            <div class="flex items-center justify-between text-xs sm:text-[13px]">
+              <span class="font-extrabold text-slate-700">공복 혈당</span>
+              <div class="flex items-center gap-1.5 leading-none">
+                ${prevRecord ? renderDeltaPill(gVal - prevG, true, "") : ""}
+                ${getStatusBadge(gStat.level, gStat.label)}
               </div>
-              <div class="text-[15px] sm:text-[17px] font-black text-slate-900 font-mono tracking-tight leading-normal">${gVal} <span class="text-[10.5px] text-slate-400 font-normal">mg/dL</span></div>
-            </li>
-            <li class="flex flex-col space-y-1">
-              <div class="flex items-center justify-between text-xs sm:text-[13px]">
-                <span class="font-extrabold text-slate-700">총 콜레스테롤</span>
-                <div class="flex items-center gap-1.5 leading-none">
-                  ${prevRecord ? renderDeltaPill(tcVal - prevTc, true, "") : ""}
-                  ${getStatusBadge(tcStat.level, tcStat.label)}
-                </div>
+            </div>
+            <div class="text-[15px] sm:text-[17px] font-black text-slate-900 font-mono tracking-tight leading-normal">$gVal <span class="text-[10.5px] text-slate-400 font-normal">mg/dL</span></div>
+          </li>
+          <li class="flex flex-col space-y-1">
+            <div class="flex items-center justify-between text-xs sm:text-[13px]">
+              <span class="font-extrabold text-slate-700">총 콜레스테롤</span>
+              <div class="flex items-center gap-1.5 leading-none">
+                ${prevRecord ? renderDeltaPill(tcVal - prevTc, true, "") : ""}
+                ${getStatusBadge(tcStat.level, tcStat.label)}
               </div>
-              <div class="text-sm sm:text-[14px] font-bold text-slate-800 font-mono leading-normal">${tcVal} mg/dL</div>
-            </li>
-            <li class="flex flex-col space-y-1">
-              <div class="flex items-center justify-between text-xs sm:text-[13px]">
-                <span class="font-extrabold text-slate-755">중성 지방</span>
-                <div class="flex items-center gap-1.5 leading-none">
-                  ${prevRecord ? renderDeltaPill(tgVal - prevTg, true, "") : ""}
-                  ${getStatusBadge(tgStat.level, tgStat.label)}
-                </div>
+            </div>
+            <div class="text-sm sm:text-[14px] font-bold text-slate-800 font-mono leading-normal">$tcVal mg/dL</div>
+          </li>
+          <li class="flex flex-col space-y-1">
+            <div class="flex items-center justify-between text-xs sm:text-[13px]">
+              <span class="font-extrabold text-slate-700">중성 지방</span>
+              <div class="flex items-center gap-1.5 leading-none">
+                ${prevRecord ? renderDeltaPill(tgVal - prevTg, true, "") : ""}
+                ${getStatusBadge(tgStat.level, tgStat.label)}
               </div>
-              <div class="text-sm sm:text-[14px] font-bold text-slate-800 font-mono leading-normal">${tgVal} mg/dL</div>
-            </li>
-            <li class="flex flex-col space-y-1">
-              <div class="flex items-center justify-between text-[11.5px] sm:text-[12px]">
-                <span class="font-bold text-slate-505">LDL 콜레</span>
-                <div class="flex items-center gap-1 leading-none">
-                  ${prevRecord ? renderDeltaPill(ldlVal - prevLdl, true, "") : ""}
-                </div>
+            </div>
+            <div class="text-sm sm:text-[14px] font-bold text-slate-800 font-mono leading-normal">$tgVal mg/dL</div>
+          </li>
+          <li class="flex flex-col space-y-1">
+            <div class="flex items-center justify-between text-[11.5px] sm:text-[12px]">
+              <span class="font-bold text-slate-505">LDL 콜레</span>
+              <div class="flex items-center gap-1 leading-none">
+                ${prevRecord ? renderDeltaPill(ldlVal - prevLdl, true, "") : ""}
               </div>
-              <div class="text-xs sm:text-[13px] font-semibold text-slate-600 font-mono leading-normal">${ldlVal} mg/dL</div>
-            </li>
-            <li class="flex flex-col space-y-1">
-              <div class="flex items-center justify-between text-[11.5px] sm:text-[12px]">
-                <span class="font-bold text-slate-500">HDL 콜레</span>
-                <div class="flex items-center gap-1 leading-none">
-                  ${prevRecord ? renderDeltaPill(hdlVal - prevHdl, false, "") : ""}
-                </div>
+            </div>
+            <div class="text-xs sm:text-[13px] font-semibold text-slate-600 font-mono leading-normal">$ldlVal mg/dL</div>
+          </li>
+          <li class="flex flex-col space-y-1">
+            <div class="flex items-center justify-between text-[11.5px] sm:text-[12px]">
+              <span class="font-bold text-slate-500">HDL 콜레</span>
+              <div class="flex items-center gap-1 leading-none">
+                ${prevRecord ? renderDeltaPill(hdlVal - prevHdl, false, "") : ""}
               </div>
-              <div class="text-xs sm:text-[13px] font-semibold text-slate-600 font-mono leading-normal">${hdlVal} mg/dL</div>
-            </li>
-          </ul>
-        `;
-      } else if (cat.key === "bp") {
-        const sbpVal = r.systolicBP ?? 120;
-        const dbpVal = r.diastolicBP ?? 80;
-        const prevSbp = prevRecord ? (prevRecord.systolicBP ?? 120) : sbpVal;
-        const prevDbp = prevRecord ? (prevRecord.diastolicBP ?? 80) : dbpVal;
-
-        const getBPStatus = (s: number, d: number) => {
-          if (s < 120 && d < 80) return { label: "정상 혈압", level: 1 as const };
-          if (s < 140 || d < 90) return { label: "전고혈압", level: 2 as const };
-          return { label: "고혈압", level: 3 as const };
-        };
-        const bpStat = getBPStatus(sbpVal, dbpVal);
-
-        metricContent = `
-          <ul class="space-y-3.5 w-full">
-            <li>
-              <div class="flex items-center justify-between text-xs sm:text-[12px] text-slate-400 font-bold mb-1.5">
-                <span>수축기/이완기 혈압</span>
-                ${getStatusBadge(bpStat.level, bpStat.label)}
-              </div>
-              <div class="flex items-baseline space-x-1.5">
-                <span class="text-3xl font-black text-slate-950 font-mono tracking-tighter leading-none">${sbpVal}/${dbpVal}</span>
-                <span class="text-xs text-slate-400 font-mono leading-none">mmHg</span>
-              </div>
-            </li>
-            <li class="flex flex-col space-y-1 p-2 bg-slate-50/80 rounded-lg border border-slate-200/40">
-              <div class="flex items-center justify-between text-xs">
-                <span class="font-extrabold text-slate-700">수축기 (최고혈압)</span>
-                ${prevRecord ? renderDeltaPill(sbpVal - prevSbp, true, "") : ""}
-              </div>
-              <div class="text-xs sm:text-sm font-black text-slate-800 font-mono leading-none">dots${sbpVal} mmHg</div>
-            </li>
-            <li class="flex flex-col space-y-1 p-2 bg-slate-50/80 rounded-lg border border-slate-200/40">
-              <div class="flex items-center justify-between text-xs">
-                <span class="font-extrabold text-slate-700">이완기 (최저혈압)</span>
-                ${prevRecord ? renderDeltaPill(dbpVal - prevDbp, true, "") : ""}
-              </div>
-              <div class="text-xs sm:text-sm font-black text-slate-800 font-mono leading-none">dots${dbpVal} mmHg</div>
-            </li>
-          </ul>
-        `;
-      } else if (cat.key === "liver") {
-        const astVal = r.ast ?? 25;
-        const altVal = r.alt ?? 25;
-        const rgtpVal = r.rGtp ?? 30;
-        const prevAst = prevRecord ? (prevRecord.ast ?? 25) : astVal;
-        const prevAlt = prevRecord ? (prevRecord.alt ?? 25) : altVal;
-        const prevRgtp = prevRecord ? (prevRecord.rGtp ?? 30) : rgtpVal;
-
-        const getLiverStatus = (ast: number, alt: number, rgtp: number) => {
-          const max = Math.max(ast, alt);
-          if (max <= 40 && rgtp <= 64) return { label: "정상", level: 1 as const };
-          if (max <= 60 || rgtp <= 100) return { label: "주의", level: 2 as const };
-          return { label: "경고", level: 3 as const };
-        };
-        const liverStat = getLiverStatus(astVal, altVal, rgtpVal);
-
-        metricContent = `
-          <ul class="space-y-3">
-            <li class="flex items-center justify-between text-xs sm:text-[12px] text-slate-400 font-bold">
-              <span>간상태 분류</span>
-              ${getStatusBadge(liverStat.level, liverStat.label)}
-            </li>
-            <li class="flex flex-col space-y-1">
-              <div class="flex items-center justify-between text-xs sm:text-[13px]">
-                <span class="font-extrabold text-slate-700">AST</span>
-                ${prevRecord ? renderDeltaPill(astVal - prevAst, true, "") : ""}
-              </div>
-              <div class="text-[15px] sm:text-[17px] font-black text-slate-900 font-mono tracking-tight leading-none">${astVal} <span class="text-[10.5px] text-slate-404 font-normal leading-none">U/L</span></div>
-            </li>
-            <li class="flex flex-col space-y-1">
-              <div class="flex items-center justify-between text-xs sm:text-[13px]">
-                <span class="font-extrabold text-slate-700">ALT (대사효소)</span>
-                ${prevRecord ? renderDeltaPill(altVal - prevAlt, true, "") : ""}
-              </div>
-              <div class="text-[15px] sm:text-[17px] font-black text-slate-900 font-mono tracking-tight leading-none">${altVal} <span class="text-[10.5px] text-slate-400 font-normal leading-none font-mono">U/L</span></div>
-            </li>
-            <li class="flex flex-col space-y-1 border-t border-slate-100/70 pt-1.5 pb-0.5">
-              <div class="flex items-center justify-between text-xs sm:text-[13px]">
-                <span class="font-bold text-slate-505">r-GTP</span>
-                ${prevRecord ? renderDeltaPill(rgtpVal - prevRgtp, true, "") : ""}
-              </div>
-              <div class="text-xs sm:text-sm font-semibold text-slate-700 font-mono leading-none">dots${rgtpVal} U/L</div>
-            </li>
-          </ul>
-        `;
-      } else if (cat.key === "body") {
-        const wtVal = r.weight ?? 68;
-        const bmiVal = r.bmi ?? 22.5;
-        const waistVal = r.waist ?? 82;
-        const prevWt = prevRecord ? (prevRecord.weight ?? 68) : wtVal;
-        const prevBmi = prevRecord ? (prevRecord.bmi ?? 22.5) : bmiVal;
-        const prevWaist = prevRecord ? (prevRecord.waist ?? 82) : waistVal;
-
-        const getBmiStatus = (bmi: number) => {
-          if (bmi < 18.5) return { label: "저체중", level: 2 as const };
-          if (bmi < 23.0) return { label: "정상", level: 1 as const };
-          if (bmi < 25.0) return { label: "과체중", level: 2 as const };
-          return { label: "비만", level: 3 as const };
-        };
-        const bmiStat = getBmiStatus(bmiVal);
-
-        metricContent = `
-          <ul class="space-y-3">
-            <li>
-              <div class="flex items-center justify-between text-xs sm:text-[12px] text-slate-400 font-bold mb-1.5">
-                <span>BMI 비만지수</span>
-                ${getStatusBadge(bmiStat.level, bmiStat.label)}
-              </div>
-              <div class="flex items-baseline space-x-1.5">
-                <span class="text-2xl font-black text-slate-900 font-mono tracking-tighter leading-none">${bmiVal.toFixed(1)}</span>
-                <span class="text-xs text-slate-400 font-mono leading-none">kg/m²</span>
-              </div>
-            </li>
-            <li class="flex flex-col space-y-1">
-              <div class="flex items-center justify-between text-xs sm:text-[13px]">
-                <span class="font-extrabold text-slate-705">체중</span>
-                ${prevRecord ? renderDeltaPill(wtVal - prevWt, true, "kg") : ""}
-              </div>
-              <div class="text-[15px] sm:text-[17px] font-black text-slate-900 font-mono tracking-tight leading-none">${wtVal} <span class="text-[10.5px] text-slate-400 font-normal leading-none shadow-xs">kg</span></div>
-            </li>
-            <li class="flex flex-col space-y-1 border-t border-slate-100/70 pt-1.5 pb-0.5">
-              <div class="flex items-center justify-between text-xs sm:text-[13px]">
-                <span class="font-bold text-slate-500">허리 둘레</span>
-                ${prevRecord ? renderDeltaPill(waistVal - prevWaist, true, "") : ""}
-              </div>
-              <div class="text-xs sm:text-sm font-semibold text-slate-705 font-mono leading-none">${waistVal} cm</div>
-            </li>
-          </ul>
-        `;
-      } else if (cat.key === "kidney") {
-        const hbVal = r.hba1c ?? 5.4;
-        const crVal = r.creatinine ?? 0.9;
-        const egfrVal = r.egfr ?? 90;
-        const prevHb = prevRecord ? (prevRecord.hba1c ?? 5.4) : hbVal;
-        const prevCr = prevRecord ? (prevRecord.creatinine ?? 0.9) : crVal;
-        const prevEgfr = prevRecord ? (prevRecord.egfr ?? 90) : egfrVal;
-
-        const getKidneyStatus = (cr: number, egfr: number) => {
-          if (cr <= 1.2 && egfr >= 90) return { label: "정상", level: 1 as const };
-          if (cr <= 1.5 || egfr >= 60) return { label: "주의 요망", level: 2 as const };
-          return { label: "저하", level: 3 as const };
-        };
-        const kidneyStat = getKidneyStatus(crVal, egfrVal);
-
-        metricContent = `
-          <ul class="space-y-3">
-            <li class="flex flex-col space-y-1">
-              <div class="flex items-center justify-between text-xs sm:text-[13px]">
-                <span class="font-extrabold text-slate-700">당화혈색소 (HbA1c)</span>
-                <div class="flex items-center gap-1.5 leading-none">
-                  ${prevRecord ? renderDeltaPill(hbVal - prevHb, true, "%") : ""}
-                </div>
-              </div>
-              <div class="text-[15px] sm:text-[17px] font-black text-slate-900 font-mono tracking-tight leading-normal">${hbVal.toFixed(1)}%</div>
-            </li>
-            <li class="flex flex-col space-y-1">
-              <div class="flex items-center justify-between text-xs sm:text-[13px]">
-                <span class="font-extrabold text-slate-705">사구체여과율 (eGFR)</span>
-                <div class="flex items-center gap-1.5 leading-none">
-                  ${prevRecord ? renderDeltaPill(egfrVal - prevEgfr, false, "") : ""}
-                </div>
-              </div>
-              <div class="text-[15px] sm:text-[17px] font-black text-slate-955 font-mono tracking-tight leading-normal">${egfrVal.toFixed(0)} <span class="text-[10.5px] text-slate-404 font-normal leading-none" style="display:inline-block;">mL/min</span></div>
-            </li>
-            <li class="flex flex-col space-y-1 border-t border-slate-100/70 pt-1.5 pb-0.5">
-              <div class="flex items-center justify-between text-xs sm:text-[13px]">
-                <span class="font-bold text-slate-500">크레아티닌</span>
-                ${prevRecord ? renderDeltaPill(crVal - prevCr, true, "") : ""}
-              </div>
-              <div class="text-xs sm:text-sm font-semibold text-slate-707 font-mono leading-none">dots${crVal.toFixed(2)} mg/dL</div>
-            </li>
-          </ul>
-        `;
-      }
-
-      slidesHtml += `
-        <div class="flex-shrink-0 w-full snap-center px-1 flex flex-col justify-between" style="box-sizing: border-box;">
-          <div class="space-y-4">
-            ${metricContent}
-          </div>
-        </div>
+            </div>
+            <div class="text-xs sm:text-[13px] font-semibold text-slate-600 font-mono leading-normal">$hdlVal mg/dL</div>
+          </li>
+        </ul>
       `;
-    });
+    } else if (cat.key === "bp") {
+      const sbpVal = r.systolicBP ?? 120;
+      const dbpVal = r.diastolicBP ?? 80;
+      const prevSbp = prevRecord ? (prevRecord.systolicBP ?? 120) : sbpVal;
+      const prevDbp = prevRecord ? (prevRecord.diastolicBP ?? 80) : dbpVal;
 
-    let dotsHtml = "";
-    records.forEach((_, idx) => {
-      dotsHtml += `
-        <button type="button" class="w-1.5 h-1.5 rounded-full transition-all duration-300 bg-slate-200" aria-label="Slide ${idx + 1}"></button>
+      const getBPStatus = (s, d) => {
+        if (s < 120 && d < 80) return { label: "정상 혈압", level: 1 };
+        if (s < 140 || d < 90) return { label: "전고혈압", level: 2 };
+        return { label: "고혈압", level: 3 };
+      };
+      const bpStat = getBPStatus(sbpVal, dbpVal);
+
+      metricContent = `
+        <ul class="space-y-3.5 w-full">
+          <li>
+            <div class="flex items-center justify-between text-xs sm:text-[12px] text-slate-400 font-bold mb-1.5">
+              <span>수축기/이완기 혈압</span>
+              ${getStatusBadge(bpStat.level, bpStat.label)}
+            </div>
+            <div class="flex items-baseline space-x-1.5">
+              <span class="text-3xl font-black text-slate-955 font-mono tracking-tighter leading-none">$sbpVal/$dbpVal</span>
+              <span class="text-xs text-slate-400 font-mono leading-none">mmHg</span>
+            </div>
+          </li>
+          <li class="flex flex-col space-y-1 border-t border-slate-100/70 pt-2 pb-0.5">
+            <div class="flex items-center justify-between text-xs sm:text-[13px]">
+              <span class="font-extrabold text-slate-700">수축기 (최고혈압)</span>
+              ${prevRecord ? renderDeltaPill(sbpVal - prevSbp, true, "") : ""}
+            </div>
+            <div class="text-[15px] sm:text-[17px] font-black text-slate-900 font-mono tracking-tight leading-none">$sbpVal <span class="text-[10.5px] text-slate-400 font-normal leading-none font-mono">mmHg</span></div>
+          </li>
+          <li class="flex flex-col space-y-1 border-t border-slate-100/70 pt-2 pb-0.5">
+            <div class="flex items-center justify-between text-xs sm:text-[13px]">
+              <span class="font-extrabold text-slate-700">이완기 (최저혈압)</span>
+              ${prevRecord ? renderDeltaPill(dbpVal - prevDbp, true, "") : ""}
+            </div>
+            <div class="text-[15px] sm:text-[17px] font-black text-slate-900 font-mono tracking-tight leading-none">$dbpVal <span class="text-[10.5px] text-slate-400 font-normal leading-none font-mono">mmHg</span></div>
+          </li>
+        </ul>
       `;
-    });
+    } else if (cat.key === "liver") {
+      const astVal = r.ast ?? 25;
+      const altVal = r.alt ?? 25;
+      const rgtpVal = r.rGtp ?? 30;
+      const prevAst = prevRecord ? (prevRecord.ast ?? 25) : astVal;
+      const prevAlt = prevRecord ? (prevRecord.alt ?? 25) : altVal;
+      const prevRgtp = prevRecord ? (prevRecord.rGtp ?? 30) : rgtpVal;
+
+      const getLiverStatus = (ast, alt, rgtp) => {
+        const max = Math.max(ast, alt);
+        if (max <= 40 && rgtp <= 64) return { label: "정상", level: 1 };
+        if (max <= 60 || rgtp <= 100) return { label: "주의", level: 2 };
+        return { label: "경고", level: 3 };
+      };
+      const liverStat = getLiverStatus(astVal, altVal, rgtpVal);
+
+      metricContent = `
+        <ul class="space-y-3">
+          <li class="flex items-center justify-between text-xs sm:text-[12px] text-slate-400 font-bold">
+            <span>간상태 분류</span>
+            ${getStatusBadge(liverStat.level, liverStat.label)}
+          </li>
+          <li class="flex flex-col space-y-1">
+            <div class="flex items-center justify-between text-xs sm:text-[13px]">
+              <span class="font-extrabold text-slate-700">AST</span>
+              ${prevRecord ? renderDeltaPill(astVal - prevAst, true, "") : ""}
+            </div>
+            <div class="text-[15px] sm:text-[17px] font-black text-slate-900 font-mono tracking-tight leading-none">$astVal <span class="text-[10.5px] text-slate-400 font-normal leading-none">U/L</span></div>
+          </li>
+          <li class="flex flex-col space-y-1">
+            <div class="flex items-center justify-between text-xs sm:text-[13px]">
+              <span class="font-extrabold text-slate-700">ALT (대사효소)</span>
+              ${prevRecord ? renderDeltaPill(altVal - prevAlt, true, "") : ""}
+            </div>
+            <div class="text-[15px] sm:text-[17px] font-black text-slate-900 font-mono tracking-tight leading-none">$altVal <span class="text-[10.5px] text-slate-400 font-normal leading-none font-mono">U/L</span></div>
+          </li>
+          <li class="flex flex-col space-y-1 border-t border-slate-100/70 pt-1.5 pb-0.5">
+            <div class="flex items-center justify-between text-xs sm:text-[13px]">
+              <span class="font-bold text-slate-550">r-GTP</span>
+              ${prevRecord ? renderDeltaPill(rgtpVal - prevRgtp, true, "") : ""}
+            </div>
+            <div class="text-sm sm:text-[14px] font-bold text-slate-800 font-mono leading-normal">$rgtpVal U/L</div>
+          </li>
+        </ul>
+      `;
+    } else if (cat.key === "body") {
+      const wtVal = r.weight ?? 68;
+      const bmiVal = r.bmi ?? 22.5;
+      const waistVal = r.waist ?? 82;
+      const prevWt = prevRecord ? (prevRecord.weight ?? 68) : wtVal;
+      const prevBmi = prevRecord ? (prevRecord.bmi ?? 22.5) : bmiVal;
+      const prevWaist = prevRecord ? (prevRecord.waist ?? 82) : waistVal;
+
+      const getBmiStatus = (bmi) => {
+        if (bmi < 18.5) return { label: "저체중", level: 2 };
+        if (bmi < 23.0) return { label: "정상", level: 1 };
+        if (bmi < 25.0) return { label: "과체중", level: 2 };
+        return { label: "비만", level: 3 };
+      };
+      const bmiStat = getBmiStatus(bmiVal);
+
+      metricContent = `
+        <ul class="space-y-3">
+          <li>
+            <div class="flex items-center justify-between text-xs sm:text-[12px] text-slate-400 font-bold mb-1.5">
+              <span>BMI 비만지수</span>
+              ${getStatusBadge(bmiStat.level, bmiStat.label)}
+            </div>
+            <div class="flex items-baseline space-x-1.5">
+              <span class="text-2xl font-black text-slate-900 font-mono tracking-tighter leading-none">$bmiVal.toFixed(1)</span>
+              <span class="text-xs text-slate-400 font-mono leading-none">kg/m²</span>
+            </div>
+          </li>
+          <li class="flex flex-col space-y-1">
+            <div class="flex items-center justify-between text-xs sm:text-[13px]">
+              <span class="font-extrabold text-slate-755">체중</span>
+              ${prevRecord ? renderDeltaPill(wtVal - prevWt, true, "kg") : ""}
+            </div>
+            <div class="text-[15px] sm:text-[17px] font-black text-slate-900 font-mono tracking-tight leading-none">$wtVal <span class="text-[10.5px] text-slate-400 font-normal leading-none shadow-xs">kg</span></div>
+          </li>
+          <li class="flex flex-col space-y-1 border-t border-slate-100/70 pt-1.5 pb-0.5">
+            <div class="flex items-center justify-between text-xs sm:text-[13px]">
+              <span class="font-bold text-slate-500">허리 둘레</span>
+              ${prevRecord ? renderDeltaPill(waistVal - prevWaist, true, "") : ""}
+            </div>
+            <div class="text-sm sm:text-[14px] font-bold text-slate-800 font-mono leading-normal">$waistVal cm</div>
+          </li>
+        </ul>
+      `;
+    } else if (cat.key === "kidney") {
+      const hbVal = r.hba1c ?? 5.4;
+      const crVal = r.creatinine ?? 0.9;
+      const egfrVal = r.egfr ?? 90;
+      const prevHb = prevRecord ? (prevRecord.hba1c ?? 5.4) : hbVal;
+      const prevCr = prevRecord ? (prevRecord.creatinine ?? 0.9) : crVal;
+      const prevEgfr = prevRecord ? (prevRecord.egfr ?? 90) : egfrVal;
+
+      const getKidneyStatus = (cr, egfr) => {
+        if (cr <= 1.2 && egfr >= 90) return { label: "정상", level: 1 };
+        if (cr <= 1.5 || egfr >= 60) return { label: "주의 요망", level: 2 };
+        return { label: "저하", level: 3 };
+      };
+      const kidneyStat = getKidneyStatus(crVal, egfrVal);
+
+      metricContent = `
+        <ul class="space-y-3">
+          <li class="flex flex-col space-y-1">
+            <div class="flex items-center justify-between text-xs sm:text-[13px]">
+              <span class="font-extrabold text-slate-700">당화혈색소 (HbA1c)</span>
+              <div class="flex items-center gap-1.5 leading-none">
+                ${prevRecord ? renderDeltaPill(hbVal - prevHb, true, "%") : ""}
+              </div>
+            </div>
+            <div class="text-[15px] sm:text-[17px] font-black text-slate-900 font-mono tracking-tight leading-normal">$hbVal.toFixed(1)%</div>
+          </li>
+          <li class="flex flex-col space-y-1">
+            <div class="flex items-center justify-between text-xs sm:text-[13px]">
+              <span class="font-extrabold text-slate-705">사구체여과율 (eGFR)</span>
+              <div class="flex items-center gap-1.5 leading-none">
+                ${prevRecord ? renderDeltaPill(egfrVal - prevEgfr, false, "") : ""}
+              </div>
+            </div>
+            <div class="text-[15px] sm:text-[17px] font-black text-slate-955 font-mono tracking-tight leading-normal">$egfrVal.toFixed(0) <span class="text-[10.5px] text-slate-404 font-normal leading-none" style="display:inline-block;">mL/min</span></div>
+          </li>
+          <li class="flex flex-col space-y-1 border-t border-slate-100/70 pt-1.5 pb-0.5">
+            <div class="flex items-center justify-between text-xs sm:text-[13px]">
+              <span class="font-bold text-slate-500">크레아티닌</span>
+              ${prevRecord ? renderDeltaPill(crVal - prevCr, true, "") : ""}
+            </div>
+            <div class="text-sm sm:text-[14px] font-bold text-slate-800 font-mono leading-normal">$crVal.toFixed(2) mg/dL</div>
+          </li>
+        </ul>
+      `;
+    }
 
     categoriesHtml += `
-      <!-- [${cat.name}] 독자적 캐러샐 카드 -->
-      <div id="carousel-${cat.key}-card" class="rounded-2xl border ${cat.border} ${cat.bg} p-4.5 flex flex-col justify-between shadow-xs hover:shadow-md transition-all space-y-3.5" style="box-sizing: border-box;">
+      <!-- [$cat.name] 건강 지표 카드 -->
+      <div class="rounded-xl border $cat.border $cat.bg p-3 sm:p-4 flex flex-col justify-between shadow-xs hover:shadow-sm transition-all space-y-3" style="box-sizing: border-box;">
         <div>
-          <!-- 카드 헤더 및 개별 연도 표시 뱃지 -->
-          <div class="flex items-center justify-between mb-2.5 pb-2.5 border-b border-slate-100 select-none">
-            <span class="text-xs sm:text-[13px] font-extrabold text-slate-800 flex items-center gap-1.5">
-              ${cat.name}
+          <!-- 카드 헤더 및 개별 연도 선택 탭 -->
+          <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100/80 select-none">
+            <span class="text-[13px] font-extrabold text-slate-800 flex items-center gap-1.5 shrink-0">
+              &nbsp;$cat.name
             </span>
-            <span id="badge-${cat.key}" class="bg-[#f37321] text-white text-[10px] font-black px-2.5 py-0.5 rounded-md leading-none select-none">
-              ${records[currentYearSlideIndex].year}년
-            </span>
+            <!-- 작고 이쁜 년도 탭 바 -->
+            <div class="flex items-center gap-1 overflow-x-auto scrollbar-none flex-nowrap shrink-0">
+              ${
+                records.map((rec, idx) => {
+                  const isSelected = idx === currentYearSlideIndex;
+                  const activeClass = isSelected ? 'bg-[#f37321] text-white shadow-3xs' : 'bg-slate-100 text-slate-505 hover:bg-slate-200';
+                  const yr = String(rec.year).slice(-2);
+                  return '<button type="button" class="shrink-0 whitespace-nowrap px-2 py-1 text-[11px] font-black rounded-md transition-all cursor-pointer ' + activeClass + '" onclick="window.switchYearSlideByScore(' + idx + ')">' + yr + '년</button>';
+                }).join("")
+              }
+            </div>
           </div>
 
-          <!-- 가로 스와이프 스냅 트랙 -->
-          <div id="carousel-${cat.key}" class="w-full flex overflow-x-auto snap-x snap-mandatory scrollbar-none select-none py-1">
-            ${slidesHtml}
+          <!-- 메트릭 리스트 내용 (현재 선택된 연도만 단일 노출) -->
+          <div class="w-full select-none py-0.5">
+            $metricContent
           </div>
         </div>
 
-        <!-- 하단 교정용 조작부 & 팁 문구 -->
-        <div class="space-y-3 pt-2.5 border-t border-slate-100/60 select-none">
-          <div class="text-[11px] font-bold ${cat.tipColor} p-2 rounded-lg border leading-relaxed text-center">
-            💡 ${cat.tip}
-          </div>
-          
-          <div class="flex justify-between items-center text-xs font-black">
-            <button type="button" id="btn-prev-${cat.key}" class="text-[#f37321] hover:text-[#dd6216] cursor-pointer disabled:text-slate-300 disabled:cursor-not-allowed select-none bg-transparent border-0 outline-none flex items-center gap-1" onclick="window.slideCategory('${cat.key}', -1)">
-              ◀ 이전 해
-            </button>
-            <div id="indicators-${cat.key}" class="flex gap-1.5">
-              ${dotsHtml}
-            </div>
-            <button type="button" id="btn-next-${cat.key}" class="text-[#f37321] hover:text-[#dd6216] cursor-pointer disabled:text-slate-300 disabled:cursor-not-allowed select-none bg-transparent border-0 outline-none flex items-center gap-1" onclick="window.slideCategory('${cat.key}', 1)">
-              다음 해 ▶
-            </button>
+        <!-- 하단 건강 조언 팁 -->
+        <div class="pt-2 border-t border-slate-100/60 select-none">
+          <div class="text-[11px] font-bold $cat.tipColor py-1.5 px-2 rounded border leading-relaxed text-center">
+            💡 $cat.tip
           </div>
         </div>
       </div>
@@ -3682,25 +3660,14 @@ function renderTimelineChartNew() {
     indicatorsContainer.innerHTML = records.map((r, idx) => {
       const isSelected = idx === currentYearSlideIndex;
       return `
-        <button type="button" class="year-carousel-dot flex-1 text-center cursor-pointer transition-all duration-355 py-2 px-1 sm:px-3 text-[11px] sm:text-[13px] font-black rounded-xl ${isSelected ? 'bg-gradient-to-r from-[#f37321] to-amber-500 text-white border border-transparent shadow-xs' : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'}" data-slide-index="${idx}" aria-label="dots" onclick="window.switchYearSlideByScore(${idx})">
-          ${r.year}년
+        <button type="button" class="year-carousel-dot shrink-0 whitespace-nowrap text-center cursor-pointer transition-all duration-355 py-1.5 px-3 text-[12px] sm:text-[13px] font-black rounded-xl ${isSelected ? 'bg-gradient-to-r from-[#f37321] to-amber-500 text-white border border-transparent shadow-xs' : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'}" data-slide-index="$idx" aria-label="dots" onclick="window.switchYearSlideByScore($idx)">
+          $r.year년
         </button>
       `;
     }).join("");
   }
-
-  // 개별 캐러샐 터치/스크롤 및 인디케이터 바인딩 함수 실행
-  setTimeout(() => {
-    bindCategoryScrollEvents();
-    // 초기 버튼 disabled 동기화
-    const keysForSync = ["lipid", "bp", "liver", "body", "kidney"];
-    keysForSync.forEach(key => {
-      updateCategoryUI(key, currentYearSlideIndex, records);
-    });
-  }, 100);
 }
 
-// 📈 초정밀 반응형 HTML 인포그래픽 타임라인 차트 컴파일 드로잉 함수
 function renderTimelineChart(metric: string = "") {
   renderTimelineChartNew();
 }
@@ -3743,8 +3710,8 @@ function dummyOldFunctionUnused(metric: string) {
     unit2 = "%";
     getVal1 = (r) => r.fastingGlucose ?? 90;
     getVal2 = (r) => r.hba1c ?? 5.5;
-    format1 = (v) => `${v} mg/dL`;
-    format2 = (v) => `${v.toFixed(1)}%`;
+    format1 = (v) => `$v mg/dL`;
+    format2 = (v) => `$v.toFixed(1)%`;
     status1 = (v) => {
       if (v < 100) return { label: "정상", level: 1 };
       if (v < 126) return { label: "공복혈당장애 (주의)", level: 2 };
@@ -3765,8 +3732,8 @@ function dummyOldFunctionUnused(metric: string) {
     unit2 = "mmHg";
     getVal1 = (r) => r.systolicBP ?? 120;
     getVal2 = (r) => r.diastolicBP ?? 80;
-    format1 = (v) => `${v} mmHg`;
-    format2 = (v) => `${v} mmHg`;
+    format1 = (v) => `$v mmHg`;
+    format2 = (v) => `$v mmHg`;
     status1 = (v) => {
       if (v < 120) return { label: "정상", level: 1 };
       if (v < 140) return { label: "상승/고혈압전단계", level: 2 };
@@ -3787,8 +3754,8 @@ function dummyOldFunctionUnused(metric: string) {
     unit2 = "U/L";
     getVal1 = (r) => r.ast ?? 25;
     getVal2 = (r) => r.alt ?? 25;
-    format1 = (v) => `${v} U/L`;
-    format2 = (v) => `${v} U/L`;
+    format1 = (v) => `$v U/L`;
+    format2 = (v) => `$v U/L`;
     status1 = (v) => {
       if (v <= 40) return { label: "정상", level: 1 };
       if (v <= 60) return { label: "경미 상승 (주의)", level: 2 };
@@ -3809,8 +3776,8 @@ function dummyOldFunctionUnused(metric: string) {
     unit2 = "mg/dL";
     getVal1 = (r) => r.totalCholesterol ?? 180;
     getVal2 = (r) => r.triglycerides ?? 130;
-    format1 = (v) => `${v} mg/dL`;
-    format2 = (v) => `${v} mg/dL`;
+    format1 = (v) => `$v mg/dL`;
+    format2 = (v) => `$v mg/dL`;
     status1 = (v) => {
       if (v < 200) return { label: "정상", level: 1 };
       if (v < 240) return { label: "경계선 (주의)", level: 2 };
@@ -3831,8 +3798,8 @@ function dummyOldFunctionUnused(metric: string) {
     unit2 = "kg";
     getVal1 = (r) => r.bmi ?? 22;
     getVal2 = (r) => r.weight ?? 65;
-    format1 = (v) => `${v.toFixed(1)} kg/m²`;
-    format2 = (v) => `${v.toFixed(1)} kg`;
+    format1 = (v) => `$v.toFixed(1) kg/m²`;
+    format2 = (v) => `$v.toFixed(1) kg`;
     status1 = (v) => {
       if (v < 18.5) return { label: "저체중 (우려)", level: 2 };
       if (v < 23.0) return { label: "정상 (보통)", level: 1 };
@@ -3850,11 +3817,11 @@ function dummyOldFunctionUnused(metric: string) {
     legend.innerHTML = `
       <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700">
         <span class="w-3 h-3 rounded-full bg-[#f37321] inline-block"></span>
-        <span>${label1} (주 지표)</span>
+        <span>$label1 (주 지표)</span>
       </div>
       <div class="flex items-center gap-1.5 text-xs font-bold text-slate-500">
         <span class="w-2.5 h-2.5 rounded-full bg-slate-400 inline-block"></span>
-        <span>${label2} (부 지표)</span>
+        <span>$label2 (부 지표)</span>
       </div>
     `;
   }
@@ -3866,14 +3833,14 @@ function dummyOldFunctionUnused(metric: string) {
         // 수치가 증가했는데 낮아야 좋은 지표인 경우 (나빠짐 -> Red)
         return `
           <span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-red-600 bg-red-50 border border-red-200/50 px-1.5 py-0.5 rounded-md">
-            ▲ +${diff.toFixed(1)}${unit}
+            ▲ +$diff.toFixed(1)$unit
           </span>
         `;
       } else {
         // 수치가 증가했는데 커야 좋은 지표인 경우 (좋아짐 -> Emerald)
         return `
           <span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-emerald-600 bg-emerald-50 border border-emerald-200/50 px-1.5 py-0.5 rounded-md">
-            ▲ +${diff.toFixed(1)}${unit}
+            ▲ +$diff.toFixed(1)$unit
           </span>
         `;
       }
@@ -3883,14 +3850,14 @@ function dummyOldFunctionUnused(metric: string) {
         // 수치가 감소했는데 낮아야 좋은 지표인 경우 (개선됨 -> Emerald)
         return `
           <span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-emerald-600 bg-emerald-50 border border-emerald-150 px-1.5 py-0.5 rounded-md">
-            ▼ -${absVal.toFixed(1)}${unit}
+            ▼ -$absVal.toFixed(1)$unit
           </span>
         `;
       } else {
         // 수치가 감소했는데 커야 좋은 지표인 경우 (나빠짐 -> Red)
         return `
           <span class="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-red-600 bg-red-50 border border-red-150 px-1.5 py-0.5 rounded-md">
-            ▼ -${absVal.toFixed(1)}${unit}
+            ▼ -$absVal.toFixed(1)$unit
           </span>
         `;
       }
@@ -3956,13 +3923,13 @@ function dummyOldFunctionUnused(metric: string) {
     else if (s1.level === 3) level3DotColor = "bg-red-500 shadow-xs shadow-red-250";
 
     cardsHtml += `
-      <div class="relative flex flex-col justify-between w-full ${cardBgCls} border ${cardBorderCls} rounded-2xl p-4 sm:p-5 ${shadowCls} transition-all duration-300 hover:shadow-md min-h-[350px]">
-        ${latestBadge}
+      <div class="relative flex flex-col justify-between w-full $cardBgCls border $cardBorderCls rounded-2xl p-4 sm:p-5 $shadowCls transition-all duration-300 hover:shadow-md min-h-[350px]">
+        $latestBadge
         
         <!-- 연도 마커 및 상단 바 -->
         <div class="flex items-center justify-between mb-4 mt-1">
           <span class="bg-slate-900 text-[#efeee8] font-black text-[11px] px-2.5 py-1 rounded-xl font-mono tracking-wider flex items-center gap-1 shadow-xs">
-            ${r.year}년 검진
+            $r.year년 검진
           </span>
           <div class="flex items-center gap-1.5">
             ${isLatest ? `<span class="w-2 h-2 rounded-full bg-[#f37321] animate-pulse"></span>` : ""}
@@ -3972,8 +3939,8 @@ function dummyOldFunctionUnused(metric: string) {
         <!-- 주 메트릭 핵심 수치 -->
         <div class="space-y-1.5">
           <div class="flex items-center justify-between text-[10px] font-bold text-slate-400">
-            <span>${label1} (핵심)</span>
-            ${deltaHtml1}
+            <span>$label1 (핵심)</span>
+            $deltaHtml1
           </div>
           <div class="flex items-baseline justify-between">
             <span class="text-3xl font-black text-slate-900 font-mono tracking-tight shrink-0">${format1(val1).split(' ')[0]}</span>
@@ -3982,9 +3949,9 @@ function dummyOldFunctionUnused(metric: string) {
           
           <!-- 건강 가속 수준 3스텝 인포그래픽 게이지 -->
           <div class="grid grid-cols-3 gap-1.5 pt-1">
-            <div class="h-2 rounded-full ${level1DotColor} transition-colors duration-500"></div>
-            <div class="h-2 rounded-full ${level2DotColor} transition-colors duration-500"></div>
-            <div class="h-2 rounded-full ${level3DotColor} transition-colors duration-500"></div>
+            <div class="h-2 rounded-full $level1DotColor transition-colors duration-500"></div>
+            <div class="h-2 rounded-full $level2DotColor transition-colors duration-500"></div>
+            <div class="h-2 rounded-full $level3DotColor transition-colors duration-500"></div>
           </div>
           <div class="flex justify-between text-[9px] font-bold text-slate-400 px-0.5">
             <span class="${s1.level === 1 ? 'text-emerald-600 font-extrabold' : ''}">정상</span>
@@ -3999,14 +3966,14 @@ function dummyOldFunctionUnused(metric: string) {
         <!-- 부 메트릭 데이터 영역 -->
         <div class="space-y-2">
           <div class="flex items-center justify-between text-[10px] font-bold text-slate-400">
-            <span>${label2}</span>
-            ${deltaHtml2}
+            <span>$label2</span>
+            $deltaHtml2
           </div>
           
           <div class="flex items-center justify-between">
-            <span class="text-sm font-extrabold text-slate-700 font-mono">${format2(val2)}</span>
+            <span class="text-sm font-extrabold text-slate-700 font-mono">$format2(val2)</span>
             <span class="text-[9px] font-bold ${s2.level === 1 ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : s2.level === 2 ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-red-50 text-red-600 border border-red-100'} px-2 py-0.5 rounded-md">
-              ${s2.label}
+              $s2.label
             </span>
           </div>
         </div>
@@ -4060,7 +4027,7 @@ function renderActionTab() {
       $$(".sub-tab-content").forEach((c) => {
         c.classList.add("hidden");
       });
-      $(`sub-section-${subTab}`)?.classList.remove("hidden");
+      $(`sub-section-$subTab`)?.classList.remove("hidden");
 
       // 서브 탭별 렌더링 핸들러 호출
       if (subTab === "action-chat") {
@@ -4100,7 +4067,7 @@ function renderActionTab() {
       return `
         <div class="flex items-start gap-2.5 py-2.5 border-b border-slate-100 last:border-0 hover:bg-slate-50/40 px-2 rounded-xl transition-colors">
           <div class="w-1.5 h-1.5 rounded-full bg-[#f37321] mt-1.5 shrink-0"></div>
-          <span class="text-xs sm:text-sm text-slate-700 leading-relaxed font-bold break-keep">${plan}</span>
+          <span class="text-xs sm:text-sm text-slate-700 leading-relaxed font-bold break-keep">$plan</span>
         </div>
       `;
     }).join("");
@@ -4111,7 +4078,7 @@ function renderActionTab() {
       return `
         <div class="flex items-start gap-2.5 py-2.5 border-b border-slate-100 last:border-0 hover:bg-slate-50/40 px-2 rounded-xl transition-colors">
           <div class="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0"></div>
-          <span class="text-xs sm:text-sm text-slate-700 leading-relaxed font-semibold break-keep">${plan}</span>
+          <span class="text-xs sm:text-sm text-slate-700 leading-relaxed font-semibold break-keep">$plan</span>
         </div>
       `;
     }).join("");
@@ -4122,7 +4089,7 @@ function renderActionTab() {
       return `
         <div class="flex items-start gap-2.5 py-2.5 border-b border-slate-100 last:border-0 hover:bg-slate-50/40 px-2 rounded-xl transition-colors">
           <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></div>
-          <span class="text-xs sm:text-sm text-slate-700 leading-relaxed font-semibold break-keep">${plan}</span>
+          <span class="text-xs sm:text-sm text-slate-700 leading-relaxed font-semibold break-keep">$plan</span>
         </div>
       `;
     }).join("");
@@ -4158,7 +4125,7 @@ function initializeChatRoom() {
     {
       id: "msg-welcome-init",
       role: "assistant",
-      content: `반갑습니다, ${userName}님! 한화손보의 AI Wellness Care Center AI 주치의 3.1 상담방에 오신 것을 환영합니다. \n\n연동 완료하신 이력 중 공복혈당 **${fastingGl} mg/dL**, 수축기 혈압 **${sysBp} mmHg** 수치를 포함한 복합 데이터를 확인하고 식습관 교정전략을 마련해 두었습니다. 당뇨 전단계 조율 수칙, 맞춤 운동 강도, 약제 처방 동향 등 궁금한 사항을 편하게 질문해 주십시오.`,
+      content: `반갑습니다, $userName님! 한화손보의 AI Wellness Care Center AI 주치의 3.1 상담방에 오신 것을 환영합니다. \n\n연동 완료하신 이력 중 공복혈당 **$fastingGl mg/dL**, 수축기 혈압 **$sysBp mmHg** 수치를 포함한 복합 데이터를 확인하고 식습관 교정전략을 마련해 두었습니다. 당뇨 전단계 조율 수칙, 맞춤 운동 강도, 약제 처방 동향 등 궁금한 사항을 편하게 질문해 주십시오.`,
       timestamp: formatTime(new Date())
     }
   ];
@@ -4186,14 +4153,14 @@ function paintChatMessages() {
     const textFormatted = msg.content.replace(/\n/g, "<br/>");
 
     return `
-      <div class="flex gap-2.5 max-w-full ${flexCls}">
-        ${avatar}
+      <div class="flex gap-2.5 max-w-full $flexCls">
+        $avatar
         <div class="flex flex-col space-y-1">
-          <div class="rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed border break-keep ${bgCls}">
-            ${textFormatted}
+          <div class="rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed border break-keep $bgCls">
+            $textFormatted
           </div>
           <div class="flex items-center self-start leading-none">
-            <span class="text-[10px] text-slate-400 font-medium tracking-tight">${msg.timestamp}</span>
+            <span class="text-[10px] text-slate-400 font-medium tracking-tight">$msg.timestamp</span>
           </div>
         </div>
       </div>
@@ -4236,7 +4203,7 @@ async function handleChatSubmit() {
 
   // 사용자 메시지 어펜드
   const userMsg: ChatMessage = {
-    id: `msg-user-${Date.now()}`,
+    id: `msg-user-$Date.now()`,
     role: "user",
     content: userText,
     timestamp: formatTime(new Date())
@@ -4274,7 +4241,7 @@ async function handleChatSubmit() {
 
     // AI 답변 어펜드
     const systemMsg: ChatMessage = {
-      id: `msg-system-${Date.now()}`,
+      id: `msg-system-$Date.now()`,
       role: "assistant",
       content: data.text,
       timestamp: formatTime(new Date()),
@@ -4286,7 +4253,7 @@ async function handleChatSubmit() {
   } catch (err: any) {
     console.error(err);
     chatMessages.push({
-      id: `msg-err-${Date.now()}`,
+      id: `msg-err-$Date.now()`,
       role: "assistant",
       content: err.message || "죄송합니다, 잠시 스마트 주치의 대화선이 혼잡합니다. 잠시 후에 다시 글을 남겨 주십시오.",
       timestamp: formatTime(new Date())
@@ -4439,7 +4406,7 @@ function renderUploadedFilesList() {
 
   // 리스트 노출
   container.classList.remove("hidden");
-  if (countEl) countEl.innerText = `${uploadedFiles.length}개 대기중`;
+  if (countEl) countEl.innerText = `$uploadedFiles.length개 대기중`;
 
   // 드래그존 업로드 완료 스타일 부여
   const dragZone = $("pdf-drag-zone");
@@ -4453,7 +4420,7 @@ function renderUploadedFilesList() {
 
   // 단수형 속성 연동 (기존 로직 호환)
   uploadedFile = uploadedFiles[0];
-  customPDFText = uploadedFiles.map(f => f.customText || `${f.name} 파일 판독 데이터`).join("\n\n");
+  customPDFText = uploadedFiles.map(f => f.customText || `$f.name 파일 판독 데이터`).join("\n\n");
 
   listEl.innerHTML = "";
   uploadedFiles.forEach((file, index) => {
@@ -4491,16 +4458,16 @@ function renderUploadedFilesList() {
 
     item.innerHTML = `
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
-        ${iconHtml}
+        $iconHtml
         <div class="min-w-0 flex-1">
           <div class="text-[11px] font-bold text-slate-800 truncate flex items-center gap-1.5">
-            ${file.name}
-            ${statusBadge}
+            $file.name
+            $statusBadge
           </div>
-          <div class="text-[9px] text-slate-400 font-mono">${file.size}</div>
+          <div class="text-[9px] text-slate-400 font-mono">$file.size</div>
         </div>
       </div>
-      <button type="button" class="btn-delete-file hover:bg-rose-50 text-slate-400 hover:text-rose-500 p-1.5 rounded-lg transition-all shrink-0" data-index="${index}">
+      <button type="button" class="btn-delete-file hover:bg-rose-50 text-slate-400 hover:text-rose-500 p-1.5 rounded-lg transition-all shrink-0" data-index="$index">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
         </svg>
@@ -4619,8 +4586,8 @@ function renderProviderDetailContent(providerId: string) {
   const items = providerDetails[providerId] || [];
   contentEl.innerHTML = items.map(item => `
     <div class="bg-slate-50 border border-slate-100/90 rounded-xl p-3.5 space-y-1">
-      <div class="text-[10px] font-extrabold text-[#f37321] uppercase tracking-wider">${item.title}</div>
-      <p class="text-xs text-slate-700 leading-normal font-semibold break-keep">${item.content}</p>
+      <div class="text-[10px] font-extrabold text-[#f37321] uppercase tracking-wider">$item.title</div>
+      <p class="text-xs text-slate-700 leading-normal font-semibold break-keep">$item.content</p>
     </div>
   `).join("");
 }
@@ -4707,7 +4674,7 @@ function setupConsentDetailsHandlers() {
       if (sectionId && scrollArea) {
         updateActiveConsentTab(sectionId);
         setTimeout(() => {
-          const targetElement = $(`consent-detail-sec-${sectionId}`);
+          const targetElement = $(`consent-detail-sec-$sectionId`);
           if (targetElement) {
             targetElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
           }
@@ -4729,7 +4696,7 @@ function setupConsentDetailsHandlers() {
       const targetId = btn.getAttribute("data-target");
       if (targetId && scrollArea) {
         updateActiveConsentTab(targetId);
-        const targetElement = $(`consent-detail-sec-${targetId}`);
+        const targetElement = $(`consent-detail-sec-$targetId`);
         if (targetElement) {
           targetElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
