@@ -278,9 +278,10 @@ export async function requestNhisSync(params: {
   phoneNo: string;
   telecom: string;
   loginType2: string;
+  bypassDummy?: boolean;
   logPrefix: string;
 }) {
-  const { userName, identity, phoneNo, telecom, loginType2, logPrefix } = params;
+  const { userName, identity, phoneNo, telecom, loginType2, bypassDummy, logPrefix } = params;
   const client_id = process.env.CODEF_CLIENT_ID;
   const client_secret = process.env.CODEF_CLIENT_SECRET;
 
@@ -302,6 +303,12 @@ export async function requestNhisSync(params: {
   if (!client_id || !client_secret || client_id === "YOUR_CODEF_CLIENT_ID" || client_secret === "YOUR_CODEF_CLIENT_SECRET" || client_id.trim() === "") {
     console.log(`${logPrefix} CODEF credentials missing. Bypassing and returning mock JTI for simulation.`);
     return getMockRequestResponse("Credentials Missing");
+  }
+
+  // 사용자가 우회 시뮬레이션을 명시적으로 요청했거나 토글을 껐을 경우 즉시 모의 인증 반환
+  if (bypassDummy) {
+    console.log(`${logPrefix} User requested simulation bypass. Returning mock response.`);
+    return getMockRequestResponse("Bypass Toggle Active");
   }
 
   try {
@@ -383,12 +390,6 @@ export async function requestNhisSync(params: {
     if (result.result?.code !== "CF-03002") {
       console.warn(`${logPrefix} CODEF API returned error code ${result.result?.code}: ${result.result?.message}`);
       
-      const codefEnv = (process.env.CODEF_ENV || "sandbox").toLowerCase();
-      if (codefEnv !== "production" && codefEnv !== "api") {
-        console.warn(`[CODEF Fallback] requestNhisSync failed with ${result.result?.code}. Bypassing with simulated response in ${codefEnv} environment.`);
-        return getMockRequestResponse(`Bypassed API Error: ${result.result?.message}`);
-      }
-
       // IP가 허용되지 않았을 경우 (CF-00013 등), 감지된 IP를 에러 메시지에 명시적으로 덧붙여 노출
       if ((result.result?.code === "CF-00013" || result.result?.message?.includes("아이피")) && result.result?.extraMessage) {
         result.result.message = `${result.result.message} (감지된 IP: ${result.result.extraMessage})`;
@@ -400,18 +401,20 @@ export async function requestNhisSync(params: {
   } catch (err: any) {
     console.error(`${logPrefix} CODEF 1차인증 중 예외 발생:`, err);
     
-    const codefEnv = (process.env.CODEF_ENV || "sandbox").toLowerCase();
-    if (codefEnv !== "production" && codefEnv !== "api") {
-      console.warn(`[CODEF Fallback] requestNhisSync exception: ${err.message}. Bypassing with simulated response in ${codefEnv} environment.`);
-      return getMockRequestResponse(`Bypassed Exception: ${err.message}`);
-    }
-
     // 만약 리디렉션 초과(invalid-domain) 오류인 경우, 아이피 화이트리스트 차단 가능성이 매우 높으므로 가이드 메시지 보강
     if (err.message?.includes("redirect") || err.cause?.message?.includes("redirect")) {
+      let detectedIp = "확인 불가";
+      try {
+        const ipRes = await fetch("https://api.ipify.org?format=json");
+        const ipData = await ipRes.json();
+        detectedIp = ipData.ip;
+      } catch (ipErr) {
+        console.error("Failed to detect outbound IP for error guide:", ipErr);
+      }
       return {
         result: {
           code: "CF-00013",
-          message: "CODEF API 요청 도메인/IP 차단 오류가 의심됩니다. CODEF 대시보드에서 허용할 IP(로컬 개발환경 IP 또는 Render 서버 아웃바운드 IP)를 등록했는지 확인해 주세요."
+          message: `CODEF API 요청 도메인/IP 차단 오류가 의심됩니다. CODEF 대시보드에 현재 서버의 공인 IP인 [${detectedIp}]를 'API 요청 허용 IP'에 등록했는지 확인해 주세요.`
         },
         data: {}
       };
@@ -429,21 +432,22 @@ export async function confirmNhisSync(params: {
   loginType2: string;
   jti: string;
   twoWayInfo: any;
+  bypassDummy?: boolean;
   logPrefix: string;
   body: any; // 타임스탬프 등 추가 데이터 접근용
 }) {
-  const { userName, identity, phoneNo, telecom, loginType2, jti, twoWayInfo, logPrefix, body } = params;
+  const { userName, identity, phoneNo, telecom, loginType2, jti, twoWayInfo, bypassDummy, logPrefix, body } = params;
   const client_id = process.env.CODEF_CLIENT_ID;
   const client_secret = process.env.CODEF_CLIENT_SECRET;
 
-  // 시뮬레이션 모드 판별 및 분기
-  if (!client_id || !client_secret || client_id === "YOUR_CODEF_CLIENT_ID" || client_secret === "YOUR_CODEF_CLIENT_SECRET" || client_id.trim() === "" || jti?.startsWith("mock_jti_")) {
+  // 시뮬레이션 모드 판별 및 분기 (사용자가 우회 시뮬레이션을 원하거나 크레덴셜이 없거나 jti가 mock인 경우)
+  if (!client_id || !client_secret || client_id === "YOUR_CODEF_CLIENT_ID" || client_secret === "YOUR_CODEF_CLIENT_SECRET" || client_id.trim() === "" || jti?.startsWith("mock_jti_") || bypassDummy) {
     console.log(`${logPrefix} Processing mock confirm and returning 5-year records.`);
     const simulatedRecords = getSimulatedNhisRecords(userName, identity);
     return {
       result: {
         code: "CF-00000",
-        message: "성공적으로 조회되었습니다."
+        message: "성공적으로 조회되었습니다. (시뮬레이션 우회 모드)"
       },
       data: {
         syncedRecords: simulatedRecords
@@ -454,21 +458,7 @@ export async function confirmNhisSync(params: {
   // OAuth 토큰 발급
   const token = await getCodefToken(client_id, client_secret);
   if (!token) {
-    const codefEnv = (process.env.CODEF_ENV || "sandbox").toLowerCase();
-    if (codefEnv !== "production" && codefEnv !== "api") {
-      console.warn(`${logPrefix} CODEF Token acquisition failed. Bypassing with simulated response in ${codefEnv} environment.`);
-      const simulatedRecords = getSimulatedNhisRecords(userName, identity);
-      return {
-        result: {
-          code: "CF-00000",
-          message: "성공적으로 조회되었습니다. (시뮬레이션 우회 모드: 토큰 발급 실패 우회)"
-        },
-        data: {
-          syncedRecords: simulatedRecords
-        }
-      };
-    }
-    throw new Error("CODEF API 인증 토큰 발급에 실패했습니다.");
+    throw new Error("CODEF API 인증 토큰 발급에 실패했습니다. (방화벽 차단 의심)");
   }
 
   // CODEF 서비스 주소 맵핑
@@ -594,39 +584,10 @@ export async function confirmNhisSync(params: {
         data: { syncedRecords }
       };
     } else {
-      // 개발/테스트 환경에서는 API 에러(CF-12200 등) 발생 시 시뮬레이션 모드로 우회 제공하여 비즈니스 흐름 중단을 방지합니다.
-      const codefEnv = (process.env.CODEF_ENV || "sandbox").toLowerCase();
-      if (codefEnv !== "production" && codefEnv !== "api") {
-        console.warn(`[CODEF Fallback] confirmNhisSync failed with ${result.result?.code}: ${result.result?.message}. Bypassing with simulated response in ${codefEnv} environment.`);
-        const simulatedRecords = getSimulatedNhisRecords(userName, identity);
-        return {
-          result: {
-            code: "CF-00000",
-            message: `성공적으로 조회되었습니다. (시뮬레이션 우회 모드: API 오류 ${result.result?.code} 우회)`
-          },
-          data: {
-            syncedRecords: simulatedRecords
-          }
-        };
-      }
       return result;
     }
   } catch (err: any) {
     console.error(`${logPrefix} CODEF 2차인증 중 예외 발생:`, err);
-    const codefEnv = (process.env.CODEF_ENV || "sandbox").toLowerCase();
-    if (codefEnv !== "production" && codefEnv !== "api") {
-      console.warn(`[CODEF Fallback] confirmNhisSync exception. Bypassing with simulated response in ${codefEnv} environment.`);
-      const simulatedRecords = getSimulatedNhisRecords(userName, identity);
-      return {
-        result: {
-          code: "CF-00000",
-          message: "성공적으로 조회되었습니다. (시뮬레이션 우회 모드: API 예외 우회)"
-        },
-        data: {
-          syncedRecords: simulatedRecords
-        }
-      };
-    }
     throw err;
   }
 }

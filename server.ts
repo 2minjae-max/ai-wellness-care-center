@@ -813,7 +813,7 @@ app.get("/api/test-supabase", async (req, res) => {
 // [CODEF 1차 간편인증 PUSH 발송 API]
 // -------------------------------------------------------------
 app.post("/api/health/nhis-sync-request", async (req, res): Promise<void> => {
-  const { userName, identity, phoneNo, telecom, loginType2 } = req.body;
+  const { userName, identity, phoneNo, telecom, loginType2, bypassDummy } = req.body;
 
   const ipAddress = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "";
   const userAgent = req.headers["user-agent"] || "";
@@ -826,6 +826,7 @@ app.post("/api/health/nhis-sync-request", async (req, res): Promise<void> => {
       phoneNo,
       telecom,
       loginType2,
+      bypassDummy,
       logPrefix
     });
     res.json(result);
@@ -842,7 +843,7 @@ app.post("/api/health/nhis-sync-request", async (req, res): Promise<void> => {
 // [CODEF 2차 인증 완료 및 건강검진 결과 수집 API]
 // -------------------------------------------------------------
 app.post("/api/health/nhis-sync-confirm", async (req, res): Promise<void> => {
-  const { userName, identity, phoneNo, telecom, loginType2, jti, twoWayInfo } = req.body;
+  const { userName, identity, phoneNo, telecom, loginType2, jti, twoWayInfo, bypassDummy } = req.body;
 
   const ipAddress = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "";
   const userAgent = req.headers["user-agent"] || "";
@@ -857,6 +858,7 @@ app.post("/api/health/nhis-sync-confirm", async (req, res): Promise<void> => {
       loginType2,
       jti,
       twoWayInfo,
+      bypassDummy,
       logPrefix,
       body: req.body
     });
@@ -874,7 +876,7 @@ app.post("/api/health/nhis-sync-confirm", async (req, res): Promise<void> => {
 // AI 처방전 / 약봉투 이미지 비전 분석 라우트 (Gemini Vision)
 // -------------------------------------------------------------
 app.post("/api/health/analyze-prescription", upload.single("prescriptionImage"), async (req, res): Promise<void> => {
-  const file = req.file;
+  const file = (req as any).file;
   const ipAddress = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "";
   const userAgent = req.headers["user-agent"] || "";
 

@@ -1145,6 +1145,18 @@
             </div>
           </div>
 
+          <!-- 우회 모드 토글 스위치 -->
+          <div class="flex items-center justify-between bg-slate-50 border border-slate-150 p-2.5 rounded-xl mt-3 select-none">
+            <div class="flex flex-col text-left">
+              <span class="text-xs font-bold text-slate-800">실시간 CODEF 연동</span>
+              <span class="text-[9px] text-slate-500 leading-normal" id="bypass-desc">실제 인증 및 건강검진 데이터를 가져옵니다.</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="toggle-real-codef" class="sr-only peer" checked />
+              <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#f37321]"></div>
+            </label>
+          </div>
+
           <hr class="border-slate-100 my-2" />
 
           <div class="text-center space-y-1">

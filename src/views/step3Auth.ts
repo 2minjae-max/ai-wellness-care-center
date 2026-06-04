@@ -43,6 +43,19 @@ export function showModalError(message: string) {
 
 // 1차 간편인증 PUSH 발송, 인증 취소, 2차 확인 버튼들의 클릭 이벤트를 바인딩합니다.
 export function bindAuthModalEvents(ctx: Step3Context) {
+  // 토글 스위치 상태 변경 리스너 추가
+  const toggleReal = $("toggle-real-codef") as HTMLInputElement | null;
+  const bypassDesc = $("bypass-desc");
+  if (toggleReal && bypassDesc) {
+    toggleReal.addEventListener("change", () => {
+      if (toggleReal.checked) {
+        bypassDesc.innerText = "실제 인증 및 건강검진 데이터를 가져옵니다.";
+      } else {
+        bypassDesc.innerText = "오류를 우회하여 5개년 모의 데이터를 가져옵니다.";
+      }
+    });
+  }
+
   // 모달 - 1차 간편인증 PUSH 발송 요청 버튼
   $("btn-modal-request-auth")?.addEventListener("click", async () => {
     const phoneInput = $("modal-input-phone") as HTMLInputElement;
@@ -77,12 +90,16 @@ export function bindAuthModalEvents(ctx: Step3Context) {
     const telecomSelect = $("modal-input-telecom") as HTMLSelectElement;
     const telecom = telecomSelect ? telecomSelect.value : "skt";
 
+    const toggleRealCodef = $("toggle-real-codef") as HTMLInputElement | null;
+    const bypassDummy = toggleRealCodef ? !toggleRealCodef.checked : false;
+
     const payload = {
       userName: ctx.getUserName(),
       identity: ctx.getBirthDate(),
       phoneNo,
       telecom,
-      loginType2: ctx.getAuthProvider()
+      loginType2: ctx.getAuthProvider(),
+      bypassDummy
     };
 
     try {
@@ -173,6 +190,9 @@ export async function verifyNhisSyncSignature(ctx: Step3Context): Promise<boolea
   const telecomSelect = $("modal-input-telecom") as HTMLSelectElement;
   const telecom = telecomSelect ? telecomSelect.value : "skt";
 
+  const toggleRealCodef = $("toggle-real-codef") as HTMLInputElement | null;
+  const bypassDummy = toggleRealCodef ? !toggleRealCodef.checked : false;
+
   const payload = {
     userName: ctx.getUserName(),
     identity: ctx.getBirthDate(),
@@ -180,7 +200,8 @@ export async function verifyNhisSyncSignature(ctx: Step3Context): Promise<boolea
     telecom,
     loginType2: ctx.getAuthProvider(),
     jti: ctx.getCodefJti(),
-    twoWayInfo: ctx.getCodefTwoWayInfo()
+    twoWayInfo: ctx.getCodefTwoWayInfo(),
+    bypassDummy
   };
 
   const res = await fetch("/api/health/nhis-sync-confirm", {
@@ -214,6 +235,14 @@ export function openSyncModal() {
     modal.classList.remove("hidden");
     $("final-analysis-cta-container")?.classList.add("hidden");
     
+    // 토글 스위치 상태 및 설명 리셋
+    const toggleReal = $("toggle-real-codef") as HTMLInputElement | null;
+    const bypassDesc = $("bypass-desc");
+    if (toggleReal && bypassDesc) {
+      toggleReal.checked = true;
+      bypassDesc.innerText = "실제 인증 및 건강검진 데이터를 가져옵니다.";
+    }
+
     // 모달 분기 화면 리셋
     $("modal-step-form")?.classList.remove("hidden");
     $("modal-step-requesting")?.classList.add("hidden");
