@@ -3931,7 +3931,7 @@ function renderActionTab() {
         setTimeout(() => {
           const chatHeader = $("section-chat-standalone");
           if (chatHeader) {
-            chatHeader.scrollIntoView({ behavior: "smooth", block: "start" });
+            chatHeader.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           }
         }, 80);
       } else if (subTab === "action-prescription") {
