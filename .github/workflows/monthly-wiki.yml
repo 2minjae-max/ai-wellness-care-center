@@ -1,0 +1,42 @@
+name: Monthly Knowledge Wiki Auto-Update
+
+on:
+  schedule:
+    # 한국 표준시(KST) 매월 1일 새벽 03:00 -> UTC 기준 매월 1일 18:00 (전날인 18:00로 크론 설정)
+    # cron 양식: 분 시 일 월 요일
+    - cron: '0 18 1 * *'
+  workflow_dispatch: # GitHub UI에서 수동 강제 업데이트 지원
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # 깃허브 푸시 권한 명시
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Knowledge Wiki Update Script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: npx tsx scripts/update_knowledge_wiki.ts
+
+      - name: Commit and Push if updated
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/knowledge_wiki.json
+          
+          # 변경사항이 존재하는 경우에만 커밋 및 푸시하여 불필요한 빌드 방지
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: monthly auto-update of knowledge_wiki.json" && git push)

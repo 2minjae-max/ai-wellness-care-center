@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-06-03T00:33:00.000Z",
-  "batchLog": "Success - Updated 6 representative Hanwha Insurance active products including standard 3N5 and female simplified underwriting health insurance.",
+  "generatedAt": "2026-06-04T08:49:37.553Z",
+  "batchLog": "Success - Processed 4 representative Hanwha Insurance active long-term products with real URL patterns.",
   "products": {
     "한화 시그니처 여성 건강보험4.0[HOT]": {
       "fullName": "무배당 한화 시그니처 여성 건강보험4.0(2601) 무배당",
@@ -28,41 +28,7 @@
         }
       ],
       "premiumRange": "월 40,000원 ~ 120,000원 (연령 및 담보 한도별 차등)",
-      "premiumExample": {
-        "standardAge": "40세 여성 기준",
-        "paymentTerm": "20년납 100세만기 (비갱신형 / 무해지환급형)",
-        "coverageDetail": "일반암 진단비 3,000만원, 유사암 600만원, 뇌혈관질환 1,000만원, 허혈성심장질환 1,000만원, 여성특정암 2,000만원 보강",
-        "monthlyPremium": "월 53,200원",
-        "source": "한화손해보험 상품설명서 공식 설계 예시 기준"
-      },
-      "recommendationFactor": "건강 검진 결과상 부인과 취약 성향 또는 가족력에 암(유방/자궁) 취약군이 확인되며, 최근 복용 중인 약물이 없고 검진 지표가 정상인 건강체 여성 고객에게 강력 추천."
-    },
-    "한화 시그니처 여성 간편 건강보험": {
-      "fullName": "무배당 한화 시그니처 여성 간편 건강보험(3.5.5/3.0.5)",
-      "category": "여성 특화 간편심사 유병자보험",
-      "status": "판매중",
-      "targetAudience": "여성 유병자 (만 15세 ~ 90세)",
-      "productUrl": "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01988003",
-      "guidePdfUrl": "https://www.hwgeneralins.com/upload/hmpag_upload/product/woman_simple(2604)_01.pdf",
-      "coreBenefits": [
-        {
-          "item": "유병자 여성 생애주기 맞춤 암보장",
-          "details": "고혈압, 당뇨 등 만성질환 약 복용 중에도 가입 가능하며 유방/자궁 등 여성암 한도 우대 제공"
-        },
-        {
-          "item": "여성 다빈도 질환 간편심사",
-          "details": "자궁근종, 갑상선 결절 등 가벼운 부인과 기병력이 있어도 할증 없이 심사 후 인수"
-        }
-      ],
-      "premiumRange": "월 45,000원 ~ 130,000원",
-      "premiumExample": {
-        "standardAge": "40세 여성 기준",
-        "paymentTerm": "20년납 100세만기 (비갱신형 / 간편심사할증적용)",
-        "coverageDetail": "일반암 진단비 3,000만원, 유사암 600만원, 뇌혈관질환 2,000만원, 허혈성심장질환 2,000만원 보장",
-        "monthlyPremium": "월 64,800원",
-        "source": "한화손해보험 공식 간편가입 상품 설계 정보"
-      },
-      "recommendationFactor": "당뇨, 고혈압 등 만성 질환 약물을 처방받아 복용 중이거나 정밀 임상 소견서 상 결절 등이 있어 표준형 건강보험 가입이 어려운 여성 유병자 고객용."
+      "recommendationFactor": "건강 검진 결과상 부인과 취약 성향 또는 가족력에 암(유방/자궁) 취약군이 확인되는 여성 고객에게 강력 추천."
     },
     "한화 시그니처 여성 건강보험4.0[새창][NEW]": {
       "fullName": "무배당 한화 시그니처 여성 건강보험4.0[새창] (갱신형/비갱신형 선택)",
@@ -82,13 +48,6 @@
         }
       ],
       "premiumRange": "월 35,000원 ~ 95,000원",
-      "premiumExample": {
-        "standardAge": "30세 여성 기준",
-        "paymentTerm": "20년 갱신형 (최대 100세 만기 재가입)",
-        "coverageDetail": "부인과 특정 질병 수술비 200만원, 요실금 수술비 50만원, 자궁근종 수술비 100만원, 정신질환 치료 지원금 500만원",
-        "monthlyPremium": "월 37,800원",
-        "source": "한화손해보험 공식 홈페이지 실속형 다이렉트 온라인 추천 설계 예시"
-      },
       "recommendationFactor": "온라인/다이렉트 간편 계약 또는 갱신형 구조를 통해 월 부담을 낮추고 핵심 부인과 담보만 집중 가입하고 싶은 고객용."
     },
     "한화 더건강한 한아름종합보험 무배당[NEW]": {
@@ -105,7 +64,7 @@
         },
         {
           "item": "대사증후군/만성질환 가입 우대",
-          "details": "무사고 시 표준형 계약 전환 혜택과 결합하여 부담보 없이 인수 지원"
+          "details": "기존 만성 유병자도 당일 입퇴원 고지 제외 및 '3N5' 더간편 할인 계약 전환 혜택과 결합하여 부담보 없이 인수 지원"
         },
         {
           "item": "질병/재해 1-5종 수술비 보장",
@@ -113,41 +72,7 @@
         }
       ],
       "premiumRange": "월 50,000원 ~ 150,000원",
-      "premiumExample": {
-        "standardAge": "40세 남성 기준 (여성은 약 62,300원)",
-        "paymentTerm": "20년납 100세만기 (비갱신형 / 표준형)",
-        "coverageDetail": "일반암 3,000만원, 뇌혈관 2,000만원, 허혈성심장 2,000만원, 질병수술비 100만원, 1-5종 수술비 종별 차등 지급",
-        "monthlyPremium": "월 78,500원",
-        "source": "한화손해보험 상품공시실 표준 가입 설계 가이드라인 예시"
-      },
-      "recommendationFactor": "최근 5개년 건강 검진상 공복혈당(당뇨 전단계), 혈압, 간수치 등 초기 대사항목에 가벼운 주의 징후가 있으나 현재 복용 중인 만성 약물은 없는 건강 등급 가입 고객용."
-    },
-    "한화 간편가입 3N5 건강보험": {
-      "fullName": "무배당 한화 간편가입 3N5 건강보험",
-      "category": "간편심사 종합 유병자보험",
-      "status": "판매중",
-      "targetAudience": "만 15세 ~ 90세 유병자 및 고령층",
-      "productUrl": "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01358001",
-      "guidePdfUrl": "https://www.hwgeneralins.com/upload/hmpag_upload/product/simple_3n5(2604)_01.pdf",
-      "coreBenefits": [
-        {
-          "item": "유병자 무서류 간편 고지 가입",
-          "details": "3개월 내 추가소견, N년(1~5년) 내 입원/수술, 5년 내 암 진단 이력만 고지 후 초간편 심사 통과"
-        },
-        {
-          "item": "만성질환 약 복용자 전면 인수",
-          "details": "고혈압, 당뇨, 이상지질혈증 등의 약물을 수년간 꾸준히 장기 복용 중인 고객도 간편 고지 통과 시 제한 없이 가입"
-        }
-      ],
-      "premiumRange": "월 55,000원 ~ 140,000원 (표준형 대비 약 20% 내외 할증)",
-      "premiumExample": {
-        "standardAge": "40세 남성 기준",
-        "paymentTerm": "20년납 100세만기 (비갱신형 / 간편유병자형)",
-        "coverageDetail": "일반암 3,000만원, 뇌혈관질환 2,000만원, 허혈성심장질환 2,000만원 및 다빈도 수술비 포함",
-        "monthlyPremium": "월 92,300원",
-        "source": "한화손해보험 공식 간편가입 상품 설계 표준 가이드라인 예시"
-      },
-      "recommendationFactor": "당뇨, 고혈압, 간/신장 등의 만성 질환으로 꾸준히 정기 약물을 처방받아 복용 중이며, 일반 건강형 상품 가입 시 거절 또는 높은 부담보 제약을 받는 유병자 고객용."
+      "recommendationFactor": "건강 검진상 공복혈당(당뇨 전단계), 혈압(수축기 130 이상), 간수치(ALT 상승) 등 초기 대사항목 이상 징후가 보이고 심뇌혈관 상속성 위험(가족력)을 든든하게 메꾸고 싶어 하는 표준 종합 가입 고객용."
     },
     "한화 실손의료보험(갱신형)": {
       "fullName": "무배당 한화 실손의료보험(갱신형)",
@@ -171,13 +96,6 @@
         }
       ],
       "premiumRange": "월 15,000원 ~ 45,000원 (연령 및 직종별 변동)",
-      "premiumExample": {
-        "standardAge": "40세 여성 기준 (남성은 약 13,800원)",
-        "paymentTerm": "1년 갱신형 (5년마다 재가입, 최대 100세)",
-        "coverageDetail": "상해/질병 급여 입통원 실손(통상 한도), 상해/질병 비급여 입통원 실손, 3대 비급여 특약(도수/비급여주사/MRI) 일괄 포함",
-        "monthlyPremium": "월 15,200원",
-        "source": "4세대 표준 실손의료보험 한화손보 공시 표준 설계 보험료"
-      },
       "recommendationFactor": "기본적인 병원 치료비, 도수치료 및 값비싼 MRI 촬영 등 생활 밀착형 실손 부담을 1순위로 방어하고자 하는 전 가입 고객."
     }
   }

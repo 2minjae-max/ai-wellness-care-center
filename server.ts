@@ -321,10 +321,29 @@ function getGeminiClient(): GoogleGenAI | null {
 }
 
 // -------------------------------------------------------------
-// 핑/헬스체크 API (Render 슬립 방지용)
+// 핑/헬스체크 API (Render 슬립 방지용 + Supabase 절전 방지용)
 // -------------------------------------------------------------
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+app.get("/api/health", async (req, res) => {
+  const result: any = { status: "ok", timestamp: new Date().toISOString() };
+  
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      // Supabase 테이블에 간단한 쿼리를 호출하여 데이터베이스 활성화 상태 유지 (7일 미활동 절전 방지)
+      const { error } = await supabase.from("access_logs").select("id").limit(1);
+      if (error) {
+        result.supabase = { status: "error", message: error.message };
+      } else {
+        result.supabase = { status: "active" };
+      }
+    } catch (e: any) {
+      result.supabase = { status: "exception", message: e.message };
+    }
+  } else {
+    result.supabase = { status: "not_configured" };
+  }
+  
+  res.json(result);
 });
 
 // -------------------------------------------------------------
