@@ -911,8 +911,8 @@
               </div>
             </div>
 
-            <!-- 🎠 슬라이딩 캐러샐 프레임 (모바일에서도 온전히 가로 100% 활용) -->
-            <div class="relative w-full overflow-hidden" id="year-carousel-viewport">
+            <!-- 🎠 각 지표별 개별 캐러샐 리스트 컨테이너 -->
+            <div class="relative w-full" id="year-carousel-viewport">
               <!-- Dim overlay guide for mobile horizontal swipe gesture (shown only once) -->
               <div id="swipe-guide-overlay" class="hidden absolute inset-0 z-20 bg-slate-900/60 flex flex-col items-center justify-center text-white cursor-pointer transition-opacity duration-500 rounded-xl opacity-100">
                 <div class="flex flex-col items-center gap-3">
@@ -926,18 +926,16 @@
                     </svg>
                   </div>
                   <span class="text-[11px] font-extrabold tracking-wide drop-shadow-sm text-center leading-normal">
-                    손가락으로 좌우 스와이프하여<br/>과거 건강지표를 확인하세요
+                    각 건강지표 카드들을 좌우로 스와이프하여<br/>연도별 수치 변화를 직접 확인해보세요!
                   </span>
                   <span class="text-[8px] text-white/70 font-semibold px-2 py-0.5 border border-white/30 rounded-full bg-white/10 mt-1 select-none">
                     터치하면 닫기
                   </span>
                 </div>
               </div>
-              <!-- 슬라이딩 하이웨이 트랙 -->
-              <div class="w-full overflow-hidden" id="year-carousel-viewport-container">
-                <div id="dynamic-timeline-chart" class="flex transition-transform duration-500 ease-out py-1 select-none w-full">
-                  <!-- 년도별 검진지표 슬라이드 카드 노드가 동적으로 이식됩니다 -->
-                </div>
+              
+              <div id="dynamic-timeline-chart" class="grid grid-cols-1 gap-4 w-full py-1">
+                <!-- 각 지표별 독자적 캐러샐 카드가 동적으로 이식됩니다 -->
               </div>
             </div>
           </div>
@@ -1886,6 +1884,36 @@
         }, { passive: true });
       });
     </script>
+
+    <!-- 🤖 AI 보장 비교분석 로딩 딤 오버레이 -->
+    <div id="ai-analysis-overlay" class="hidden fixed inset-0 z-[9999] bg-slate-900/80 backdrop-blur-md flex flex-col items-center justify-center text-white p-4">
+      <div class="bg-slate-950/90 border border-white/10 rounded-3xl p-6 xs:p-8 max-w-sm w-full mx-auto flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
+        <!-- Glowing AI core animation -->
+        <div class="relative w-20 h-20 sm:w-24 sm:h-24 mb-6">
+          <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-[#f37321] to-amber-500 animate-spin opacity-70 blur-md"></div>
+          <div class="absolute inset-1.5 sm:inset-2 rounded-full bg-slate-950 flex items-center justify-center z-10 border border-white/5">
+            <svg class="w-8 h-8 sm:w-10 sm:h-10 text-[#f37321] animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21L14.907 18M18 10.5c0 3.59-2.025 6.708-5 8.245-2.975-1.537-5-4.655-5-8.245 0-2.316.786-4.448 2.103-6.147L12 3l1.897 1.353A10.467 10.467 0 0118 10.5z" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Title and details -->
+        <h3 class="text-sm sm:text-base font-black tracking-tight mb-2">AI 건강설계사가 분석 중입니다</h3>
+        <p id="ai-loading-step" class="text-[10px] sm:text-xs text-slate-400 font-semibold mb-6 transition-opacity duration-300 min-h-[32px] flex items-center justify-center">
+          보험 설계서 보장 내역을 파악하고 있습니다...
+        </p>
+        
+        <!-- Premium Loading Bar container -->
+        <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden mb-4 border border-white/5">
+          <div id="ai-loading-bar" class="bg-gradient-to-r from-[#f37321] to-amber-500 h-full w-[0%] transition-all duration-300"></div>
+        </div>
+        <div class="flex justify-between w-full text-[9px] text-slate-500 font-bold uppercase tracking-wider">
+          <span>HMW AI wellness</span>
+          <span id="ai-loading-percent" class="font-mono text-slate-400">0%</span>
+        </div>
+      </div>
+    </div>
 
     <!-- Vanilla Script 실행 -->
     <script type="module" src="/src/main.tsx"></script>
