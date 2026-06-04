@@ -79,6 +79,24 @@ export function bindAuthModalEvents(ctx: Step3Context) {
     });
   });
 
+  // 아코디언 토글 리스너
+  const btnToggleSyncMode = $("btn-toggle-sync-mode");
+  const contentAccordion = $("content-sync-mode-accordion");
+  const iconChevron = $("icon-sync-mode-chevron");
+
+  if (btnToggleSyncMode && contentAccordion && iconChevron) {
+    btnToggleSyncMode.addEventListener("click", () => {
+      const isHidden = contentAccordion.classList.contains("hidden");
+      if (isHidden) {
+        contentAccordion.classList.remove("hidden");
+        iconChevron.classList.add("rotate-180");
+      } else {
+        contentAccordion.classList.add("hidden");
+        iconChevron.classList.remove("rotate-180");
+      }
+    });
+  }
+
   // 모달 - 1차 간편인증 PUSH 발송 요청 버튼
   $("btn-modal-request-auth")?.addEventListener("click", async () => {
     const phoneInput = $("modal-input-phone") as HTMLInputElement;
@@ -271,6 +289,10 @@ export function openSyncModal() {
 
     if (bypassDesc) bypassDesc.innerText = "인증을 우회하여 로컬의 5개년 모의 데이터를 즉시 가져옵니다.";
     if (modeBadge) modeBadge.innerText = "인증 우회";
+
+    // 아코디언 접힘 리셋
+    $("content-sync-mode-accordion")?.classList.add("hidden");
+    $("icon-sync-mode-chevron")?.classList.remove("rotate-180");
 
     // 모달 분기 화면 리셋
     $("modal-step-form")?.classList.remove("hidden");
