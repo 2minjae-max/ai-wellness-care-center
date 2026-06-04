@@ -360,29 +360,29 @@
                   <span class="text-xs font-black text-slate-500 uppercase tracking-wider">최근 5개년 건강 추세 트랙</span>
                 </div>
                 <div class="relative w-full">
-                  <div id="sparkline-carousel" class="flex sm:grid sm:grid-cols-2 gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-none w-full pb-1">
-                    <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                  <div id="sparkline-carousel" class="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-none w-full pb-1">
+                    <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all min-w-[calc(100%-24px)] snap-center shrink-0">
                       <div class="flex justify-between items-center px-1">
                         <span class="text-xs text-slate-400 font-extrabold">수축기 혈압</span>
                         <span class="text-sm text-rose-500 font-black" id="codef-chart-bp-val">-</span>
                       </div>
                       <div id="codef-chart-bp" class="w-full h-12 flex items-end"></div>
                     </div>
-                    <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                    <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all min-w-[calc(100%-24px)] snap-center shrink-0">
                       <div class="flex justify-between items-center px-1">
                         <span class="text-xs text-slate-400 font-extrabold">공복 혈당</span>
                         <span class="text-sm text-[#f37321] font-black" id="codef-chart-glucose-val">-</span>
                       </div>
                       <div id="codef-chart-glucose" class="w-full h-12 flex items-end"></div>
                     </div>
-                    <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                    <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all min-w-[calc(100%-24px)] snap-center shrink-0">
                       <div class="flex justify-between items-center px-1">
                         <span class="text-xs text-slate-400 font-extrabold">총 콜레스테롤</span>
                         <span class="text-sm text-slate-800 font-black" id="codef-chart-cholesterol-val">-</span>
                       </div>
                       <div id="codef-chart-cholesterol" class="w-full h-12 flex items-end"></div>
                     </div>
-                    <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                    <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all min-w-[calc(100%-24px)] snap-center shrink-0">
                       <div class="flex justify-between items-center px-1">
                         <span class="text-xs text-slate-400 font-extrabold">BMI</span>
                         <span class="text-sm text-slate-800 font-black" id="codef-chart-bmi-val">-</span>
@@ -390,8 +390,8 @@
                       <div id="codef-chart-bmi" class="w-full h-12 flex items-end"></div>
                     </div>
                   </div>
-                  <!-- Carousel Indicators (Mobile Only) -->
-                  <div class="flex sm:hidden justify-center items-center gap-1.5 mt-2 pb-1" id="sparkline-carousel-indicators">
+                  <!-- Carousel Indicators -->
+                  <div class="flex justify-center items-center gap-1.5 mt-2 pb-1" id="sparkline-carousel-indicators">
                     <button class="w-1.5 h-1.5 rounded-full bg-[#f37321] transition-all duration-300" data-slide-index="0" aria-label="Slide 1"></button>
                     <button class="w-1.5 h-1.5 rounded-full bg-slate-200 transition-all duration-300" data-slide-index="1" aria-label="Slide 2"></button>
                     <button class="w-1.5 h-1.5 rounded-full bg-slate-200 transition-all duration-300" data-slide-index="2" aria-label="Slide 3"></button>
@@ -580,29 +580,29 @@
                     주요 지표 5개년 추이 (Sparkline)
                   </h5>
                   <div class="relative w-full">
-                    <div id="parsed-file-sparkline-carousel" class="flex sm:grid sm:grid-cols-2 gap-2 overflow-x-auto snap-x snap-mandatory scrollbar-none w-full pb-1">
-                      <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                    <div id="parsed-file-sparkline-carousel" class="flex gap-2 overflow-x-auto snap-x snap-mandatory scrollbar-none w-full pb-1">
+                      <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner min-w-[calc(100%-24px)] snap-center shrink-0">
                         <div class="flex justify-between items-center px-1">
                           <span class="text-[8px] text-slate-400 font-bold">수축기 혈압</span>
                           <span class="text-[9px] text-slate-800 font-black" id="parsed-file-chart-bp-val">-</span>
                         </div>
                         <div id="parsed-file-chart-bp" class="w-full h-8 flex items-end"></div>
                       </div>
-                      <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                      <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner min-w-[calc(100%-24px)] snap-center shrink-0">
                         <div class="flex justify-between items-center px-1">
                           <span class="text-[8px] text-slate-400 font-bold">공복 혈당</span>
                           <span class="text-[9px] text-[#f37321] font-black" id="parsed-file-chart-glucose-val">-</span>
                         </div>
                         <div id="parsed-file-chart-glucose" class="w-full h-8 flex items-end"></div>
                       </div>
-                      <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                      <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner min-w-[calc(100%-24px)] snap-center shrink-0">
                         <div class="flex justify-between items-center px-1">
                           <span class="text-[8px] text-slate-400 font-bold">총 콜레스테롤</span>
                           <span class="text-[9px] text-slate-800 font-black" id="parsed-file-chart-cholesterol-val">-</span>
                         </div>
                         <div id="parsed-file-chart-cholesterol" class="w-full h-8 flex items-end"></div>
                       </div>
-                      <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                      <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner min-w-[calc(100%-24px)] snap-center shrink-0">
                         <div class="flex justify-between items-center px-1">
                           <span class="text-[8px] text-slate-400 font-bold">체질량 지수 (BMI)</span>
                           <span class="text-[9px] text-slate-800 font-black" id="parsed-file-chart-bmi-val">-</span>
@@ -610,8 +610,8 @@
                         <div id="parsed-file-chart-bmi" class="w-full h-8 flex items-end"></div>
                       </div>
                     </div>
-                    <!-- Carousel Indicators (Mobile Only) -->
-                    <div class="flex sm:hidden justify-center items-center gap-1.5 mt-2 pb-1" id="parsed-file-sparkline-carousel-indicators">
+                    <!-- Carousel Indicators -->
+                    <div class="flex justify-center items-center gap-1.5 mt-2 pb-1" id="parsed-file-sparkline-carousel-indicators">
                       <button class="w-1.5 h-1.5 rounded-full bg-[#f37321] transition-all duration-300" data-slide-index="0" aria-label="Slide 1"></button>
                       <button class="w-1.5 h-1.5 rounded-full bg-slate-200 transition-all duration-300" data-slide-index="1" aria-label="Slide 2"></button>
                       <button class="w-1.5 h-1.5 rounded-full bg-slate-200 transition-all duration-300" data-slide-index="2" aria-label="Slide 3"></button>
