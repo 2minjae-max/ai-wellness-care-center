@@ -2306,7 +2306,6 @@ function renderConsultingTab() {
                      <span class="text-[10px] text-slate-400 block font-medium">보험 증권이나 가입 설계서 이미지를 업로드해 주세요.</span>
                    </div>
                 </div>
-                <button id="btn-analyze-plan" class="w-full bg-[#f37321] hover:bg-[#dd6216] text-white rounded-xl py-3.5 font-bold text-sm transition-all">비교 분석하기</button>
             </div>
         </div>
 
@@ -2421,20 +2420,15 @@ function renderConsultingTab() {
     $("existing-plan-file")?.click();
   });
 
-  $("existing-plan-file")?.addEventListener("change", (e) => {
+  $("existing-plan-file")?.addEventListener("change", async (e) => {
     const input = e.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      const span = $("upload-zone")?.querySelector("span");
-      if (span) span.innerText = input.files[0].name;
-    }
-  });
-
-  $("btn-analyze-plan")?.addEventListener("click", async () => {
-    const fileInput = $("existing-plan-file") as HTMLInputElement;
-    if (!fileInput.files || fileInput.files.length === 0) {
-      alert("비교할 설계서 파일을 선택해주세요.");
+    if (!input.files || input.files.length === 0) {
       return;
     }
+    
+    const file = input.files[0];
+    const span = $("upload-zone")?.querySelector("span");
+    if (span) span.innerText = file.name;
     
     // Show AI loading overlay
     const overlay = $("ai-analysis-overlay");
@@ -2474,7 +2468,7 @@ function renderConsultingTab() {
     }
 
     const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
+    formData.append("file", file);
     formData.append("productName", productName);
 
     try {
