@@ -4,6 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>한화손보 AI Wellness Care Center</title>
+    <!-- 카카오톡 인앱 브라우저 탈출 스크립트 (외부 브라우저 강제 오픈) -->
+    <script>
+      (function() {
+        var userAgent = navigator.userAgent.toLowerCase();
+        if (userAgent.indexOf("kakaotalk") !== -1) {
+          if (userAgent.indexOf("iphone") !== -1 || userAgent.indexOf("ipad") !== -1 || userAgent.indexOf("ipod") !== -1) {
+            location.href = "kakaotalk://web/openExternalApp?url=" + encodeURIComponent(location.href);
+          } else {
+            location.href = "intent://" + location.host + location.pathname + location.search + "#Intent;scheme=https;end";
+          }
+        }
+      })();
+    </script>
     <!-- Pretendard 및 폰트 로드 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
