@@ -14,6 +14,7 @@ import { clearInputErrors, triggerInputError } from "../utils/formHelper";
 // 3분 카운트다운 타이머용 모듈 내부 지역 상태 변수
 let authTimerInterval: any = null;
 let authTimerSeconds = 180;
+let authPollInterval: any = null;
 
 // 연동 모드 상태 관리 변수 (bypass, sandbox, development)
 let currentSyncMode: "bypass" | "sandbox" | "development" = "bypass";
@@ -151,7 +152,7 @@ export function bindAuthModalEvents(ctx: Step3Context) {
       if (body.result?.code === "CF-03002") {
         ctx.setCodefJti(body.data.jti);
         ctx.setCodefTwoWayInfo(body.data.twoWayInfo || body.data);
-        startAuthCountdown();
+        startAuthCountdown(ctx);
       } else {
         throw new Error(body.result?.message || "간편인증 PUSH 전송 중 알 수 없는 오류가 발생했습니다.");
       }
@@ -323,7 +324,7 @@ export function closeSyncModal() {
 }
 
 // 3분(180초) 본인인증 PUSH 대기 타이머를 작동시킵니다.
-export function startAuthCountdown() {
+export function startAuthCountdown(ctx: Step3Context) {
   $("modal-step-form")?.classList.add("hidden");
   $("modal-step-requesting")?.classList.remove("hidden");
   $("modal-bypass-disclaimer")?.classList.add("hidden");
@@ -344,6 +345,49 @@ export function startAuthCountdown() {
       $("modal-request-error-box")?.classList.add("hidden"); // [초기화 추가] 타이머 초과로 되돌아갈 때 에러 클리어
     }
   }, 1000);
+
+  // 🔄 연동 모드별 자동 검증/전환 기믹 작동 (Task 2)
+  if (currentSyncMode === "bypass") {
+    setTimeout(async () => {
+      if (authTimerInterval) {
+        try {
+          const isSuccess = await verifyNhisSyncSignature(ctx);
+          if (isSuccess) {
+            stopAuthCountdown();
+            executeNhisSync(ctx);
+          }
+        } catch (err) {
+          console.error("Auto transition in bypass mode failed:", err);
+        }
+      }
+    }, 3000);
+  } else {
+    const jti = ctx.getCodefJti();
+    const isMockJti = jti && jti.startsWith("mock_jti_");
+
+    if (!isMockJti) {
+      authPollInterval = setInterval(async () => {
+        if (authTimerInterval) {
+          try {
+            const isSuccess = await verifyNhisSyncSignature(ctx);
+            if (isSuccess) {
+              stopAuthCountdown();
+              executeNhisSync(ctx);
+            }
+          } catch (err) {
+            console.log("Background polling signature verification...");
+          }
+        } else {
+          if (authPollInterval) {
+            clearInterval(authPollInterval);
+            authPollInterval = null;
+          }
+        }
+      }, 3000);
+    } else {
+      console.log("Mock JTI detected in sandbox/development mode. Skipping background polling to prevent premature automatic transition.");
+    }
+  }
 }
 
 // 활성화되어 있는 카운트다운 타이머를 중단(정지)시킵니다.
@@ -351,6 +395,10 @@ export function stopAuthCountdown() {
   if (authTimerInterval) {
     clearInterval(authTimerInterval);
     authTimerInterval = null;
+  }
+  if (authPollInterval) {
+    clearInterval(authPollInterval);
+    authPollInterval = null;
   }
 }
 

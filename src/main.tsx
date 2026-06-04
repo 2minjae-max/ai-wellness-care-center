@@ -25,8 +25,8 @@ let gender: "M" | "F" = "M";
 let authProvider = "kakao";
 
 // 가족력 팩터 저장용 글로벌 상태 변수
-let fatherFactors: string[] = [];
-let motherFactors: string[] = [];
+let fatherFactors: string[] = ["없음"];
+let motherFactors: string[] = ["없음"];
 
 // 검진 수치 및 PDF 동기화 수치 보관
 let nhisRecords: any[] = samplePersonas[0].nhisData.records;
@@ -1629,24 +1629,82 @@ function setupEventListeners() {
       if (!relation || !factor) return;
 
       if (relation === "father") {
-        if (fatherFactors.includes(factor)) {
-          fatherFactors = fatherFactors.filter(f => f !== factor);
-          btn.classList.remove("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
-          btn.classList.add("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+        if (factor === "없음") {
+          fatherFactors = ["없음"];
+          $$(".family-factor-btn[data-relation='father']").forEach(b => {
+            const f = b.getAttribute("data-factor");
+            if (f === "없음") {
+              b.classList.remove("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+              b.classList.add("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+            } else {
+              b.classList.remove("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+              b.classList.add("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+            }
+          });
         } else {
-          fatherFactors.push(factor);
-          btn.classList.remove("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
-          btn.classList.add("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+          fatherFactors = fatherFactors.filter(f => f !== "없음");
+          const noneBtn = document.querySelector(".family-factor-btn[data-relation='father'][data-factor='없음']");
+          if (noneBtn) {
+            noneBtn.classList.remove("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+            noneBtn.classList.add("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+          }
+
+          if (fatherFactors.includes(factor)) {
+            fatherFactors = fatherFactors.filter(f => f !== factor);
+            btn.classList.remove("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+            btn.classList.add("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+          } else {
+            fatherFactors.push(factor);
+            btn.classList.remove("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+            btn.classList.add("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+          }
+
+          if (fatherFactors.length === 0) {
+            fatherFactors = ["없음"];
+            if (noneBtn) {
+              noneBtn.classList.remove("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+              noneBtn.classList.add("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+            }
+          }
         }
       } else if (relation === "mother") {
-        if (motherFactors.includes(factor)) {
-          motherFactors = motherFactors.filter(f => f !== factor);
-          btn.classList.remove("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
-          btn.classList.add("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+        if (factor === "없음") {
+          motherFactors = ["없음"];
+          $$(".family-factor-btn[data-relation='mother']").forEach(b => {
+            const f = b.getAttribute("data-factor");
+            if (f === "없음") {
+              b.classList.remove("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+              b.classList.add("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+            } else {
+              b.classList.remove("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+              b.classList.add("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+            }
+          });
         } else {
-          motherFactors.push(factor);
-          btn.classList.remove("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
-          btn.classList.add("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+          motherFactors = motherFactors.filter(f => f !== "없음");
+          const noneBtn = document.querySelector(".family-factor-btn[data-relation='mother'][data-factor='없음']");
+          if (noneBtn) {
+            noneBtn.classList.remove("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+            noneBtn.classList.add("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+          }
+
+          if (motherFactors.includes(factor)) {
+            motherFactors = motherFactors.filter(f => f !== factor);
+            btn.classList.remove("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+            btn.classList.add("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+          } else {
+            motherFactors.push(factor);
+            btn.classList.remove("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+            btn.classList.add("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+          }
+
+          if (motherFactors.length === 0) {
+            motherFactors = ["없음"];
+            if (noneBtn) {
+              noneBtn.classList.remove("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+              noneBtn.classList.add("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+            }
+          }
         }
       }
     });
@@ -1800,6 +1858,8 @@ function updateStepView() {
   }
 }
 
+let isSwipeGuideShown = false;
+
 function switchTab(tabName: "report" | "trends" | "action" | "chat" | "consulting") {
   // 탭 헤더 버튼 토글
   $$(".tab-btn").forEach((btn) => {
@@ -1822,6 +1882,26 @@ function switchTab(tabName: "report" | "trends" | "action" | "chat" | "consultin
   // 🔄 년도별 건강검진 카드 자동 캐러샐 회전 타이머 조율
   if (tabName === "trends") {
     startYearCarouselAutoRotation();
+
+    // 💡 최초 진입 시 스와이프 안내 딤 오버레이 기동 (Task 5)
+    const overlay = $("swipe-guide-overlay");
+    if (overlay && !isSwipeGuideShown) {
+      isSwipeGuideShown = true;
+      overlay.classList.remove("hidden");
+
+      const hideOverlay = () => {
+        overlay.classList.add("opacity-0");
+        setTimeout(() => {
+          overlay.classList.add("hidden");
+        }, 500);
+      };
+
+      overlay.addEventListener("click", hideOverlay);
+      overlay.addEventListener("touchstart", hideOverlay, { passive: true });
+
+      // 3초 후 자동 소거
+      setTimeout(hideOverlay, 3000);
+    }
   } else {
     stopYearCarouselAutoRotation();
   }
@@ -2614,23 +2694,23 @@ function renderReportTab() {
     } else {
       warningsContainer.innerHTML = analysisResult.warnings.map((w) => {
         let cardBg = "bg-amber-50/50 border-amber-100";
-        let statusTag = `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">주의단계</span>`;
+        let statusTag = `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 whitespace-nowrap">주의단계</span>`;
         
         if (w.status === "RED") {
           cardBg = "bg-rose-50/50 border-rose-100";
-          statusTag = `<span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">🚨 즉각관리</span>`;
+          statusTag = `<span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 whitespace-nowrap">🚨 즉각관리</span>`;
         } else if (w.status === "GREEN") {
           cardBg = "bg-emerald-50/50 border-emerald-100";
-          statusTag = `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">✅ 유지관리</span>`;
+          statusTag = `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 whitespace-nowrap">✅ 유지관리</span>`;
         }
 
         return `
           <div class="p-5 ${cardBg} border rounded-2xl flex flex-col sm:flex-row justify-between items-start gap-4">
             <div class="space-y-2 flex-1">
-              <div class="flex items-center gap-2">
+              <div class="flex flex-wrap items-center gap-2">
                 ${statusTag}
                 <span class="font-bold text-[#231f20] text-sm">${w.item}</span>
-                <span class="text-xs font-mono font-bold text-slate-500 bg-white shadow-3xs px-2 py-0.5 rounded border border-slate-100">${w.value}</span>
+                <span class="text-xs font-mono font-bold text-slate-500 bg-white shadow-3xs px-2 py-0.5 rounded border border-slate-100 whitespace-nowrap">${w.value}</span>
               </div>
               <p class="text-slate-600 text-xs sm:text-sm leading-relaxed break-keep">${w.analysis}</p>
             </div>
@@ -3900,14 +3980,26 @@ function renderActionTab() {
       const subTab = btn.getAttribute("data-sub-tab");
       if (!subTab) return;
 
-      // 서브 탭 버튼 스타일 업데이트
+      // 1. Sliding highlight pill translation (Task 7)
+      const highlight = $("sub-tab-highlight");
+      if (highlight) {
+        if (subTab === "action-lifestyle") {
+          highlight.style.left = "4px";
+        } else if (subTab === "action-chat") {
+          highlight.style.left = "calc((100% - 8px) / 3 + 4px)";
+        } else if (subTab === "action-prescription") {
+          highlight.style.left = "calc(2 * (100% - 8px) / 3 + 4px)";
+        }
+      }
+
+      // 2. 서브 탭 버튼 스타일 업데이트
       $$(".sub-tab-btn").forEach((b) => {
         if (b.getAttribute("data-sub-tab") === subTab) {
-          b.classList.remove("text-slate-500", "hover:bg-slate-100/50");
-          b.classList.add("bg-white", "text-slate-800", "shadow-3xs");
+          b.classList.remove("text-slate-500", "hover:text-slate-700");
+          b.classList.add("text-white");
         } else {
-          b.classList.add("text-slate-500", "hover:bg-slate-100/50");
-          b.classList.remove("bg-white", "text-slate-800", "shadow-3xs");
+          b.classList.add("text-slate-500", "hover:text-slate-700");
+          b.classList.remove("text-white", "bg-white", "shadow-3xs"); // bg-white/shadow-3xs 제거 (Pill로 이동)
         }
       });
 
@@ -3920,6 +4012,14 @@ function renderActionTab() {
       // 서브 탭별 렌더링 핸들러 호출
       if (subTab === "action-chat") {
         renderChatTab();
+
+        // 💬 챗봇 탭 선택 시 상단에 포커싱 및 앵커링 스크롤 (Task 8)
+        setTimeout(() => {
+          const chatHeader = $("section-chat-standalone");
+          if (chatHeader) {
+            chatHeader.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }, 80);
       } else if (subTab === "action-prescription") {
         step4Dashboard.renderPrescriptionSection(dashboardCtx);
       }
@@ -3928,7 +4028,7 @@ function renderActionTab() {
 
   // 메인 탭 전환 시 항상 첫 번째 서브 탭('action-lifestyle')이 활성화되도록 자동 클릭 트리거
   const activeBtn = document.querySelector(".sub-tab-btn[data-sub-tab='action-lifestyle']") as HTMLButtonElement | null;
-  if (activeBtn && !activeBtn.classList.contains("bg-white")) {
+  if (activeBtn && !activeBtn.classList.contains("text-white")) {
     activeBtn.click();
   }
 
@@ -4392,11 +4492,17 @@ function resetAuthStates() {
   $("step-4-card")?.classList.add("hidden");
 
   // 가족력 변수 및 버튼 리셋
-  fatherFactors = [];
-  motherFactors = [];
+  fatherFactors = ["없음"];
+  motherFactors = ["없음"];
   $$(".family-factor-btn").forEach(btn => {
-    btn.classList.remove("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
-    btn.classList.add("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+    const fac = btn.getAttribute("data-factor");
+    if (fac === "없음") {
+      btn.classList.remove("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+      btn.classList.add("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+    } else {
+      btn.classList.remove("bg-[#ffece0]", "text-[#f37321]", "border-[#f37321]", "font-bold");
+      btn.classList.add("bg-slate-50/50", "text-slate-600", "border-slate-200", "font-semibold");
+    }
   });
 
   // Reset select preset

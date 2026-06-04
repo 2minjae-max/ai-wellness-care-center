@@ -172,6 +172,7 @@
                     <span class="text-[9px] text-slate-400 font-bold">(중복 선택 가능)</span>
                   </div>
                   <div class="flex flex-wrap gap-2" id="father-factors-container">
+                    <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-[#f37321] bg-[#ffece0] text-[#f37321] hover:bg-[#ffece0] transition-all cursor-pointer" data-relation="father" data-factor="없음">없음</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="father" data-factor="고혈압">고혈압</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="father" data-factor="당뇨병">당뇨병</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="father" data-factor="고지혈증">고지혈증</button>
@@ -193,6 +194,7 @@
                     <span class="text-[9px] text-slate-400 font-bold">(중복 선택 가능)</span>
                   </div>
                   <div class="flex flex-wrap gap-2" id="mother-factors-container">
+                    <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-[#f37321] bg-[#ffece0] text-[#f37321] hover:bg-[#ffece0] transition-all cursor-pointer" data-relation="mother" data-factor="없음">없음</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="mother" data-factor="고혈압">고혈압</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="mother" data-factor="당뇨병">당뇨병</button>
                     <button type="button" class="family-factor-btn px-3 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/50 text-slate-600 hover:bg-slate-100 transition-all cursor-pointer" data-relation="mother" data-factor="고지혈증">고지혈증</button>
@@ -357,34 +359,43 @@
                   <span class="w-1 h-3.5 bg-[#f37321] rounded-full"></span>
                   <span class="text-xs font-black text-slate-500 uppercase tracking-wider">최근 5개년 건강 추세 트랙</span>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
-                  <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all">
-                    <div class="flex justify-between items-center px-1">
-                      <span class="text-xs text-slate-400 font-extrabold">수축기 혈압</span>
-                      <span class="text-sm text-rose-500 font-black" id="codef-chart-bp-val">-</span>
+                <div class="relative w-full">
+                  <div id="sparkline-carousel" class="flex sm:grid sm:grid-cols-2 gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-none w-full pb-1">
+                    <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                      <div class="flex justify-between items-center px-1">
+                        <span class="text-xs text-slate-400 font-extrabold">수축기 혈압</span>
+                        <span class="text-sm text-rose-500 font-black" id="codef-chart-bp-val">-</span>
+                      </div>
+                      <div id="codef-chart-bp" class="w-full h-12 flex items-end"></div>
                     </div>
-                    <div id="codef-chart-bp" class="w-full h-12 flex items-end"></div>
+                    <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                      <div class="flex justify-between items-center px-1">
+                        <span class="text-xs text-slate-400 font-extrabold">공복 혈당</span>
+                        <span class="text-sm text-[#f37321] font-black" id="codef-chart-glucose-val">-</span>
+                      </div>
+                      <div id="codef-chart-glucose" class="w-full h-12 flex items-end"></div>
+                    </div>
+                    <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                      <div class="flex justify-between items-center px-1">
+                        <span class="text-xs text-slate-400 font-extrabold">총 콜레스테롤</span>
+                        <span class="text-sm text-slate-800 font-black" id="codef-chart-cholesterol-val">-</span>
+                      </div>
+                      <div id="codef-chart-cholesterol" class="w-full h-12 flex items-end"></div>
+                    </div>
+                    <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                      <div class="flex justify-between items-center px-1">
+                        <span class="text-xs text-slate-400 font-extrabold">BMI</span>
+                        <span class="text-sm text-slate-800 font-black" id="codef-chart-bmi-val">-</span>
+                      </div>
+                      <div id="codef-chart-bmi" class="w-full h-12 flex items-end"></div>
+                    </div>
                   </div>
-                  <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all">
-                    <div class="flex justify-between items-center px-1">
-                      <span class="text-xs text-slate-400 font-extrabold">공복 혈당</span>
-                      <span class="text-sm text-[#f37321] font-black" id="codef-chart-glucose-val">-</span>
-                    </div>
-                    <div id="codef-chart-glucose" class="w-full h-12 flex items-end"></div>
-                  </div>
-                  <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all">
-                    <div class="flex justify-between items-center px-1">
-                      <span class="text-xs text-slate-400 font-extrabold">총 콜레스테롤</span>
-                      <span class="text-sm text-slate-800 font-black" id="codef-chart-cholesterol-val">-</span>
-                    </div>
-                    <div id="codef-chart-cholesterol" class="w-full h-12 flex items-end"></div>
-                  </div>
-                  <div class="bg-white border border-slate-150 rounded-2xl p-4 flex flex-col justify-between h-24 shadow-3xs hover:border-[#f37321]/30 transition-all">
-                    <div class="flex justify-between items-center px-1">
-                      <span class="text-xs text-slate-400 font-extrabold">BMI</span>
-                      <span class="text-sm text-slate-800 font-black" id="codef-chart-bmi-val">-</span>
-                    </div>
-                    <div id="codef-chart-bmi" class="w-full h-12 flex items-end"></div>
+                  <!-- Carousel Indicators (Mobile Only) -->
+                  <div class="flex sm:hidden justify-center items-center gap-1.5 mt-2 pb-1" id="sparkline-carousel-indicators">
+                    <button class="w-1.5 h-1.5 rounded-full bg-[#f37321] transition-all duration-300" data-slide-index="0" aria-label="Slide 1"></button>
+                    <button class="w-1.5 h-1.5 rounded-full bg-slate-200 transition-all duration-300" data-slide-index="1" aria-label="Slide 2"></button>
+                    <button class="w-1.5 h-1.5 rounded-full bg-slate-200 transition-all duration-300" data-slide-index="2" aria-label="Slide 3"></button>
+                    <button class="w-1.5 h-1.5 rounded-full bg-slate-200 transition-all duration-300" data-slide-index="3" aria-label="Slide 4"></button>
                   </div>
                 </div>
               </div>
@@ -568,34 +579,43 @@
                     <span class="w-1.5 h-1.5 bg-[#f37321] rounded-full"></span>
                     주요 지표 5개년 추이 (Sparkline)
                   </h5>
-                  <div class="grid grid-cols-2 gap-2">
-                    <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner">
-                      <div class="flex justify-between items-center px-1">
-                        <span class="text-[8px] text-slate-400 font-bold">수축기 혈압</span>
-                        <span class="text-[9px] text-slate-800 font-black" id="parsed-file-chart-bp-val">-</span>
+                  <div class="relative w-full">
+                    <div id="parsed-file-sparkline-carousel" class="flex sm:grid sm:grid-cols-2 gap-2 overflow-x-auto snap-x snap-mandatory scrollbar-none w-full pb-1">
+                      <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                        <div class="flex justify-between items-center px-1">
+                          <span class="text-[8px] text-slate-400 font-bold">수축기 혈압</span>
+                          <span class="text-[9px] text-slate-800 font-black" id="parsed-file-chart-bp-val">-</span>
+                        </div>
+                        <div id="parsed-file-chart-bp" class="w-full h-8 flex items-end"></div>
                       </div>
-                      <div id="parsed-file-chart-bp" class="w-full h-8 flex items-end"></div>
+                      <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                        <div class="flex justify-between items-center px-1">
+                          <span class="text-[8px] text-slate-400 font-bold">공복 혈당</span>
+                          <span class="text-[9px] text-[#f37321] font-black" id="parsed-file-chart-glucose-val">-</span>
+                        </div>
+                        <div id="parsed-file-chart-glucose" class="w-full h-8 flex items-end"></div>
+                      </div>
+                      <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                        <div class="flex justify-between items-center px-1">
+                          <span class="text-[8px] text-slate-400 font-bold">총 콜레스테롤</span>
+                          <span class="text-[9px] text-slate-800 font-black" id="parsed-file-chart-cholesterol-val">-</span>
+                        </div>
+                        <div id="parsed-file-chart-cholesterol" class="w-full h-8 flex items-end"></div>
+                      </div>
+                      <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner min-w-[calc(100%-24px)] sm:min-w-0 snap-center shrink-0">
+                        <div class="flex justify-between items-center px-1">
+                          <span class="text-[8px] text-slate-400 font-bold">체질량 지수 (BMI)</span>
+                          <span class="text-[9px] text-slate-800 font-black" id="parsed-file-chart-bmi-val">-</span>
+                        </div>
+                        <div id="parsed-file-chart-bmi" class="w-full h-8 flex items-end"></div>
+                      </div>
                     </div>
-                    <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner">
-                      <div class="flex justify-between items-center px-1">
-                        <span class="text-[8px] text-slate-400 font-bold">공복 혈당</span>
-                        <span class="text-[9px] text-[#f37321] font-black" id="parsed-file-chart-glucose-val">-</span>
-                      </div>
-                      <div id="parsed-file-chart-glucose" class="w-full h-8 flex items-end"></div>
-                    </div>
-                    <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner">
-                      <div class="flex justify-between items-center px-1">
-                        <span class="text-[8px] text-slate-400 font-bold">총 콜레스테롤</span>
-                        <span class="text-[9px] text-slate-800 font-black" id="parsed-file-chart-cholesterol-val">-</span>
-                      </div>
-                      <div id="parsed-file-chart-cholesterol" class="w-full h-8 flex items-end"></div>
-                    </div>
-                    <div class="bg-white border border-slate-100 rounded-xl p-2 flex flex-col justify-between h-20 shadow-inner">
-                      <div class="flex justify-between items-center px-1">
-                        <span class="text-[8px] text-slate-400 font-bold">체질량 지수 (BMI)</span>
-                        <span class="text-[9px] text-slate-800 font-black" id="parsed-file-chart-bmi-val">-</span>
-                      </div>
-                      <div id="parsed-file-chart-bmi" class="w-full h-8 flex items-end"></div>
+                    <!-- Carousel Indicators (Mobile Only) -->
+                    <div class="flex sm:hidden justify-center items-center gap-1.5 mt-2 pb-1" id="parsed-file-sparkline-carousel-indicators">
+                      <button class="w-1.5 h-1.5 rounded-full bg-[#f37321] transition-all duration-300" data-slide-index="0" aria-label="Slide 1"></button>
+                      <button class="w-1.5 h-1.5 rounded-full bg-slate-200 transition-all duration-300" data-slide-index="1" aria-label="Slide 2"></button>
+                      <button class="w-1.5 h-1.5 rounded-full bg-slate-200 transition-all duration-300" data-slide-index="2" aria-label="Slide 3"></button>
+                      <button class="w-1.5 h-1.5 rounded-full bg-slate-200 transition-all duration-300" data-slide-index="3" aria-label="Slide 4"></button>
                     </div>
                   </div>
                 </div>
@@ -636,7 +656,7 @@
 
         <div class="space-y-2">
           <h2 class="text-xl font-black text-slate-900">한화손보<br />AI Wellness <span class="text-[#000000] font-black">Care Center<br /></span> 분석 진행 중</h2>
-          <p id="loading-step-text" class="text-slate-500 text-xs min-h-[32px] px-4 leading-normal">
+          <p id="loading-step-text" class="text-slate-500 text-xs min-h-[48px] flex items-center justify-center px-4 leading-normal">
             보안 신원인증 마스터 노드에 세션을 확립하고 있습니다...
           </p>
         </div>
@@ -893,6 +913,26 @@
 
             <!-- 🎠 슬라이딩 캐러샐 프레임 (모바일에서도 온전히 가로 100% 활용) -->
             <div class="relative w-full overflow-hidden" id="year-carousel-viewport">
+              <!-- Dim overlay guide for mobile horizontal swipe gesture (shown only once) -->
+              <div id="swipe-guide-overlay" class="hidden absolute inset-0 z-20 bg-slate-900/60 flex flex-col items-center justify-center text-white cursor-pointer transition-opacity duration-500 rounded-xl opacity-100">
+                <div class="flex flex-col items-center gap-3">
+                  <!-- Finger swipe gesture animation SVG -->
+                  <div class="w-12 h-12 relative flex items-center justify-center">
+                    <!-- Glowing indicator background -->
+                    <div class="absolute w-10 h-10 bg-white/20 rounded-full animate-ping"></div>
+                    <!-- Swipe gesture finger icon -->
+                    <svg class="w-8 h-8 text-white drop-shadow-md transform animate-swipe-hand" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                    </svg>
+                  </div>
+                  <span class="text-[11px] font-extrabold tracking-wide drop-shadow-sm text-center leading-normal">
+                    손가락으로 좌우 스와이프하여<br/>과거 건강지표를 확인하세요
+                  </span>
+                  <span class="text-[8px] text-white/70 font-semibold px-2 py-0.5 border border-white/30 rounded-full bg-white/10 mt-1 select-none">
+                    터치하면 닫기
+                  </span>
+                </div>
+              </div>
               <!-- 슬라이딩 하이웨이 트랙 -->
               <div class="w-full overflow-hidden" id="year-carousel-viewport-container">
                 <div id="dynamic-timeline-chart" class="flex transition-transform duration-500 ease-out py-1 select-none w-full">
@@ -909,14 +949,17 @@
         <div id="section-action" class="tab-section hidden flex flex-col gap-5">
           
           <!-- 3-C-Sub. AI 주치의 내부 서브 탭 메뉴 -->
-          <div class="flex border border-slate-200 p-1 bg-slate-100/60 rounded-2xl gap-1">
-            <button type="button" class="sub-tab-btn flex-1 py-2.5 rounded-xl font-extrabold text-xs tracking-tight transition-all text-center focus:outline-none bg-white text-slate-800 shadow-3xs" data-sub-tab="action-lifestyle">
+          <div class="relative flex border border-slate-200 p-1 bg-slate-100/60 rounded-2xl gap-0 select-none">
+            <!-- Sliding active background pill -->
+            <div id="sub-tab-highlight" class="absolute top-1 bottom-1 w-[calc((100%-8px)/3)] rounded-xl bg-[#f37321] transition-all duration-300 ease-out z-0 shadow-3xs" style="left: 4px;"></div>
+            
+            <button type="button" class="sub-tab-btn relative z-10 flex-1 py-2.5 rounded-xl font-extrabold text-xs tracking-tight transition-all text-center focus:outline-none text-white" data-sub-tab="action-lifestyle">
               생활 교정
             </button>
-            <button type="button" class="sub-tab-btn flex-1 py-2.5 rounded-xl font-extrabold text-xs tracking-tight transition-all text-center focus:outline-none text-slate-500 hover:bg-slate-100/50" data-sub-tab="action-chat">
+            <button type="button" class="sub-tab-btn relative z-10 flex-1 py-2.5 rounded-xl font-extrabold text-xs tracking-tight transition-all text-center focus:outline-none text-slate-500 hover:text-slate-700" data-sub-tab="action-chat">
               AI 주치의 3.1
             </button>
-            <button type="button" class="sub-tab-btn flex-1 py-2.5 rounded-xl font-extrabold text-xs tracking-tight transition-all text-center focus:outline-none text-slate-500 hover:bg-slate-100/50" data-sub-tab="action-prescription">
+            <button type="button" class="sub-tab-btn relative z-10 flex-1 py-2.5 rounded-xl font-extrabold text-xs tracking-tight transition-all text-center focus:outline-none text-slate-500 hover:text-slate-700" data-sub-tab="action-prescription">
               약봉투·처방전
             </button>
           </div>
@@ -973,7 +1016,7 @@
 
           <!-- 2. AI 주치의 3.1 서브 섹션 -->
           <div id="sub-section-action-chat" class="sub-tab-content hidden">
-            <div id="section-chat-standalone" class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs h-[740px] min-h-[660px] flex flex-col">
+            <div id="section-chat-standalone" class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs h-[calc(100vh-160px)] min-h-[450px] sm:h-[740px] sm:min-h-[660px] flex flex-col">
               
               <!-- 채팅 헤더 정보바 -->
               <div class="bg-slate-50 border-b border-slate-200 px-4 py-3.5 flex items-center justify-between gap-3">
@@ -1307,7 +1350,7 @@
           
           <div class="space-y-1.5">
             <h4 class="font-extrabold text-slate-900 text-sm">국민건강보험 API 연동 중</h4>
-            <p id="modal-api-loading-text" class="text-[10px] text-[#767676] px-4 min-h-[30px] leading-normal">
+            <p id="modal-api-loading-text" class="text-[10px] text-[#767676] px-4 min-h-[40px] flex items-center justify-center leading-normal">
               CODEF 안전 인증 보안 게이트웨이 로드 중...
             </p>
           </div>
