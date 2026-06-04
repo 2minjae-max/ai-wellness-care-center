@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: ai-wellness-care-center
+    env: docker
+    plan: free
+    region: singapore
+    dockerContext: .
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: CODEF_CLIENT_ID
+        sync: false
+      - key: CODEF_CLIENT_SECRET
+        sync: false
+      - key: CODEF_PUBLIC_KEY
+        sync: false
+      - key: CODEF_ENV
+        value: sandbox
