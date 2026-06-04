@@ -864,8 +864,8 @@
         <!-- ========================================== -->
         <!-- 3-B. 건강 트렌드 시계열 분석 (TRENDS TAB) -->
         <!-- ========================================== -->
-        <div id="section-trends" class="tab-section bg-white rounded-2xl border border-slate-200 p-4 sm:p-4 md:p-4 shadow-xs space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 sm:px-0">
+        <div id="section-trends" class="tab-section bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="space-y-1">
               <h3 class="font-extrabold text-slate-900 text-base">연도별 정밀 건강 지표 추이</h3>
               <p class="text-[#767676] text-xs">최근 5개년간의 국민건강보험 주요 지표들을 동일 단위 및 영역별로 일목요연하게 확인하세요.</p>
@@ -873,7 +873,7 @@
           </div>
 
           <!-- 📊 연도별 종합 건강 점수 트렌드 차트 (SVG 기반 무결성 인라인 드로잉 영역) -->
-          <div class="bg-gradient-to-br from-[#f8fafc] via-white to-[#f1f5f9] rounded-2xl p-4 sm:p-5 shadow-xs space-y-3.5 border border-slate-200/80 mx-4 sm:mx-0">
+          <div class="bg-gradient-to-br from-[#f8fafc] via-white to-[#f1f5f9] rounded-2xl p-4 shadow-xs space-y-3.5 border border-slate-200/80">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-slate-100">
               <div class="space-y-1">
                 <h4 class="font-black text-slate-800 text-sm sm:text-base tracking-tight">종합 건강 점수 추이</h4>
@@ -901,54 +901,10 @@
             </div>
           </div>
 
-          <!-- 📈 다이나믹 년도별 건강검진 카드 캐러샐 -->
-          <div class="relative bg-slate-50 border border-slate-200/80 rounded-2xl p-3 overflow-hidden space-y-3">
-            
-            <!-- 📅 상단 컨트롤 패널 (모바일 극대화 배치 및 와이드 화살표 양옆 콤팩트 연결) -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-xl border border-slate-200/60 shadow-3xs">
-              <div class="flex items-center gap-2 px-1 sm:px-0">
-                <span class="text-lg">📊</span>
-                <div class="text-left row-span-2">
-                  <span class="font-black text-slate-800 text-xs sm:text-sm block">검진 보고서 연도 선택</span>
-                  <span class="text-[10px] text-slate-400 block mt-0.5 font-bold leading-none">최근 검진서부터 역순으로 정렬됩니다</span>
-                </div>
-              </div>
-              
-              <!-- 연도 선택 탭 조작부 (화살표 제거, 무결성 100% 연도 가로 전면 배치 - 모바일 가로 터치 스크롤 대응) -->
-              <div class="flex items-center justify-center w-full sm:w-auto flex-1 sm:flex-initial px-1 sm:px-0 overflow-hidden">
-                <!-- 연도별 캡슐 목록 (화살표를 들어내고 전체 너비를 확장하여 가독성 최대화) -->
-                <div id="year-carousel-indicators-container" class="flex items-center gap-1.5 py-1 w-full justify-start overflow-x-auto scrollbar-none flex-nowrap">
-                  <!-- JS에서 연도별 캡슐 버튼들이 동적으로 렌더링됩니다 -->
-                </div>
-              </div>
-            </div>
-
-            <!-- 🎠 각 지표별 개별 캐러샐 리스트 컨테이너 -->
-            <div class="relative w-full" id="year-carousel-viewport">
-              <!-- Dim overlay guide for mobile horizontal swipe gesture (shown only once) -->
-              <div id="swipe-guide-overlay" class="hidden absolute inset-0 z-20 bg-slate-900/60 flex flex-col items-center justify-center text-white cursor-pointer transition-opacity duration-500 rounded-xl opacity-100">
-                <div class="flex flex-col items-center gap-3">
-                  <!-- Finger swipe gesture animation SVG -->
-                  <div class="w-12 h-12 relative flex items-center justify-center">
-                    <!-- Glowing indicator background -->
-                    <div class="absolute w-10 h-10 bg-white/20 rounded-full animate-ping"></div>
-                    <!-- Swipe gesture finger icon -->
-                    <svg class="w-8 h-8 text-white drop-shadow-md transform animate-swipe-hand" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-                    </svg>
-                  </div>
-                  <span class="text-[11px] font-extrabold tracking-wide drop-shadow-sm text-center leading-normal">
-                    각 건강지표 카드들을 좌우로 스와이프하여<br/>연도별 수치 변화를 직접 확인해보세요!
-                  </span>
-                  <span class="text-[8px] text-white/70 font-semibold px-2 py-0.5 border border-white/30 rounded-full bg-white/10 mt-1 select-none">
-                    터치하면 닫기
-                  </span>
-                </div>
-              </div>
-              
-              <div id="dynamic-timeline-chart" class="grid grid-cols-1 gap-4 w-full py-1">
-                <!-- 각 지표별 독자적 캐러샐 카드가 동적으로 이식됩니다 -->
-              </div>
+          <!-- 📈 다이나믹 년도별 건강검진 카드 컨테이너 (이중 테두리/패딩 걷어내고 여백 정렬 일치) -->
+          <div class="w-full space-y-4" id="trends-cards-flat-container">
+            <div id="dynamic-timeline-chart" class="grid grid-cols-1 gap-4 w-full py-1">
+              <!-- 각 지표별 독자적 플랫 카드가 동적으로 이식됩니다 -->
             </div>
           </div>
         </div>
