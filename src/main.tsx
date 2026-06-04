@@ -3010,7 +3010,7 @@ function switchYearSlide(index: number, pauseAuto = false) {
   });
 
   // 2. 연도별 캡슐 목록 하이라이트 싱크 (버튼 찌그러짐 차단 및 완성도 배가)
-  const dots = $(".year-carousel-dot");
+  const dots = $$(".year-carousel-dot");
   dots.forEach((dot, idx) => {
     if (idx === currentYearSlideIndex) {
       dot.className = "year-carousel-dot flex-1 text-center cursor-pointer transition-all duration-355 py-2 px-1 sm:px-3 text-[11px] sm:text-[13px] font-black rounded-xl bg-gradient-to-r from-[#f37321] to-amber-500 text-white border border-transparent shadow-xs";
