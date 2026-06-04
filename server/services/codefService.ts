@@ -400,6 +400,12 @@ export async function requestNhisSync(params: {
   } catch (err: any) {
     console.error(`${logPrefix} CODEF 1차인증 중 예외 발생:`, err);
     
+    const codefEnv = (process.env.CODEF_ENV || "sandbox").toLowerCase();
+    if (codefEnv !== "production" && codefEnv !== "api") {
+      console.warn(`[CODEF Fallback] requestNhisSync exception: ${err.message}. Bypassing with simulated response in ${codefEnv} environment.`);
+      return getMockRequestResponse(`Bypassed Exception: ${err.message}`);
+    }
+
     // 만약 리디렉션 초과(invalid-domain) 오류인 경우, 아이피 화이트리스트 차단 가능성이 매우 높으므로 가이드 메시지 보강
     if (err.message?.includes("redirect") || err.cause?.message?.includes("redirect")) {
       return {

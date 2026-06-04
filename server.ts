@@ -341,6 +341,384 @@ app.get("/api/check-ip", async (req, res) => {
 });
 
 // -------------------------------------------------------------
+// CODEF 연동 상태 상세 정밀 진단 API (방화벽 차단/리디렉션 여부 확인용)
+// -------------------------------------------------------------
+app.get("/api/debug-codef", async (req, res) => {
+  const client_id = process.env.CODEF_CLIENT_ID || "";
+  const client_secret = process.env.CODEF_CLIENT_SECRET || "";
+  const codefEnv = (process.env.CODEF_ENV || "sandbox").toLowerCase();
+  
+  const results: any = {
+    env: codefEnv,
+    hasClientId: !!client_id,
+    hasClientSecret: !!client_secret,
+    steps: []
+  };
+
+  // Step 1: 서버의 현재 공인 아웃바운드 IP 확인
+  try {
+    const ipRes = await fetch("https://api.ipify.org?format=json");
+    const ipData = await ipRes.json();
+    results.outboundIp = ipData.ip;
+    results.steps.push({ step: "1. Outbound IP Check", status: "success", ip: ipData.ip });
+  } catch (err: any) {
+    results.steps.push({ step: "1. Outbound IP Check", status: "failed", error: err.message });
+  }
+
+  // Step 2: CODEF OAuth 토큰 요청 시도 (리디렉션 추적 수동 제한)
+  try {
+    const authHeader = Buffer.from(`${client_id}:${client_secret}`).toString("base64");
+    const oauthUrl = "https://oauth.codef.io/oauth/token";
+    const stepData: any = { step: "2. OAuth Token Request (OAuth IP Whitelist)", url: oauthUrl };
+    results.steps.push(stepData);
+
+    const oauthRes = await fetch(oauthUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": `Basic ${authHeader}`,
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: "grant_type=client_credentials",
+      redirect: "manual" // 리디렉션 발생 시 차단된 HTML 페이지로 무한 이동해 터지는 것을 방지하고 리디렉션 정보를 캡처
+    });
+
+    stepData.status = "completed";
+    stepData.httpStatus = oauthRes.status;
+    stepData.headers = Object.fromEntries(oauthRes.headers.entries());
+    
+    const text = await oauthRes.text();
+    stepData.responseBodyLength = text.length;
+    stepData.responseBodySnippet = text.substring(0, 500);
+  } catch (err: any) {
+    results.steps[results.steps.length - 1].status = "failed";
+    results.steps[results.steps.length - 1].error = err.message;
+    if (err.cause) {
+      results.steps[results.steps.length - 1].errorCause = err.cause.message || String(err.cause);
+    }
+  }
+
+  // Step 3: CODEF API 엔드포인트 직접 호출 시도 (API IP Whitelist)
+  try {
+    const baseUrl = (codefEnv === "production" || codefEnv === "api")
+      ? "https://api.codef.io" 
+      : (codefEnv === "sandbox" ? "https://sandbox.codef.io" : "https://development.codef.io");
+    const apiTestUrl = `${baseUrl}/v1/kr/public/pp/nhis-health-checkup/result`;
+    const stepData: any = { step: "3. API Server Connection Check", url: apiTestUrl };
+    results.steps.push(stepData);
+
+    const apiRes = await fetch(apiTestUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({}),
+      redirect: "manual"
+    });
+
+    stepData.status = "completed";
+    stepData.httpStatus = apiRes.status;
+    stepData.headers = Object.fromEntries(apiRes.headers.entries());
+    
+    const text = await apiRes.text();
+    stepData.responseBodyLength = text.length;
+    stepData.responseBodySnippet = text.substring(0, 500);
+  } catch (err: any) {
+    results.steps[results.steps.length - 1].status = "failed";
+    results.steps[results.steps.length - 1].error = err.message;
+    if (err.cause) {
+      results.steps[results.steps.length - 1].errorCause = err.cause.message || String(err.cause);
+    }
+  }
+
+  if (req.query.format === "json") {
+    return res.json(results);
+  }
+
+  function escapeHtml(unsafe: string) {
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  const stepHtml = results.steps.map((s: any) => {
+    // 3단계의 경우 토큰 없이 직접 샌드박스 API만 찔러본 것이므로 401 Unauthorized가 리턴되면
+    // 방화벽이 차단되지 않고 정상 도달했음을 의미합니다. 이를 SUCCESS로 판정합니다.
+    const isStep3 = s.step.includes("3.");
+    const isSuccess = s.status === "success" || (s.status === "completed" && (s.httpStatus < 400 || (isStep3 && s.httpStatus === 401)));
+    const badgeClass = isSuccess ? "badge-success" : "badge-error";
+    const statusText = isSuccess ? "SUCCESS" : (s.httpStatus ? `FAILED (${s.httpStatus})` : "FAILED");
+    
+    let detailsHtml = "";
+    if (s.error) {
+      detailsHtml += `<div class="step-detail" style="border-left: 4px solid #ef4444;">
+        <span style="color: #ef4444; font-weight: bold; display: block; margin-bottom: 0.25rem;">[!] 통신 에러 발생 (방화벽 차단 의심)</span>
+        <strong>Message:</strong> ${escapeHtml(s.error)}
+        ${s.errorCause ? `<br/><strong>Cause:</strong> ${escapeHtml(s.errorCause)}` : ""}
+      </div>`;
+    } else {
+      let explanation = "";
+      if (isStep3 && s.httpStatus === 401) {
+        explanation = `<span style="color: #10b981; font-weight: bold; display: block; margin-bottom: 0.5rem;">✔ 네트워크 통신 성공: 401 Unauthorized 응답은 토큰 없이 호출했기 때문이며, 방화벽이 차단되지 않고 열려있음을 의미합니다. (IP 등록 성공)</span>`;
+      } else if (isSuccess) {
+        explanation = `<span style="color: #10b981; font-weight: bold; display: block; margin-bottom: 0.5rem;">✔ 통신 성공: 토큰이 정상적으로 발급되었습니다.</span>`;
+      } else {
+        explanation = `<span style="color: #ef4444; font-weight: bold; display: block; margin-bottom: 0.5rem;">❌ 통신 실패: CODEF API가 에러를 반환했습니다.</span>`;
+      }
+
+      detailsHtml += `<div class="step-detail" style="border-left: 4px solid ${isSuccess ? '#10b981' : '#ef4444'};">
+        ${explanation}
+        <strong>URL:</strong> <span class="highlight">${escapeHtml(s.url || "N/A")}</span><br/>
+        <strong>HTTP Status:</strong> ${s.httpStatus || "N/A"}<br/>
+        <strong>Response Snippet:</strong>
+        <pre style="margin-top: 0.5rem; white-space: pre-wrap; font-family: monospace; font-size: 0.8rem; color: #cbd5e1; background-color: #020617; padding: 0.75rem; border-radius: 0.375rem;">${s.responseBodySnippet ? escapeHtml(s.responseBodySnippet) : "No Response Data"}</pre>
+      </div>`;
+    }
+
+    return `
+      <div class="step-card">
+        <div class="step-header">
+          <span class="step-title">${s.step}</span>
+          <span class="badge ${badgeClass}">${statusText}</span>
+        </div>
+        ${detailsHtml}
+      </div>
+    `;
+  }).join("");
+
+  const responseHtml = `
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CODEF API 연동 상태 진단 센터</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            margin: 0;
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        h1 {
+            color: #f37321;
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 0 0 0.5rem 0;
+        }
+        .subtitle {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+        .ip-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid #f37321;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        .ip-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            font-weight: 700;
+        }
+        .ip-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0.5rem 0;
+            font-family: monospace;
+            letter-spacing: -0.02em;
+        }
+        .ip-desc {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+            margin: 0 0 1rem 0;
+        }
+        .btn-refresh {
+            background-color: #f37321;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-refresh:hover {
+            background-color: #e06214;
+            transform: translateY(-1px);
+        }
+        .guide-card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .guide-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 1rem 0;
+        }
+        .guide-list {
+            margin: 0;
+            padding-left: 1.2rem;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        .guide-list li {
+            margin-bottom: 0.75rem;
+        }
+        .guide-list b {
+            color: #ffffff;
+        }
+        .guide-list a {
+            color: #38bdf8;
+            text-decoration: underline;
+        }
+        .step-section-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0 0 1rem 0.25rem;
+            border-left: 4px solid #f37321;
+            padding-left: 0.5rem;
+        }
+        .step-card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .step-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #ffffff;
+        }
+        .badge {
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            text-transform: uppercase;
+        }
+        .badge-success {
+            background-color: #065f46;
+            color: #34d399;
+        }
+        .badge-error {
+            background-color: #7f1d1d;
+            color: #f87171;
+        }
+        .step-detail {
+            font-size: 0.85rem;
+            background-color: #0f172a;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: monospace;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        .highlight {
+            color: #38bdf8;
+        }
+        .footer-note {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚕️ 한화손보 Wellness AI: CODEF 연동 진단 센터</h1>
+            <p class="subtitle">서버와 CODEF API 간의 통신 상태 및 IP 차단 여부를 정밀 분석합니다.</p>
+        </div>
+
+        <div class="ip-card">
+            <div class="ip-title">현재 서버의 공인 아웃바운드 IP</div>
+            <div class="ip-value">${results.outboundIp || "조회 실패"}</div>
+            <p class="ip-desc">
+                이 IP가 CODEF 개발자 센터의 <b>허용 IP</b>에 등록되어 있어야 실시간 국민건강보험공단 연동이 정상 작동합니다.
+            </p>
+            <a href="javascript:location.reload()" class="btn-refresh">🔄 상태 새로고침</a>
+        </div>
+
+        <div class="guide-card">
+            <div class="guide-title">🔒 CODEF 대시보드 IP 등록 방법 가이드</div>
+            <ol class="guide-list">
+                <li>
+                    <b>CODEF 포털 로그인</b>: 
+                    <a href="https://developer.codef.io" target="_blank" rel="noopener noreferrer">CODEF 개발자 센터 (developer.codef.io)</a>에 로그인합니다.
+                </li>
+                <li>
+                    <b>마이페이지 이동</b>: 
+                    우측 상단 마이페이지 메뉴에서 <b>[API 설정]</b> 또는 대시보드의 <b>[IP 관리]</b> 메뉴로 이동합니다.
+                </li>
+                <li>
+                    <b>허용 IP 추가</b>: 
+                    허용 IP 추가 입력란에 위에 명시된 서버 IP(<b>${results.outboundIp || "확인 불가"}</b>)를 복사해서 붙여넣고 등록합니다.
+                </li>
+                <li>
+                    <b>Render 실서버의 경우 (중요)</b>: 
+                    Render 등 클라우드 배포판은 아웃바운드 IP 대역이 유동적일 수 있습니다. Render 대시보드의 서비스 내 <b>[Connect] ➔ [Outbound]</b> 탭에 명시된 모든 CIDR IP 대역들을 CODEF 대시보드에 등록해야 완벽히 작동합니다.
+                </li>
+                <li>
+                    <b>대기 및 확인</b>: 
+                    등록 완료 후 설정이 반영되는 데 <b>약 1~2분</b> 정도 소요됩니다. 반영이 완료되면 이 페이지를 새로고침하여 진단 단계가 모두 <b>SUCCESS</b>로 전환되는지 확인하십시오.
+                </li>
+            </ol>
+        </div>
+
+        <div class="step-section-title">📊 실시간 통신 진단 리포트</div>
+        ${stepHtml}
+
+        <div class="footer-note">
+            © 2026 한화손해보험 AI Wellness Care Center. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
+  `;
+
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(responseHtml);
+});
+
+// -------------------------------------------------------------
 // Supabase 접속이력 로깅 라우트
 // -------------------------------------------------------------
 app.post("/api/log-access", async (req, res): Promise<void> => {
