@@ -1145,16 +1145,28 @@
             </div>
           </div>
 
-          <!-- 우회 모드 토글 스위치 -->
-          <div class="flex items-center justify-between bg-slate-50 border border-slate-150 p-2.5 rounded-xl mt-3 select-none">
-            <div class="flex flex-col text-left">
-              <span class="text-xs font-bold text-slate-800">실시간 CODEF 연동</span>
-              <span class="text-[9px] text-slate-500 leading-normal" id="bypass-desc">실제 인증 및 건강검진 데이터를 가져옵니다.</span>
+          <!-- CODEF 연동 모드 선택 (3단 세그먼트) -->
+          <div class="bg-slate-50 border border-slate-150 p-2.5 rounded-2xl mt-3 select-none space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-800">연동 모드 설정</span>
+              <span class="text-[9px] font-black text-[#f37321] bg-[#fff5ee] border border-[#f37321]/30 px-1.5 py-0.5 rounded-md" id="sync-mode-badge">인증 우회</span>
             </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="toggle-real-codef" class="sr-only peer" checked />
-              <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#f37321]"></div>
-            </label>
+            
+            <div class="grid grid-cols-3 gap-1 bg-slate-200/50 p-1 rounded-xl">
+              <button type="button" class="sync-mode-btn py-1.5 rounded-lg text-[10px] font-black text-center transition-all cursor-pointer bg-white text-slate-800 shadow-xs" data-mode="bypass">
+                인증 우회
+              </button>
+              <button type="button" class="sync-mode-btn py-1.5 rounded-lg text-[10px] font-black text-center transition-all cursor-pointer text-slate-500 hover:text-slate-700" data-mode="sandbox">
+                모의 (Sandbox)
+              </button>
+              <button type="button" class="sync-mode-btn py-1.5 rounded-lg text-[10px] font-black text-center transition-all cursor-pointer text-slate-500 hover:text-slate-700" data-mode="development">
+                실제 (Real Dev)
+              </button>
+            </div>
+            
+            <p class="text-[9px] text-slate-500 leading-normal text-left" id="bypass-desc">
+              인증을 우회하여 로컬의 5개년 모의 데이터를 즉시 가져옵니다.
+            </p>
           </div>
 
           <hr class="border-slate-100 my-2" />

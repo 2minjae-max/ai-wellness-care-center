@@ -813,7 +813,7 @@ app.get("/api/test-supabase", async (req, res) => {
 // [CODEF 1차 간편인증 PUSH 발송 API]
 // -------------------------------------------------------------
 app.post("/api/health/nhis-sync-request", async (req, res): Promise<void> => {
-  const { userName, identity, phoneNo, telecom, loginType2, bypassDummy } = req.body;
+  const { userName, identity, phoneNo, telecom, loginType2, bypassDummy, syncMode } = req.body;
 
   const ipAddress = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "";
   const userAgent = req.headers["user-agent"] || "";
@@ -827,6 +827,7 @@ app.post("/api/health/nhis-sync-request", async (req, res): Promise<void> => {
       telecom,
       loginType2,
       bypassDummy,
+      syncMode,
       logPrefix
     });
     res.json(result);
@@ -843,7 +844,7 @@ app.post("/api/health/nhis-sync-request", async (req, res): Promise<void> => {
 // [CODEF 2차 인증 완료 및 건강검진 결과 수집 API]
 // -------------------------------------------------------------
 app.post("/api/health/nhis-sync-confirm", async (req, res): Promise<void> => {
-  const { userName, identity, phoneNo, telecom, loginType2, jti, twoWayInfo, bypassDummy } = req.body;
+  const { userName, identity, phoneNo, telecom, loginType2, jti, twoWayInfo, bypassDummy, syncMode } = req.body;
 
   const ipAddress = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "";
   const userAgent = req.headers["user-agent"] || "";
@@ -859,6 +860,7 @@ app.post("/api/health/nhis-sync-confirm", async (req, res): Promise<void> => {
       jti,
       twoWayInfo,
       bypassDummy,
+      syncMode,
       logPrefix,
       body: req.body
     });

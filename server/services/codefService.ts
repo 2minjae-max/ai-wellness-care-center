@@ -279,9 +279,10 @@ export async function requestNhisSync(params: {
   telecom: string;
   loginType2: string;
   bypassDummy?: boolean;
+  syncMode?: string;
   logPrefix: string;
 }) {
-  const { userName, identity, phoneNo, telecom, loginType2, bypassDummy, logPrefix } = params;
+  const { userName, identity, phoneNo, telecom, loginType2, bypassDummy, syncMode, logPrefix } = params;
   const client_id = process.env.CODEF_CLIENT_ID;
   const client_secret = process.env.CODEF_CLIENT_SECRET;
 
@@ -306,7 +307,8 @@ export async function requestNhisSync(params: {
   }
 
   // 사용자가 우회 시뮬레이션을 명시적으로 요청했거나 토글을 껐을 경우 즉시 모의 인증 반환
-  if (bypassDummy) {
+  const isBypass = syncMode === "bypass" || (syncMode === undefined && bypassDummy);
+  if (isBypass) {
     console.log(`${logPrefix} User requested simulation bypass. Returning mock response.`);
     return getMockRequestResponse("Bypass Toggle Active");
   }
@@ -320,10 +322,19 @@ export async function requestNhisSync(params: {
     }
 
     // CODEF 서비스 주소 맵핑
-    const codefEnv = (process.env.CODEF_ENV || "sandbox").toLowerCase();
-    const baseUrl = (codefEnv === "production" || codefEnv === "api")
-      ? "https://api.codef.io" 
-      : (codefEnv === "sandbox" ? "https://sandbox.codef.io" : "https://development.codef.io");
+    let baseUrl = "https://sandbox.codef.io";
+    if (syncMode === "development") {
+      baseUrl = "https://development.codef.io";
+    } else if (syncMode === "production") {
+      baseUrl = "https://api.codef.io";
+    } else if (syncMode === "sandbox") {
+      baseUrl = "https://sandbox.codef.io";
+    } else {
+      const codefEnv = (process.env.CODEF_ENV || "sandbox").toLowerCase();
+      baseUrl = (codefEnv === "production" || codefEnv === "api")
+        ? "https://api.codef.io" 
+        : (codefEnv === "sandbox" ? "https://sandbox.codef.io" : "https://development.codef.io");
+    }
     const url = `${baseUrl}/v1/kr/public/pp/nhis-health-checkup/result`;
 
     const telecomCode = mapTelecom(telecom);
@@ -433,15 +444,17 @@ export async function confirmNhisSync(params: {
   jti: string;
   twoWayInfo: any;
   bypassDummy?: boolean;
+  syncMode?: string;
   logPrefix: string;
   body: any; // 타임스탬프 등 추가 데이터 접근용
 }) {
-  const { userName, identity, phoneNo, telecom, loginType2, jti, twoWayInfo, bypassDummy, logPrefix, body } = params;
+  const { userName, identity, phoneNo, telecom, loginType2, jti, twoWayInfo, bypassDummy, syncMode, logPrefix, body } = params;
   const client_id = process.env.CODEF_CLIENT_ID;
   const client_secret = process.env.CODEF_CLIENT_SECRET;
 
   // 시뮬레이션 모드 판별 및 분기 (사용자가 우회 시뮬레이션을 원하거나 크레덴셜이 없거나 jti가 mock인 경우)
-  if (!client_id || !client_secret || client_id === "YOUR_CODEF_CLIENT_ID" || client_secret === "YOUR_CODEF_CLIENT_SECRET" || client_id.trim() === "" || jti?.startsWith("mock_jti_") || bypassDummy) {
+  const isBypass = syncMode === "bypass" || (syncMode === undefined && bypassDummy);
+  if (!client_id || !client_secret || client_id === "YOUR_CODEF_CLIENT_ID" || client_secret === "YOUR_CODEF_CLIENT_SECRET" || client_id.trim() === "" || jti?.startsWith("mock_jti_") || isBypass) {
     console.log(`${logPrefix} Processing mock confirm and returning 5-year records.`);
     const simulatedRecords = getSimulatedNhisRecords(userName, identity);
     return {
@@ -462,10 +475,19 @@ export async function confirmNhisSync(params: {
   }
 
   // CODEF 서비스 주소 맵핑
-  const codefEnv = (process.env.CODEF_ENV || "sandbox").toLowerCase();
-  const baseUrl = (codefEnv === "production" || codefEnv === "api")
-    ? "https://api.codef.io" 
-    : (codefEnv === "sandbox" ? "https://sandbox.codef.io" : "https://development.codef.io");
+  let baseUrl = "https://sandbox.codef.io";
+  if (syncMode === "development") {
+    baseUrl = "https://development.codef.io";
+  } else if (syncMode === "production") {
+    baseUrl = "https://api.codef.io";
+  } else if (syncMode === "sandbox") {
+    baseUrl = "https://sandbox.codef.io";
+  } else {
+    const codefEnv = (process.env.CODEF_ENV || "sandbox").toLowerCase();
+    baseUrl = (codefEnv === "production" || codefEnv === "api")
+      ? "https://api.codef.io" 
+      : (codefEnv === "sandbox" ? "https://sandbox.codef.io" : "https://development.codef.io");
+  }
   const url = `${baseUrl}/v1/kr/public/pp/nhis-health-checkup/result`;
 
   const telecomCode = mapTelecom(telecom);

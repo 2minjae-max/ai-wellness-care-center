@@ -15,6 +15,9 @@ import { clearInputErrors, triggerInputError } from "../utils/formHelper";
 let authTimerInterval: any = null;
 let authTimerSeconds = 180;
 
+// 연동 모드 상태 관리 변수 (bypass, sandbox, development)
+let currentSyncMode: "bypass" | "sandbox" | "development" = "bypass";
+
 // main.tsx의 전역 상태 값을 직접 변경하거나 참조하지 않고,
 // 인터페이스를 통해 안전하게 교류할 수 있도록 설계된 컨텍스트 사양입니다.
 export interface Step3Context {
@@ -43,18 +46,38 @@ export function showModalError(message: string) {
 
 // 1차 간편인증 PUSH 발송, 인증 취소, 2차 확인 버튼들의 클릭 이벤트를 바인딩합니다.
 export function bindAuthModalEvents(ctx: Step3Context) {
-  // 토글 스위치 상태 변경 리스너 추가
-  const toggleReal = $("toggle-real-codef") as HTMLInputElement | null;
+  // 연동 모드 세그먼트 버튼 선택 이벤트 바인딩
+  const syncButtons = $$(".sync-mode-btn");
   const bypassDesc = $("bypass-desc");
-  if (toggleReal && bypassDesc) {
-    toggleReal.addEventListener("change", () => {
-      if (toggleReal.checked) {
-        bypassDesc.innerText = "실제 인증 및 건강검진 데이터를 가져옵니다.";
-      } else {
-        bypassDesc.innerText = "오류를 우회하여 5개년 모의 데이터를 가져옵니다.";
+  const modeBadge = $("sync-mode-badge");
+
+  syncButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const mode = btn.getAttribute("data-mode") as "bypass" | "sandbox" | "development";
+      if (!mode) return;
+      currentSyncMode = mode;
+
+      // 활성화 스타일링 스위칭 (bg-[#f37321] text-white shadow-xs 적용, 비활성 버튼은 text-slate-500)
+      syncButtons.forEach(b => {
+        b.classList.remove("bg-white", "text-slate-800", "shadow-xs", "bg-[#f37321]", "text-white");
+        b.classList.add("text-slate-500");
+      });
+      btn.classList.remove("text-slate-500");
+      btn.classList.add("bg-[#f37321]", "text-white", "shadow-xs");
+
+      // 설명 문구 및 배지 동적 업데이트
+      if (mode === "bypass") {
+        if (bypassDesc) bypassDesc.innerText = "인증을 우회하여 로컬의 5개년 모의 데이터를 즉시 가져옵니다.";
+        if (modeBadge) modeBadge.innerText = "인증 우회";
+      } else if (mode === "sandbox") {
+        if (bypassDesc) bypassDesc.innerText = "CODEF Sandbox API를 연동하여 모의 인증 및 모의 데이터를 가져옵니다.";
+        if (modeBadge) modeBadge.innerText = "모의 (Sandbox)";
+      } else if (mode === "development") {
+        if (bypassDesc) bypassDesc.innerText = "CODEF Development API를 연동하여 실제 인증 및 나의 실 데이터를 가져옵니다.";
+        if (modeBadge) modeBadge.innerText = "실제 (Real Dev)";
       }
     });
-  }
+  });
 
   // 모달 - 1차 간편인증 PUSH 발송 요청 버튼
   $("btn-modal-request-auth")?.addEventListener("click", async () => {
@@ -90,16 +113,13 @@ export function bindAuthModalEvents(ctx: Step3Context) {
     const telecomSelect = $("modal-input-telecom") as HTMLSelectElement;
     const telecom = telecomSelect ? telecomSelect.value : "skt";
 
-    const toggleRealCodef = $("toggle-real-codef") as HTMLInputElement | null;
-    const bypassDummy = toggleRealCodef ? !toggleRealCodef.checked : false;
-
     const payload = {
       userName: ctx.getUserName(),
       identity: ctx.getBirthDate(),
       phoneNo,
       telecom,
       loginType2: ctx.getAuthProvider(),
-      bypassDummy
+      syncMode: currentSyncMode
     };
 
     try {
@@ -190,9 +210,6 @@ export async function verifyNhisSyncSignature(ctx: Step3Context): Promise<boolea
   const telecomSelect = $("modal-input-telecom") as HTMLSelectElement;
   const telecom = telecomSelect ? telecomSelect.value : "skt";
 
-  const toggleRealCodef = $("toggle-real-codef") as HTMLInputElement | null;
-  const bypassDummy = toggleRealCodef ? !toggleRealCodef.checked : false;
-
   const payload = {
     userName: ctx.getUserName(),
     identity: ctx.getBirthDate(),
@@ -201,7 +218,7 @@ export async function verifyNhisSyncSignature(ctx: Step3Context): Promise<boolea
     loginType2: ctx.getAuthProvider(),
     jti: ctx.getCodefJti(),
     twoWayInfo: ctx.getCodefTwoWayInfo(),
-    bypassDummy
+    syncMode: currentSyncMode
   };
 
   const res = await fetch("/api/health/nhis-sync-confirm", {
@@ -235,13 +252,25 @@ export function openSyncModal() {
     modal.classList.remove("hidden");
     $("final-analysis-cta-container")?.classList.add("hidden");
     
-    // 토글 스위치 상태 및 설명 리셋
-    const toggleReal = $("toggle-real-codef") as HTMLInputElement | null;
+    // 연동 모드 선택 리셋 (기본값: 'bypass' 인증 우회)
+    currentSyncMode = "bypass";
+    const syncButtons = $$(".sync-mode-btn");
     const bypassDesc = $("bypass-desc");
-    if (toggleReal && bypassDesc) {
-      toggleReal.checked = true;
-      bypassDesc.innerText = "실제 인증 및 건강검진 데이터를 가져옵니다.";
-    }
+    const modeBadge = $("sync-mode-badge");
+
+    syncButtons.forEach(btn => {
+      const mode = btn.getAttribute("data-mode");
+      btn.classList.remove("bg-white", "text-slate-800", "shadow-xs", "bg-[#f37321]", "text-white");
+      if (mode === "bypass") {
+        btn.classList.add("bg-[#f37321]", "text-white", "shadow-xs");
+        btn.classList.remove("text-slate-500");
+      } else {
+        btn.classList.add("text-slate-500");
+      }
+    });
+
+    if (bypassDesc) bypassDesc.innerText = "인증을 우회하여 로컬의 5개년 모의 데이터를 즉시 가져옵니다.";
+    if (modeBadge) modeBadge.innerText = "인증 우회";
 
     // 모달 분기 화면 리셋
     $("modal-step-form")?.classList.remove("hidden");
