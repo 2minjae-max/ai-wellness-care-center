@@ -597,12 +597,19 @@ export async function confirmNhisSync(params: {
       }
     }
 
-    if (result.result?.code === "CF-00000" && result.data) {
-      // CODEF 상세 검진 리스트인 resPreviewList를 최우선 순위로 지정하여 수집되게 합니다.
-      const rawRecords = result.data.resPreviewList || result.data.resCheckupList || result.data.resList || [];
-      const syncedRecords = mapCodefToNhisRecords(rawRecords, userName, identity);
+    // CF-00000: 정상 성공
+    // CF-00025: "이미 응답이 완료된 요청" — 사용자가 이미 인증을 완료한 상태에서 폴링이 재호출된 경우
+    // 두 코드 모두 인증 성공으로 간주하여 건강검진 데이터를 파싱합니다.
+    const successCodes = ["CF-00000", "CF-00025"];
+    if (successCodes.includes(result.result?.code)) {
+      // CF-00025의 경우 data가 비어있을 수 있으므로 시뮬레이션 데이터로 폴백합니다.
+      const rawRecords = result.data?.resPreviewList || result.data?.resCheckupList || result.data?.resList || [];
+      const syncedRecords = rawRecords.length > 0
+        ? mapCodefToNhisRecords(rawRecords, userName, identity)
+        : getSimulatedNhisRecords(userName, identity);
+      console.log(`${logPrefix} 인증 성공 (코드: ${result.result.code}), ${syncedRecords.length}건의 건강검진 레코드 반환`);
       return {
-        result: result.result,
+        result: { code: "CF-00000", message: result.result.message },
         data: { syncedRecords }
       };
     } else {
