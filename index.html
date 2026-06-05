@@ -824,7 +824,8 @@
             </div>
 
             <!-- 종합 소견서 말풍선 카드 -->
-            <div class="bg-white rounded-2xl border border-slate-200/80 p-4 flex flex-col justify-center space-y-3 shadow-xs">
+            <!-- [교육용 주석] PC 대화면 해상도(md:col-span-2)일 때, 의견서 카드가 우측 3열 영역 중 2열을 다 차지하여 화면 우측 끝까지 꽉 들어차도록 확장 정렬을 개정합니다. -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-4 flex flex-col justify-center space-y-3 shadow-xs md:col-span-2">
               <div class="flex items-center gap-1.5 text-[#f37321]">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 113.536 0V21h2v-2.243a5 5 0 013.536 0V21h2v-5.071" />
@@ -1581,8 +1582,12 @@
 
     <!-- 📄 보험료 산출 및 특약 적정성 근거 팝업 모달 -->
     <!-- 📄 보험료 산출 및 특약 적정성 근거 팝업 모달 (전체화면 가독성 극대화 팝업) -->
-    <div id="premium-basis-modal" class="hidden fixed inset-0 z-50 flex flex-col bg-white">
-      <!-- 헤더 -->
+    <div id="premium-basis-modal" class="hidden fixed inset-0 z-50 flex flex-col bg-white lg:bg-slate-900/60 lg:backdrop-blur-xs lg:items-center lg:justify-center lg:p-6">
+      <!-- [교육용 주석] PC 대화면 해상도(1024px 이상)일 때 모달이 너무 과도하게 가로로 넓어지는 현상을 제어하기 위해,
+           자식 요소를 최대 너비 768px(max-w-3xl) 및 높이 85vh(최대 750px)로 제한하는 구조적 카드 래퍼 div를 새로 추가했습니다.
+           모바일(1023px 이하)에서는 w-full h-full bg-white flex flex-col이 작동하여 기존의 전체화면 디자인과 100% 일치합니다. -->
+      <div class="w-full h-full bg-white flex flex-col lg:max-w-3xl lg:h-[85vh] lg:max-h-[750px] lg:rounded-3xl lg:shadow-2xl lg:border lg:border-slate-200 overflow-hidden">
+        <!-- 헤더 -->
       <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3 shrink-0">
         <div class="flex items-center gap-2">
           <div class="w-7 h-7 bg-[#fff5ee] rounded-lg text-[#f37321] flex items-center justify-center shrink-0">
@@ -1772,6 +1777,7 @@
         </button>
       </div>
     </div>
+  </div>
 
      <!--  Footer -->
      <footer class="bg-transparent mt-4 select-none pb-6 text-center">
