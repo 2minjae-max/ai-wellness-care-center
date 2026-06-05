@@ -4781,12 +4781,13 @@ function setupDeviceSimulator() {
       btnPc.className = "px-3.5 py-1.5 rounded-full font-bold bg-[#f37321] text-white cursor-pointer shadow-sm";
       
       // PC 모드 클래스 스위칭: 
-      // body는 태블릿/모바일처럼 flex 중앙 정렬을 활용하고, 상하 여백(sm:py-8)을 줍니다.
-      body.className = "h-full text-slate-900 antialiased sm:bg-[#efeee8] sm:flex sm:items-center sm:justify-center sm:min-h-screen sm:overflow-y-auto sm:py-8";
+      // body의 flex 중앙 정렬을 제거하고 일반 블록 레벨(sm:block)로 환원합니다.
+      // 이를 통해 콘텐츠가 화면보다 길어질 때 상단(헤더, 탭)이 잘려 올라가 스크롤이 안 되던 버그를 완전히 해결합니다.
+      body.className = "h-full text-slate-900 antialiased sm:bg-[#efeee8] sm:block sm:min-h-0 sm:overflow-y-auto sm:py-0";
       
-      // container가 브라우저 폭 전체로 무한히 늘어나지 않도록 최대 너비(sm:max-w-[1100px])를 제한하고,
-      // 둥근 모서리(rounded-[24px]), 은은한 그림자(shadow), 경계선(border)을 씌워 깔끔한 카드형 패널로 렌더링합니다.
-      container.className = "w-full h-auto sm:h-auto sm:max-h-none sm:min-h-none sm:max-w-[1100px] sm:w-[92vw] sm:bg-[#efeee8] sm:rounded-[24px] sm:shadow-[0_20px_50px_rgba(0,0,0,0.06)] sm:border sm:border-slate-200/80 sm:relative sm:flex sm:flex-col sm:overflow-visible sm:[transform:none] z-10 transition-all duration-300";
+      // container가 둥둥 떠 있는 카드 패널 형태가 아니라 네이버처럼 화면 전체 너비와 높이를 사용할 수 있도록 
+      // sm:w-full, sm:bg-[#efeee8], sm:rounded-none, sm:border-0, sm:shadow-none을 지정해 전체 화면 레이아웃으로 복구합니다.
+      container.className = "w-full h-auto sm:h-auto sm:max-h-none sm:min-h-none sm:w-full sm:bg-[#efeee8] sm:rounded-none sm:shadow-none sm:border-0 sm:relative sm:flex sm:flex-col sm:overflow-visible sm:[transform:none] z-10 transition-all duration-300";
       
       // PC 모드에서는 스마트폰 노치, 상단바, 하단 홈 바를 모두 숨깁니다.
       notch?.classList.add("sm:hidden");
