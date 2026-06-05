@@ -2407,7 +2407,7 @@ function renderConsultingTab() {
           <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 space-y-1 text-left shadow-3xs">
             <div class="flex justify-between items-center">
               <span class="font-extrabold text-slate-800 text-xs">${cov.name}</span>
-              <span class="text-[10px] text-[#f37321] font-black">${cov.amount} (월 ${cov.premium.toLocaleString()}원)</span>
+              <span class="text-[10px] text-[#f37321] font-black shrink-0 whitespace-nowrap ml-2">${cov.amount} (월 ${cov.premium.toLocaleString()}원)</span>
             </div>
             <p class="text-[10px] text-slate-500 leading-relaxed font-semibold break-keep">${cov.basis}</p>
           </div>
@@ -4841,14 +4841,13 @@ function setupDeviceSimulator() {
       // PC 모드 버튼 활성화 색상 지정
       btnPc.className = "px-3.5 py-1.5 rounded-full font-bold bg-[#f37321] text-white cursor-pointer shadow-sm";
       
-      // PC 모드 클래스 스위칭: 
-      // body의 flex 중앙 정렬을 제거하고 일반 블록 레벨(sm:block)로 환원합니다.
-      // 이를 통해 콘텐츠가 화면보다 길어질 때 상단(헤더, 탭)이 잘려 올라가 스크롤이 안 되던 버그를 완전히 해결합니다.
-      body.className = "h-full text-slate-900 antialiased sm:bg-[#efeee8] sm:block sm:min-h-0 sm:overflow-y-auto sm:py-0";
+      // PC 모드 클래스 스위칭:
+      // 부모 창의 이중 스크롤 및 짤림을 막기 위해 높이를 h-screen, overflow-hidden으로 제한합니다.
+      body.className = "h-screen text-slate-900 antialiased sm:bg-[#efeee8] sm:h-screen sm:overflow-hidden sm:py-0";
       
-      // container가 둥둥 떠 있는 카드 패널 형태가 아니라 네이버처럼 화면 전체 너비와 높이를 사용할 수 있도록 
-      // sm:w-full, sm:bg-[#efeee8], sm:rounded-none, sm:border-0, sm:shadow-none을 지정해 전체 화면 레이아웃으로 복구합니다.
-      container.className = "w-full h-auto sm:h-auto sm:max-h-none sm:min-h-none sm:w-full sm:bg-[#efeee8] sm:rounded-none sm:shadow-none sm:border-0 sm:relative sm:flex sm:flex-col sm:overflow-visible sm:[transform:none] z-10 transition-all duration-300";
+      // container가 0px 높이로 축소되지 않고 화면 전체 높이(h-screen)를 채우도록 설정하여
+      // 내부 iframe이 세로로 짤리지 않고 온전하게 렌더링되게 만듭니다.
+      container.className = "w-full h-screen sm:h-screen sm:w-full sm:bg-[#efeee8] sm:rounded-none sm:shadow-none sm:border-0 sm:relative sm:flex sm:flex-col sm:overflow-hidden sm:[transform:none] z-10 transition-all duration-300";
       
       // PC 모드에서는 스마트폰 노치, 상단바, 하단 홈 바를 모두 숨깁니다.
       notch?.classList.add("sm:hidden");

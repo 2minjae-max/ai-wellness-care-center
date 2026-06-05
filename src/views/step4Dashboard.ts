@@ -394,7 +394,7 @@ export function renderCodefSummary(ctx: DashboardContext): void {
   if (tableBody) {
     tableBody.innerHTML = sortedRecords.map((rec) => {
       const bpStr = (rec.systolicBP && rec.diastolicBP)
-        ? `${rec.systolicBP} <span class="text-slate-400 text-[9px] font-semibold">/ ${rec.diastolicBP} mmHg</span>`
+        ? `<span class="whitespace-nowrap font-mono tracking-tighter text-[11px] text-slate-800">${rec.systolicBP}</span><span class="text-slate-400 text-[9px] font-semibold whitespace-nowrap">/${rec.diastolicBP} mmHg</span>`
         : `<span class="text-slate-300">-</span>`;
       const glucoseStr = rec.fastingGlucose 
         ? `${rec.fastingGlucose} <span class="text-slate-400 text-[9px] font-semibold">mg/dL</span>`
@@ -410,11 +410,11 @@ export function renderCodefSummary(ctx: DashboardContext): void {
       return `
         <tr class="hover:bg-[#fff5ee]/40 transition-all font-semibold border-b border-slate-100 text-slate-700">
           <td class="py-3 font-extrabold text-[#767676]">${rec.year}년</td>
-          <td class="py-3 text-center font-bold text-slate-800">${bpStr}</td>
-          <td class="py-3 text-center font-bold text-slate-800">${glucoseStr}</td>
-          <td class="py-3 text-center font-bold text-[#f37321]">${cholStr}</td>
-          <td class="py-3 text-center font-bold text-slate-800">${bmiStr}</td>
-          <td class="py-3 text-center font-bold text-slate-800">${urineStr}</td>
+          <td class="py-3 px-1 text-center font-bold text-slate-800 whitespace-nowrap">${bpStr}</td>
+          <td class="py-3 px-1 text-center font-bold text-slate-800">${glucoseStr}</td>
+          <td class="py-3 px-1 text-center font-bold text-[#f37321]">${cholStr}</td>
+          <td class="py-3 px-1 text-center font-bold text-slate-800">${bmiStr}</td>
+          <td class="py-3 px-1 text-center font-bold text-slate-800">${urineStr}</td>
         </tr>
       `;
     }).join("");
