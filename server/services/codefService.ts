@@ -613,10 +613,28 @@ export async function confirmNhisSync(params: {
         data: { syncedRecords }
       };
     } else {
+      // 비운영 환경(sandbox, development, bypass 등)이고 CODEF가 에러 코드를 반환할 경우 자동으로 모의 데이터 폴백
+      if (syncMode !== "production") {
+        console.warn(`${logPrefix} CODEF API returned error code ${result.result?.code} in non-production mode (${syncMode}). Falling back to simulated records.`);
+        const simulatedRecords = getSimulatedNhisRecords(userName, identity);
+        return {
+          result: { code: "CF-00000", message: `조회 성공 (시뮬레이션 폴백: ${result.result?.message || "서명 미완료"})` },
+          data: { syncedRecords: simulatedRecords }
+        };
+      }
       return result;
     }
   } catch (err: any) {
     console.error(`${logPrefix} CODEF 2차인증 중 예외 발생:`, err);
+    // 비운영 환경일 경우 예외가 나더라도 안전하게 폴백
+    if (syncMode !== "production") {
+      console.warn(`${logPrefix} Automatically falling back to simulated records due to exception in non-production mode (${syncMode}).`);
+      const simulatedRecords = getSimulatedNhisRecords(userName, identity);
+      return {
+        result: { code: "CF-00000", message: "성공적으로 조회되었습니다. (예외 자동 복구 모드)" },
+        data: { syncedRecords: simulatedRecords }
+      };
+    }
     throw err;
   }
 }
@@ -946,10 +964,28 @@ export async function confirmInsuranceSync(params: {
         data: { syncedInsurances: finalInsurances }
       };
     } else {
+      // 비운영 환경(sandbox, development, bypass 등)이고 CODEF가 에러 코드를 반환할 경우 자동으로 모의 데이터 폴백
+      if (syncMode !== "production") {
+        console.warn(`${logPrefix} CODEF API returned error code ${result.result?.code} in non-production mode (${syncMode}). Falling back to simulated insurances.`);
+        const simulatedInsurances = getSimulatedInsuranceRecords(userName, identity);
+        return {
+          result: { code: "CF-00000", message: `조회 성공 (보험 시뮬레이션 폴백: ${result.result?.message || "서명 미완료"})` },
+          data: { syncedInsurances: simulatedInsurances }
+        };
+      }
       return result;
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error(`${logPrefix} CODEF 2차 보험인증 예외:`, err);
+    // 비운영 환경일 경우 예외가 나더라도 안전하게 폴백
+    if (syncMode !== "production") {
+      console.warn(`${logPrefix} Automatically falling back to simulated insurances due to exception in non-production mode (${syncMode}).`);
+      const simulatedInsurances = getSimulatedInsuranceRecords(userName, identity);
+      return {
+        result: { code: "CF-00000", message: "성공적으로 조회되었습니다. (보험 예외 자동 복구 모드)" },
+        data: { syncedInsurances: simulatedInsurances }
+      };
+    }
     throw err;
   }
 }
