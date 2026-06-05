@@ -1286,7 +1286,7 @@
           <div class="space-y-2">
             <h4 class="font-extrabold text-slate-900 text-sm">휴대폰 인증 응답 대기 중...</h4>
             <p class="text-[11px] text-slate-500 px-4 leading-relaxed break-keep">
-              입력하신 스마트폰의 카카오톡 또는 PASS 앱에 도착한 <span class="text-[#f37321] font-bold">서명 수락 알림창을 터치하고 본인인증을 통과</span>한 다음 아래 버튼을 마저 클릭해 주세요.
+              입력하신 스마트폰의 카카오톡 또는 PASS 앱에 도착한 <span class="text-[#f37321] font-bold">서명 수락 알림창을 터치하고 본인인증을 통과</span>하면 자동으로 다음 단계로 넘어갑니다.
             </p>
           </div>
 
@@ -1296,6 +1296,12 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span id="modal-timer-text">03:00</span>
+          </div>
+
+          <!-- 자동 감지 중 안내 -->
+          <div class="flex items-center justify-center gap-2 text-[10px] text-slate-400 font-semibold">
+            <div class="w-3 h-3 border-2 border-[#f37321] border-t-transparent rounded-full animate-spin"></div>
+            간편인증을 확인하고있습니다...
           </div>
 
           <!-- 2단계 전용 비동기 경고 피드백 영역 (NEW) -->
@@ -1309,7 +1315,8 @@
             <p id="modal-request-error-msg" class="leading-normal font-semibold break-keep"></p>
           </div>
 
-          <div class="grid grid-cols-2 gap-3 pt-2">
+          <!-- 버튼 영역 숨김 (자동 감지로 대체, 이벤트 바인딩 보존을 위해 DOM 유지) -->
+          <div class="hidden">
             <button type="button" id="btn-modal-cancel-request" class="bg-[#efeee8] hover:bg-slate-200 text-[#353968] rounded-xl py-2.5 text-xs font-black transition-all cursor-pointer">
               이전으로 돌아가기
             </button>

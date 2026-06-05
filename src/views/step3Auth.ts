@@ -347,48 +347,28 @@ export function startAuthCountdown(ctx: Step3Context) {
     }
   }, 1000);
 
-  // 🔄 연동 모드별 자동 검증/전환 기믹 작동 (Task 2)
-  if (currentSyncMode === "bypass") {
-    setTimeout(async () => {
-      if (authTimerInterval) {
-        try {
-          const isSuccess = await verifyNhisSyncSignature(ctx);
-          if (isSuccess) {
-            stopAuthCountdown();
-            executeNhisSync(ctx);
-          }
-        } catch (err) {
-          console.error("Auto transition in bypass mode failed:", err);
+  // 🔄 모든 모드에서 3초 간격 자동 폴링 — 인증 완료를 자동 감지하여 다음 단계로 전환
+  // (버튼 없이 자동으로 넘어가는 UX)
+  authPollInterval = setInterval(async () => {
+    if (authTimerInterval) {
+      try {
+        const isSuccess = await verifyNhisSyncSignature(ctx);
+        if (isSuccess) {
+          stopAuthCountdown();
+          executeNhisSync(ctx);
         }
+      } catch (err) {
+        // 아직 인증이 완료되지 않은 상태 — 조용히 다음 폴링을 기다립니다.
+        console.log("자동 감지 폴링 중... 아직 인증 미완료");
       }
-    }, 3000);
-  } else {
-    const jti = ctx.getCodefJti();
-    const isMockJti = jti && jti.startsWith("mock_jti_");
-
-    if (!isMockJti) {
-      authPollInterval = setInterval(async () => {
-        if (authTimerInterval) {
-          try {
-            const isSuccess = await verifyNhisSyncSignature(ctx);
-            if (isSuccess) {
-              stopAuthCountdown();
-              executeNhisSync(ctx);
-            }
-          } catch (err) {
-            console.log("Background polling signature verification...");
-          }
-        } else {
-          if (authPollInterval) {
-            clearInterval(authPollInterval);
-            authPollInterval = null;
-          }
-        }
-      }, 3000);
     } else {
-      console.log("Mock JTI detected in sandbox/development mode. Skipping background polling to prevent premature automatic transition.");
+      // 타이머가 이미 정지되었으면 폴링도 함께 중단합니다.
+      if (authPollInterval) {
+        clearInterval(authPollInterval);
+        authPollInterval = null;
+      }
     }
-  }
+  }, 3000);
 }
 
 // 활성화되어 있는 카운트다운 타이머를 중단(정지)시킵니다.
