@@ -1031,8 +1031,33 @@ app.post("/api/health/analyze-prescription", upload.single("prescriptionImage"),
       costInfo
     });
   } catch (err: any) {
+    // [교육용 주석] 제미나이 API 호출 장애를 정밀 감지하기 위한 에러 진단 파이프라인
     console.error(`${logPrefix} 처방전 Vision 분석 중 장애 발생:`, err);
-    res.status(500).json({ error: "처방전 이미지 분석에 실패했습니다.", detail: err.message });
+    
+    const errMsg = err.message || String(err);
+    let clientErrorMsg = "처방전 이미지 분석에 실패했습니다.";
+    let suggestFix = "";
+
+    // 1. 구글 API 키 오류 (401 Unauthorized / API_KEY_INVALID)
+    if (errMsg.includes("API_KEY_INVALID") || errMsg.includes("API key not valid") || errMsg.includes("401") || errMsg.includes("UNAUTHENTICATED")) {
+      clientErrorMsg = "Gemini API 인증에 실패하였습니다. (401 Unauthorized)";
+      suggestFix = "설정된 구글 API 키가 유효하지 않거나 만료되었습니다. .env 파일의 GEMINI_API_KEY 값을 올바르게 설정했는지 점검해 보시거나, 무료 등급 모델인 'gemini-2.5-flash'로 모델명을 대체하는 것을 강력히 권장합니다.";
+    }
+    // 2. 무료 사용량 할당량 한도 초과 (429 Too Many Requests / RESOURCE_EXHAUSTED)
+    else if (errMsg.includes("RESOURCE_EXHAUSTED") || errMsg.includes("Quota exceeded") || errMsg.includes("429") || errMsg.includes("limit")) {
+      clientErrorMsg = "Gemini 3.1 API 호출 임계치(Quota Limit / 429)를 초과하였습니다.";
+      suggestFix = "현재 사용 중인 제미나이 3.1 모델의 무료 등급 호출 할당량을 초과했거나 유료 결제 계정의 한도 제한에 도달했습니다. 비용 한도 제약이 없거나 무료로 사용 가능한 대체 등급 'gemini-2.5-flash' 모델로 설정을 전환하는 것을 추천드립니다.";
+    }
+    // 3. 그 외 범용 API 접속 실패
+    else {
+      clientErrorMsg = "처방전 이미지 인공지능 분석 도중 에러가 초래되었습니다.";
+      suggestFix = `원시 오류 내용: ${errMsg}. 만약 지속적인 API 한도/네트워크 지연 장애라면, 비용 효율이 극대화된 'gemini-2.5-flash' 무료 모델로 대체해 보십시오.`;
+    }
+
+    res.status(500).json({ 
+      error: clientErrorMsg, 
+      detail: suggestFix 
+    });
   }
 });
 

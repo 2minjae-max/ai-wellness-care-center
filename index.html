@@ -362,12 +362,12 @@
                   <table class="w-full text-left border-collapse text-xs sm:text-sm">
                     <thead>
                       <tr class="bg-slate-50 border-b border-slate-100 text-[10px] sm:text-xs font-black text-slate-500 text-center">
-                        <th class="py-2.5 px-3 text-left">연도</th>
-                        <th class="py-2.5 text-center">혈압 (mmHg)</th>
-                        <th class="py-2.5 text-center">공복혈당</th>
-                        <th class="py-2.5 text-center">총콜레스테롤</th>
-                        <th class="py-2.5 text-center">BMI</th>
-                        <th class="py-2.5 text-center">요단백</th>
+                        <th class="py-2.5 px-3 text-left w-[14%]">연도</th>
+                        <th class="py-2.5 text-center w-[24%]">혈압 (mmHg)</th>
+                        <th class="py-2.5 text-center w-[16%]">공복혈당</th>
+                        <th class="py-2.5 text-center w-[18%]">총콜레스테롤</th>
+                        <th class="py-2.5 text-center w-[16%]">BMI</th>
+                        <th class="py-2.5 text-center w-[12%]">요단백</th>
                       </tr>
                     </thead>
                     <tbody id="codef-summary-table-body" class="text-[11px] sm:text-xs divide-y divide-slate-100 text-center font-medium">
@@ -680,7 +680,8 @@
 
         <div class="space-y-2">
           <h2 class="text-xl font-black text-slate-900">한화손보<br />AI Wellness <span class="text-[#000000] font-black">Care Center<br /></span> 분석 진행 중</h2>
-          <p id="loading-step-text" class="text-slate-500 text-xs min-h-[48px] flex items-center justify-center px-4 leading-normal">
+          <!-- [교육용 주석] 로딩 상태 텍스트의 길이에 따라 카드의 높이가 아래위로 출렁이는 덜렁거림 현상을 방지하기 위해, min-h 대신 고정 높이 h-12 flex items-center justify-center를 사용하여 세로 크기를 48px로 상시 홀딩합니다. -->
+          <p id="loading-step-text" class="text-slate-500 text-[11px] sm:text-xs h-12 flex items-center justify-center px-4 leading-normal">
             보안 신원인증 마스터 노드에 세션을 확립하고 있습니다...
           </p>
         </div>

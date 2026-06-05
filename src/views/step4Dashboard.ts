@@ -393,28 +393,32 @@ export function renderCodefSummary(ctx: DashboardContext): void {
   // 연도별 테이블 렌더러 (BMI 및 요단백 칼럼 결합 복구)
   if (tableBody) {
     tableBody.innerHTML = sortedRecords.map((rec) => {
+      // [교육용 주석] 혈압(bpStr) 렌더링 시 모바일의 좁은 뷰포트에서 개행이나 겹침이 발생하지 않도록
+      // whitespace-nowrap(줄바꿈 방지)과 font-mono, tracking-tighter(자간 좁힘)를 단단히 입히고 폰트 크기를 미세 조율합니다.
       const bpStr = (rec.systolicBP && rec.diastolicBP)
-        ? `<span class="whitespace-nowrap font-mono tracking-tighter text-[11px] text-slate-800">${rec.systolicBP}</span><span class="text-slate-400 text-[9px] font-semibold whitespace-nowrap">/${rec.diastolicBP} mmHg</span>`
+        ? `<span class="whitespace-nowrap font-mono tracking-tighter text-[10px] sm:text-[11px] text-slate-800">${rec.systolicBP}</span><span class="text-slate-400 text-[8.5px] sm:text-[9.5px] font-semibold whitespace-nowrap">/${rec.diastolicBP}mmHg</span>`
         : `<span class="text-slate-300">-</span>`;
       const glucoseStr = rec.fastingGlucose 
-        ? `${rec.fastingGlucose} <span class="text-slate-400 text-[9px] font-semibold">mg/dL</span>`
+        ? `${rec.fastingGlucose}<span class="text-slate-400 text-[8.5px] sm:text-[9px] font-semibold">mg/dL</span>`
         : `<span class="text-slate-300">-</span>`;
       const cholStr = rec.totalCholesterol 
-        ? `${rec.totalCholesterol} <span class="text-[#f37321]/60 text-[9px] font-semibold">mg/dL</span>`
+        ? `${rec.totalCholesterol}<span class="text-[#f37321]/60 text-[8.5px] sm:text-[9px] font-semibold">mg/dL</span>`
         : `<span class="text-slate-300">-</span>`;
       const bmiStr = rec.bmi 
-        ? `${rec.bmi.toFixed(1)} <span class="text-slate-400 text-[9px] font-semibold">kg/㎡</span>`
+        ? `${rec.bmi.toFixed(1)}<span class="text-slate-400 text-[8.5px] sm:text-[9px] font-semibold">kg/㎡</span>`
         : `<span class="text-slate-300">-</span>`;
       const urineStr = rec.urineProtein || `<span class="text-slate-300">-</span>`;
 
+      // [교육용 주석] 테이블 각 td 셀에 thead 헤더와 정확히 일치하는 백분율 너비(w-[14%], w-[24%] 등)를 부여하여
+      // 화면 너비에 반응형으로 균등 분포되게 유도하며, 텍스트가 겹치거나 찌그러지지 않도록 방어합니다.
       return `
         <tr class="hover:bg-[#fff5ee]/40 transition-all font-semibold border-b border-slate-100 text-slate-700">
-          <td class="py-3 font-extrabold text-[#767676]">${rec.year}년</td>
-          <td class="py-3 px-1 text-center font-bold text-slate-800 whitespace-nowrap">${bpStr}</td>
-          <td class="py-3 px-1 text-center font-bold text-slate-800">${glucoseStr}</td>
-          <td class="py-3 px-1 text-center font-bold text-[#f37321]">${cholStr}</td>
-          <td class="py-3 px-1 text-center font-bold text-slate-800">${bmiStr}</td>
-          <td class="py-3 px-1 text-center font-bold text-slate-800">${urineStr}</td>
+          <td class="py-3 px-1.5 text-left font-extrabold text-[#767676] w-[14%] whitespace-nowrap">${rec.year}년</td>
+          <td class="py-3 px-0.5 text-center font-bold text-slate-800 w-[24%] whitespace-nowrap">${bpStr}</td>
+          <td class="py-3 px-0.5 text-center font-bold text-slate-800 w-[16%] whitespace-nowrap">${glucoseStr}</td>
+          <td class="py-3 px-0.5 text-center font-bold text-[#f37321] w-[18%] whitespace-nowrap">${cholStr}</td>
+          <td class="py-3 px-0.5 text-center font-bold text-slate-800 w-[16%] whitespace-nowrap">${bmiStr}</td>
+          <td class="py-3 px-0.5 text-center font-bold text-slate-800 w-[12%] whitespace-nowrap">${urineStr}</td>
         </tr>
       `;
     }).join("");

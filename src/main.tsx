@@ -168,6 +168,14 @@ window.addEventListener("DOMContentLoaded", () => {
       container.remove();
     }
 
+    // [교육용 주석] 자식 iframe 내부(또는 진짜 모바일 단독 기동 상황)에서 appViewport가 
+    // 브라우저 뷰포트 영역(100vh)을 꽉 채운 채 내부에서 자체 스크롤(overflow-y: auto)되도록 강제 설정합니다.
+    // 이 처리를 통해 PC 대화면 모드로 변경 시 높이 축소로 인한 탭바 이하 컨텐츠의 짤림 현상을 완전히 해결합니다.
+    if (appViewport) {
+      appViewport.style.height = "100vh";
+      appViewport.style.overflowY = "auto";
+    }
+
     // body의 flex 및 디바이스 시뮬레이터용 프레임 정렬을 제거하여 100% 모바일 전체 화면 복원
     document.body.className = "h-full text-slate-900 antialiased bg-[#efeee8]";
 
@@ -265,8 +273,12 @@ const dashboardCtx: DashboardContext = {
       body: formData
     });
     if (!res.ok) {
+      // [교육용 주석] 서버가 세부 분석한 JSON 에러 응답({ error, detail })을 취득합니다.
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || "처방전 이미지 분석에 실패했습니다.");
+      
+      // 만약 에러의 상세 조치 제안(detail)이 있으면, 함께 줄바꿈을 주어 보기 좋게 결합하여 에러를 상위로 전파합니다.
+      const detailInfo = err.detail ? `\n\n[진단 및 해결 제안]:\n${err.detail}` : "";
+      throw new Error((err.error || "처방전 이미지 분석에 실패했습니다.") + detailInfo);
     }
     return res.json();
   },
@@ -2405,9 +2417,12 @@ function renderConsultingTab() {
       if (detailsContainer) {
         detailsContainer.innerHTML = coverages.map(cov => `
           <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 space-y-1 text-left shadow-3xs">
-            <div class="flex justify-between items-center">
-              <span class="font-extrabold text-slate-800 text-xs">${cov.name}</span>
-              <span class="text-[10px] text-[#f37321] font-black shrink-0 whitespace-nowrap ml-2">${cov.amount} (월 ${cov.premium.toLocaleString()}원)</span>
+            <div class="flex justify-between items-center gap-1.5">
+              <!-- [교육용 주석] 담보명(cov.name)이 길어질 경우 우측의 가격 표시를 침범하지 않도록 flex-1 min-w-0 break-keep 설정을 부여합니다. -->
+              <span class="font-extrabold text-slate-800 text-xs flex-1 min-w-0 break-keep">${cov.name}</span>
+              <!-- [교육용 주석] 가격이 모바일 세로폭에서 개행되어 '원)'만 아래로 떨어지는 비정상 동작을 막기 위해 
+                   shrink-0(축소 방지), ml-auto와 함께 인라인 스타일 white-space: nowrap 및 word-break: keep-all을 완벽히 주입해 수평 정렬을 유지합니다. -->
+              <span class="text-[10px] text-[#f37321] font-black shrink-0 ml-auto" style="white-space: nowrap; word-break: keep-all;">${cov.amount} (월 ${cov.premium.toLocaleString()}원)</span>
             </div>
             <p class="text-[10px] text-slate-500 leading-relaxed font-semibold break-keep">${cov.basis}</p>
           </div>
