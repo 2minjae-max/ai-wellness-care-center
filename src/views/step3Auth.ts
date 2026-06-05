@@ -368,7 +368,7 @@ export function startAuthCountdown(ctx: Step3Context) {
         authPollInterval = null;
       }
     }
-  }, 3000);
+  }, 1000); // 1초마다 인증 완료 여부를 체크합니다
 }
 
 // 활성화되어 있는 카운트다운 타이머를 중단(정지)시킵니다.
