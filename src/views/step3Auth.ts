@@ -17,7 +17,8 @@ let authTimerSeconds = 180;
 let authPollInterval: any = null;
 
 // 연동 모드 상태 관리 변수 (bypass, sandbox, development)
-let currentSyncMode: "bypass" | "sandbox" | "development" = "bypass";
+// 기본값: "development" → 실제(Real Dev) 모드가 디폴트로 체크됩니다.
+let currentSyncMode: "bypass" | "sandbox" | "development" = "development";
 
 // main.tsx의 전역 상태 값을 직접 변경하거나 참조하지 않고,
 // 인터페이스를 통해 안전하게 교류할 수 있도록 설계된 컨텍스트 사양입니다.
@@ -271,8 +272,8 @@ export function openSyncModal() {
     modal.classList.remove("hidden");
     $("final-analysis-cta-container")?.classList.add("hidden");
     
-    // 연동 모드 선택 리셋 (기본값: 'bypass' 인증 우회)
-    currentSyncMode = "bypass";
+    // 연동 모드 선택 리셋 (기본값: 'development' 실제 모드)
+    currentSyncMode = "development";
     const syncButtons = $$(".sync-mode-btn");
     const bypassDesc = $("bypass-desc");
     const modeBadge = $("sync-mode-badge");
@@ -280,7 +281,7 @@ export function openSyncModal() {
     syncButtons.forEach(btn => {
       const mode = btn.getAttribute("data-mode");
       btn.classList.remove("bg-white", "text-slate-800", "shadow-xs", "bg-[#f37321]", "text-white");
-      if (mode === "bypass") {
+      if (mode === "development") {
         btn.classList.add("bg-[#f37321]", "text-white", "shadow-xs");
         btn.classList.remove("text-slate-500");
       } else {
@@ -288,8 +289,8 @@ export function openSyncModal() {
       }
     });
 
-    if (bypassDesc) bypassDesc.innerText = "인증을 우회하여 로컬의 5개년 모의 데이터를 즉시 가져옵니다.";
-    if (modeBadge) modeBadge.innerText = "인증 우회";
+    if (bypassDesc) bypassDesc.innerText = "CODEF Development API를 연동하여 실제 인증 및 나의 실 데이터를 가져옵니다.";
+    if (modeBadge) modeBadge.innerText = "실제 (Real Dev)";
 
     // 아코디언 접힘 리셋
     $("content-sync-mode-accordion")?.classList.add("hidden");

@@ -1173,7 +1173,7 @@
             <button type="button" id="btn-toggle-sync-mode" class="w-full flex items-center justify-between p-3 focus:outline-none cursor-pointer">
               <div class="flex items-center gap-1.5 text-left">
                 <span class="text-xs font-black text-slate-700">연동 모드 설정</span>
-                <span class="text-[9px] font-black text-[#f37321] bg-[#fff5ee] border border-[#f37321]/30 px-1.5 py-0.5 rounded-md" id="sync-mode-badge">인증 우회</span>
+                <span class="text-[9px] font-black text-[#f37321] bg-[#fff5ee] border border-[#f37321]/30 px-1.5 py-0.5 rounded-md" id="sync-mode-badge">실제 (Real Dev)</span>
               </div>
               <svg id="icon-sync-mode-chevron" class="w-4 h-4 text-slate-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
@@ -1183,19 +1183,19 @@
             <!-- 아코디언 본문 (기본 접힘 상태: hidden) -->
             <div id="content-sync-mode-accordion" class="hidden px-3 pb-3 border-t border-slate-100 pt-2.5 space-y-2">
               <div class="grid grid-cols-3 gap-1 bg-slate-200/50 p-1 rounded-xl">
-                <button type="button" class="sync-mode-btn py-1.5 rounded-lg text-[10px] font-black text-center transition-all cursor-pointer bg-white text-slate-800 shadow-xs" data-mode="bypass">
+                <button type="button" class="sync-mode-btn py-1.5 rounded-lg text-[10px] font-black text-center transition-all cursor-pointer text-slate-500 hover:text-slate-700" data-mode="bypass">
                   인증 우회
                 </button>
                 <button type="button" class="sync-mode-btn py-1.5 rounded-lg text-[10px] font-black text-center transition-all cursor-pointer text-slate-500 hover:text-slate-700" data-mode="sandbox">
                   모의 (Sandbox)
                 </button>
-                <button type="button" class="sync-mode-btn py-1.5 rounded-lg text-[10px] font-black text-center transition-all cursor-pointer text-slate-500 hover:text-slate-700" data-mode="development">
+                <button type="button" class="sync-mode-btn py-1.5 rounded-lg text-[10px] font-black text-center transition-all cursor-pointer bg-[#f37321] text-white shadow-xs" data-mode="development">
                   실제 (Real Dev)
                 </button>
               </div>
               
               <p class="text-[9px] text-slate-500 leading-normal text-left" id="bypass-desc">
-                인증을 우회하여 로컬의 5개년 모의 데이터를 즉시 가져옵니다.
+                CODEF Development API를 연동하여 실제 인증 및 나의 실 데이터를 가져옵니다.
               </p>
             </div>
           </div>
