@@ -71,6 +71,27 @@ let uploadedFiles: Array<{
 let isStep1Completed = false;
 let isStep2Completed = false;
 
+// --- [신규 추가] 사용자가 기존에 가입한 보험 계약 및 담보 한도 정보 (시뮬레이션 기본 데이터) ---
+// 실제 CODEF API 연동 전/후에 연동된 데이터를 보관하며, 컨설팅 탭에서 보장 격차를 비교할 때 사용됩니다.
+let existingInsurances: Array<{
+  company: string;       // 보험회사 이름
+  productName: string;   // 가입된 보험 상품명
+  status: string;        // 계약 유지 상태 (유지, 실효 등)
+  premium: number;       // 매월 납입 중인 보험료
+}> = [
+  { company: "삼성화재", productName: "무배당 삼성 든든 건강보험", status: "유지", premium: 45000 },
+  { company: "메리츠화재", productName: "무배당 메리츠 실손의료보험", status: "유지", premium: 12000 }
+];
+
+// 가입되어 있는 주요 5대 담보별 기존 보장 한도 금액 (원 단위)
+let existingCoverages: Record<string, number> = {
+  "cov-cancer": 20000000,    // 암 진단비: 2,000만 원 가입 중
+  "cov-brain": 10000000,     // 뇌혈관질환 진단비: 1,000만 원 가입 중
+  "cov-heart": 10000000,     // 허혈성심장질환 진단비: 1,000만 원 가입 중
+  "cov-metabolic": 0,        // 대사성 만성질환 특별보완 특약: 미가입 상태 (0 원)
+  "cov-surgery": 2000000     // 일반 질병 및 다빈도 수술비: 200만 원 가입 중
+};
+
 // 결과 분석 데이터 보관
 let analysisResult: AIAnalysisResult | null = null;
 let isSimulated = true;
@@ -2155,58 +2176,54 @@ function renderConsultingTab() {
   // 연령 지수 (40세를 1.0 기준으로 하여 매년 4.5% 비율로 증감 계산)
   const ageFactor = Math.max(0.35, Math.min(2.2, 1.0 + (userAge - 40) * 0.045));
 
-  // 각 담보별 기준 요율 및 가입금액 설정
-  let cancerAmount = "3,000만원";
-  let cancerBaseRate = isFemale ? 6100 : 6800; // 1,000만원당 기본 보험료 (40세 기준)
-  let cancerSurcharge = 1.0;
-  if (isCancerRisk) {
-    cancerAmount = "5,000만원";
-    cancerSurcharge = 1.15; // 암 가족력 할증
-  }
+  // --- [신규 구현] 기존 가입 담보 한도액을 만 원 단위로 맵핑 ---
+  const existCancerVal = Math.round((existingCoverages["cov-cancer"] || 0) / 10000);
+  const existBrainVal = Math.round((existingCoverages["cov-brain"] || 0) / 10000);
+  const existHeartVal = Math.round((existingCoverages["cov-heart"] || 0) / 10000);
+  const existMetabolicVal = Math.round((existingCoverages["cov-metabolic"] || 0) / 10000);
+  const existSurgeryVal = Math.round((existingCoverages["cov-surgery"] || 0) / 10000);
+
+  // 각 담보별 권장 가입금액 설정 (만 원 단위)
   const cancerCoverageVal = isCancerRisk ? 5000 : 3000;
-  const cancerPremium = Math.round(cancerBaseRate * (cancerCoverageVal / 1000) * ageFactor * cancerSurcharge * simplifiedSurcharge);
- 
-  let brainAmount = "2,000만원";
-  let brainBaseRate = isFemale ? 4900 : 5600; // 1,000만원당 기본 보험료
-  let brainSurcharge = 1.0;
-  if (isHypertensionRisk) {
-    brainAmount = "3,000만원";
-    brainSurcharge = 1.20; // 고혈압/뇌혈관 가족력/지표 할증
-  }
   const brainCoverageVal = isHypertensionRisk ? 3000 : 2000;
-  const brainPremium = Math.round(brainBaseRate * (brainCoverageVal / 1000) * ageFactor * brainSurcharge * simplifiedSurcharge);
- 
-  let heartAmount = "2,000만원";
-  let heartBaseRate = isFemale ? 3400 : 4450; // 1,000만원당 기본 보험료
-  let heartSurcharge = 1.0;
-  if (isHypertensionRisk) {
-    heartAmount = "3,000만원";
-    heartSurcharge = 1.15; // 심혈관 가족력 할증
-  }
   const heartCoverageVal = isHypertensionRisk ? 3000 : 2000;
-  const heartPremium = Math.round(heartBaseRate * (heartCoverageVal / 1000) * ageFactor * heartSurcharge * simplifiedSurcharge);
- 
-  let metabolicAmount = "500만원";
-  let metabolicBaseRate = isFemale ? 780 : 980; // 100만원당 기본 보험료
-  let metabolicSurcharge = 1.0;
-  if (isMetabolicRisk) {
-    metabolicAmount = "1,000만원";
-    metabolicSurcharge = 1.25; // 당뇨 지표/가족력 할증
-  }
   const metabolicCoverageVal = isMetabolicRisk ? 1000 : 500;
-  const metabolicPremium = Math.round(metabolicBaseRate * (metabolicCoverageVal / 100) * ageFactor * metabolicSurcharge * simplifiedSurcharge);
- 
-  const surgeryAmount = "500만원";
-  const surgeryBaseRate = isFemale ? 1380 : 1540; // 100만원당 기본 보험료
   const surgeryCoverageVal = 500;
-  const surgeryPremium = Math.round(surgeryBaseRate * (surgeryCoverageVal / 100) * ageFactor * simplifiedSurcharge);
+
+  // --- [신규 구현] 보장 격차(Gap) 분석 (추천금액 - 기존 가입금액) ---
+  const cancerGapVal = Math.max(0, cancerCoverageVal - existCancerVal);
+  const brainGapVal = Math.max(0, brainCoverageVal - existBrainVal);
+  const heartGapVal = Math.max(0, heartCoverageVal - existHeartVal);
+  const metabolicGapVal = Math.max(0, metabolicCoverageVal - existMetabolicVal);
+  const surgeryGapVal = Math.max(0, surgeryCoverageVal - existSurgeryVal);
+
+  // [중요] 사용자의 보장 격차(부족 금액)에 대해서만 비율적으로 추천 월 보험료를 정밀 계산합니다.
+  let cancerBaseRate = isFemale ? 6100 : 6800; // 1,000만원당 기본 보험료 (40세 기준)
+  let cancerSurcharge = isCancerRisk ? 1.15 : 1.0;
+  const cancerPremium = Math.round(cancerBaseRate * (cancerGapVal / 1000) * ageFactor * cancerSurcharge * simplifiedSurcharge);
  
+  let brainBaseRate = isFemale ? 4900 : 5600; // 1,000만원당 기본 보험료
+  let brainSurcharge = isHypertensionRisk ? 1.20 : 1.0;
+  const brainPremium = Math.round(brainBaseRate * (brainGapVal / 1000) * ageFactor * brainSurcharge * simplifiedSurcharge);
+ 
+  let heartBaseRate = isFemale ? 3400 : 4450; // 1,000만원당 기본 보험료
+  let heartSurcharge = isHypertensionRisk ? 1.15 : 1.0;
+  const heartPremium = Math.round(heartBaseRate * (heartGapVal / 1000) * ageFactor * heartSurcharge * simplifiedSurcharge);
+ 
+  let metabolicBaseRate = isFemale ? 780 : 980; // 100만원당 기본 보험료
+  let metabolicSurcharge = isMetabolicRisk ? 1.25 : 1.0;
+  const metabolicPremium = Math.round(metabolicBaseRate * (metabolicGapVal / 100) * ageFactor * metabolicSurcharge * simplifiedSurcharge);
+ 
+  const surgeryBaseRate = isFemale ? 1380 : 1540; // 100만원당 기본 보험료
+  const surgeryPremium = Math.round(surgeryBaseRate * (surgeryGapVal / 100) * ageFactor * simplifiedSurcharge);
+ 
+  // 화면에 그릴 5대 주요 담보 정보 객체 배열 재구성
   const coverages = [
-    { id: "cov-cancer", name: isFemale ? "여성특화 암 진단비 (표적치료 포함)" : "일반암 진단비 (표적치료 포함)", amount: cancerAmount, premium: cancerPremium, basis: isCancerRisk ? "가족력 또는 병력 반영 및 가입 한도 5,000만원 집중 보강" : "가족력 또는 병력 없음 반영, 기본형 3,000만원 적정 유지" },
-    { id: "cov-brain", name: "뇌혈관질환 진단비 (2대 고위험 혈관 보강)", amount: brainAmount, premium: brainPremium, basis: isHypertensionRisk ? "고혈압/뇌혈관 가족력 또는 수축기혈압(" + sysBp + " mmHg) 경계 단계를 반영한 가입 한도 3,000만원 특별 증액" : "가족력 및 혈압 안전 상태 반영, 기본형 2,000만원 보장 배정" },
-    { id: "cov-heart", name: "허혈성심장질환 진단비 (협심증 진단 케어)", amount: heartAmount, premium: heartPremium, basis: isHypertensionRisk ? "심장질환 가족력 및 혈압 수치(" + sysBp + " mmHg) 경계 연동에 따른 3,000만원 집중 처방" : "심장 유전 리스크 없음 반영, 기본형 2,000만원 일반 처방" },
-    { id: "cov-metabolic", name: "대사성 만성질환(당뇨/고혈압 등) 특별보완 특약", amount: metabolicAmount, premium: metabolicPremium, basis: isMetabolicRisk ? "당뇨/대사 가족력 또는 식전혈당(" + glucose + " mg/dL) 주의 단계를 연계한 보장 한도 1,000만원 특별 탑재" : "당뇨/대사 지표 안전 상태 반영, 기본형 500만원 배정" },
-    { id: "cov-surgery", name: "일반 질병 수술비 및 120대 다빈도 수술비", amount: surgeryAmount, premium: surgeryPremium, basis: "기본 종합 수술 치료비 보장 플랜 (500만원 한도 고정)" }
+    { id: "cov-cancer", name: isFemale ? "여성특화 암 진단비 (표적치료 포함)" : "일반암 진단비 (표적치료 포함)", recommendedAmount: cancerCoverageVal * 10000, existingAmount: existingCoverages["cov-cancer"] || 0, gapAmount: cancerGapVal * 10000, premium: cancerPremium, basis: isCancerRisk ? "가족력 또는 병력 반영 및 권장 한도 5,000만원 집중 보강" : "가족력 또는 병력 없음 반영, 기본형 3,000만원 적정 유지" },
+    { id: "cov-brain", name: "뇌혈관질환 진단비 (2대 고위험 혈관 보강)", recommendedAmount: brainCoverageVal * 10000, existingAmount: existingCoverages["cov-brain"] || 0, gapAmount: brainGapVal * 10000, premium: brainPremium, basis: isHypertensionRisk ? "고혈압/뇌혈관 가족력 또는 수축기혈압(" + sysBp + " mmHg) 경계 단계를 반영한 권장 한도 3,000만원 특별 증액" : "가족력 및 혈압 안전 상태 반영, 기본형 2,000만원 보장 배정" },
+    { id: "cov-heart", name: "허혈성심장질환 진단비 (협심증 진단 케어)", recommendedAmount: heartCoverageVal * 10000, existingAmount: existingCoverages["cov-heart"] || 0, gapAmount: heartGapVal * 10000, premium: heartPremium, basis: isHypertensionRisk ? "심장질환 가족력 및 혈압 수치(" + sysBp + " mmHg) 경계 연동에 따른 3,000만원 집중 처방" : "심장 유전 리스크 없음 반영, 기본형 2,000만원 일반 처방" },
+    { id: "cov-metabolic", name: "대사성 만성질환(당뇨/고혈압 등) 특별보완 특약", recommendedAmount: metabolicCoverageVal * 10000, existingAmount: existingCoverages["cov-metabolic"] || 0, gapAmount: metabolicGapVal * 10000, premium: metabolicPremium, basis: isMetabolicRisk ? "당뇨/대사 가족력 또는 식전혈당(" + glucose + " mg/dL) 주의 단계를 연계한 권장 한도 1,000만원 특별 탑재" : "당뇨/대사 지표 안전 상태 반영, 기본형 500만원 배정" },
+    { id: "cov-surgery", name: "일반 질병 수술비 및 120대 다빈도 수술비", recommendedAmount: surgeryCoverageVal * 10000, existingAmount: existingCoverages["cov-surgery"] || 0, gapAmount: surgeryGapVal * 10000, premium: surgeryPremium, basis: "기본 종합 수술 치료비 보장 플랜 (500만원 한도 권장)" }
   ];
  
   // 5. 건강 점수별 우량체 할인 설정 (간편인수 적용 유병자는 우량체 할인 대상 제외하되 매년 무사고 시 3N5 할인 전환안내문 표시)
@@ -2239,20 +2256,39 @@ function renderConsultingTab() {
  
   const formattedTotal = finalTotalPremium.toLocaleString();
  
+  // --- [신규 구현] 보장 격차 비교를 반영한 표 행(row) HTML 템플릿 빌드 ---
   const coveragesHtml = coverages.map((cov) => {
+    const formattedRecAmount = (cov.recommendedAmount / 10000).toLocaleString() + "만원";
+    const formattedExistAmount = (cov.existingAmount / 10000).toLocaleString() + "만원";
+    
+    // 격차 배지 디자인 및 조건 분기
+    let gapBadge = "";
+    if (cov.gapAmount > 0) {
+      gapBadge = `<span class="px-2.5 py-1 rounded-full bg-rose-50 text-rose-600 font-extrabold border border-rose-100/50 text-[10px] inline-block shadow-3xs">${(cov.gapAmount / 10000).toLocaleString()}만원 보강 필요</span>`;
+    } else {
+      gapBadge = `<span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 font-extrabold border border-emerald-100/50 text-[10px] inline-block shadow-3xs">보장 충분</span>`;
+    }
+    
     const formattedPremium = cov.premium.toLocaleString();
     return `
-      <tr class="border-b border-slate-100 last:border-b-0">
-        <td class="py-3 px-2">
+      <tr class="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50 transition-colors">
+        <td class="py-3 px-3">
           <div class="font-bold text-slate-800 text-xs sm:text-sm">${cov.name}</div>
-          <div class="text-[10px] text-slate-400 mt-0.5 font-bold">한화손해보험 최신 맞춤설계특약</div>
+          <div class="text-[9.5px] text-slate-450 mt-0.5 font-medium leading-relaxed">${cov.basis}</div>
         </td>
-        <td class="py-3 px-2 text-right font-extrabold text-slate-900 text-xs sm:text-xs">${cov.amount}</td>
-        <td class="py-3 px-2 text-right font-bold text-[#f37321] text-xs sm:text-sm">${formattedPremium} 원</td>
+        <td class="py-3 px-2 text-right font-extrabold text-slate-900 text-xs sm:text-sm">${formattedRecAmount}</td>
+        <td class="py-3 px-2 text-right font-bold text-slate-600 text-xs sm:text-sm">${formattedExistAmount}</td>
+        <td class="py-3 px-2 text-center">${gapBadge}</td>
+        <td class="py-3 px-3 text-right font-black text-[#f37321] text-xs sm:text-sm">
+          ${cov.premium > 0 ? `+${formattedPremium} 원` : "0 원"}
+        </td>
       </tr>
     `;
   }).join("");
  
+  // 기존 가입 보험 총 월 보험료 합산액 계산
+  const totalExistingPremium = existingInsurances.reduce((acc, cur) => acc + cur.premium, 0);
+
   container.innerHTML = `
     <div class="bg-white p-5 sm:p-8 shadow-xs space-y-6 animate-fade-in text-left">
         <!-- Header -->
@@ -2267,6 +2303,34 @@ function renderConsultingTab() {
           <p class="text-slate-500 text-xs sm:text-sm mt-2 leading-relaxed">
             고객님의 최근 건강검진 종합 지표(<span id="consulting-score-badge" class="font-bold text-slate-800">${analysisResult?.overallScore || 84}점</span>), 만 연령(<strong>만 ${userAge}세</strong>) 및 기재해주신 건강 상태를 토대로 <strong class="text-slate-800 font-extrabold">한화손해보험 상품공시실 지식 위키</strong>에 현재 정식 판매 중인 건강보장형 상품들을 대조 분석하여, 고객님께 가장 완벽하게 보완된 비대면 맞춤 포트폴리오를 제공합니다.
           </p>
+        </div>
+
+        <!-- 🛡️ [신규 추가] 기존 보험 가입 요약 카드 목록 -->
+        <div class="bg-slate-50/70 border border-slate-200/60 p-4 sm:p-5 rounded-2xl space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h4 class="font-black text-slate-800 text-sm sm:text-base flex items-center gap-1.5">
+                    <svg class="w-4.5 h-4.5 text-[#f37321] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    내 기존 보험 가입 현황 (${existingInsurances.length}건)
+                </h4>
+                <span class="text-xs font-bold text-slate-500">기존 납입료 합계: <strong class="text-[#f37321] font-black">${totalExistingPremium.toLocaleString()}원</strong> / 월</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                ${existingInsurances.map(ins => `
+                    <div class="bg-white border border-slate-200/80 rounded-xl p-3.5 flex justify-between items-center shadow-3xs hover:border-[#f37321]/30 transition-all">
+                        <div class="space-y-1">
+                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 font-extrabold border border-emerald-100">${ins.status}</span>
+                            <div class="font-bold text-slate-850 text-xs sm:text-xs.5 mt-1">${ins.productName}</div>
+                            <div class="text-[9.5px] text-slate-400 font-medium">${ins.company}</div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span class="font-extrabold text-slate-900 text-xs sm:text-sm">${ins.premium.toLocaleString()} 원</span>
+                            <span class="text-[9px] text-slate-400 block mt-0.5">월 보험료</span>
+                        </div>
+                    </div>
+                `).join("")}
+            </div>
         </div>
         
         <!-- Product Box -->
@@ -2294,7 +2358,7 @@ function renderConsultingTab() {
               </a>
               <a href="${guidePdfUrl}" target="_blank" download class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#f37321] text-white hover:bg-[#dd6216] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 설명서 PDF 받기
               </a>
@@ -2305,18 +2369,20 @@ function renderConsultingTab() {
         <div class="space-y-3.5">
             <h4 class="font-extrabold text-slate-800 text-sm sm:text-base flex items-center gap-1.5">
               <svg class="w-4 h-4 text-[#f37321]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
-              가족력 및 검진 기반 추천 담보 구성
+              가족력 및 검진 기반 보장 공백(Gap) 대조 분석
             </h4>
 
             <div class="border border-slate-200 bg-white rounded-2xl shadow-xs overflow-hidden">
               <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-xs">
+                  <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-[10.5px]">
                     <th class="py-3 px-3 font-black">담보명</th>
-                    <th class="py-3 px-3 text-right font-black">가입금액</th>
-                    <th class="py-3 px-3 text-right font-black">월 보험료</th>
+                    <th class="py-3 px-2 text-right font-black">추천 보장액</th>
+                    <th class="py-3 px-2 text-right font-black">내 기존 보장액</th>
+                    <th class="py-3 px-2 text-center font-black">보장 격차</th>
+                    <th class="py-3 px-3 text-right font-black">추천 월보험료</th>
                   </tr>
                 </thead>
                 <tbody class="text-xs text-slate-700">
@@ -2343,12 +2409,13 @@ function renderConsultingTab() {
         <div class="bg-gradient-to-r from-slate-50 to-[#fff8f2] p-5 sm:p-6 rounded-2xl border border-dashed border-[#f37321]/30 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div class="space-y-0.5 text-center sm:text-left">
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calculated Monthly Premium</span>
-            <h5 class="text-xs sm:text-sm font-black text-slate-750 block sm:inline">최종 월 납입 보험료</h5>
+            <h5 class="text-xs sm:text-sm font-black text-slate-750 block sm:inline">격차 보강용 신규 추천 월 보험료</h5>
             <p class="text-2xl sm:text-3.5xl font-black text-[#f37321] tracking-tight mt-1">
               <span id="consulting-display-bold-total" class="font-extrabold text-3xl sm:text-4xl text-[#f37321]">${formattedTotal}</span> 원
             </p>
             ${discountRate > 0 ? `<p class="text-[10px] text-emerald-600 font-extrabold mt-1">✓ 건강등급 우량체 특별 할인 완료 (-${discountAmount.toLocaleString()}원)</p>` : ""}
             ${isSimplifiedTarget ? `<p class="text-[10px] text-[#f37321] font-extrabold mt-1">✓ 만성질환 보장 우대 유병자형 간편인수 적용</p>` : ""}
+            <p class="text-[9.5px] text-slate-450 mt-1 leading-none">*기존에 이미 가입된 보장 한도는 제외하고, **부족한 격차 보강액**에 대해서만 실속 산출된 보험료입니다.</p>
           </div>
           <button type="button" id="btn-open-premium-basis" class="w-full sm:w-auto bg-[#353968] hover:bg-[#24274d] text-white rounded-xl py-3 px-4 font-bold text-xs tracking-wide flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -2363,7 +2430,7 @@ function renderConsultingTab() {
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center gap-2 text-slate-800">
                     <svg class="w-5 h-5 text-[#f37321]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2" />
+                       <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2" />
                     </svg>
                     <h3 class="font-extrabold text-base sm:text-lg text-slate-900">다른 설계서와 비교 분석</h3>
                 </div>
@@ -2372,7 +2439,7 @@ function renderConsultingTab() {
                 <div id="upload-zone" class="border-2 border-dashed border-slate-200 hover:border-[#f37321] bg-slate-50/70 hover:bg-[#fff5ee] rounded-2xl p-8 text-center cursor-pointer transition-all space-y-2.5 flex flex-col items-center justify-center">
                    <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-3xs border border-slate-100 text-[#f37321]">
                      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                       <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                      </svg>
                    </div>
                    <div class="space-y-1">
@@ -2412,21 +2479,30 @@ function renderConsultingTab() {
 
   if (btnOpenBasis && modalBasis) {
     btnOpenBasis.addEventListener("click", () => {
-      // 1. Populate details container
+      // 1. 상세 담보별 보장 공백 및 격차 보험료 상세 데이터 주입
       const detailsContainer = $("modal-premium-basis-details");
       if (detailsContainer) {
-        detailsContainer.innerHTML = coverages.map(cov => `
-          <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 space-y-1 text-left shadow-3xs">
-            <div class="flex justify-between items-center gap-1.5">
-              <!-- [교육용 주석] 담보명(cov.name)이 길어질 경우 우측의 가격 표시를 침범하지 않도록 flex-1 min-w-0 break-keep 설정을 부여합니다. -->
-              <span class="font-extrabold text-slate-800 text-xs flex-1 min-w-0 break-keep">${cov.name}</span>
-              <!-- [교육용 주석] 가격이 모바일 세로폭에서 개행되어 '원)'만 아래로 떨어지는 비정상 동작을 막기 위해 
-                   shrink-0(축소 방지), ml-auto와 함께 인라인 스타일 white-space: nowrap 및 word-break: keep-all을 완벽히 주입해 수평 정렬을 유지합니다. -->
-              <span class="text-[10px] text-[#f37321] font-black shrink-0 ml-auto" style="white-space: nowrap; word-break: keep-all;">${cov.amount} (월 ${cov.premium.toLocaleString()}원)</span>
+        detailsContainer.innerHTML = coverages.map(cov => {
+          // 격차 유무에 따라 모달에 출력할 가입/보강 상태 텍스트 분기
+          const formattedAmountStr = cov.gapAmount > 0 
+            ? `${(cov.gapAmount / 10000).toLocaleString()}만원 보강` 
+            : "보장 충분 (보강 불필요)";
+          const formattedPremium = cov.premium.toLocaleString();
+          
+          return `
+            <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 space-y-1 text-left shadow-3xs">
+              <div class="flex justify-between items-center gap-1.5">
+                <!-- 담보명 출력 -->
+                <span class="font-extrabold text-slate-800 text-xs flex-1 min-w-0 break-keep">${cov.name}</span>
+                <!-- 보강이 필요할 때만 금액 및 월 납입료 출력 -->
+                <span class="text-[10px] text-[#f37321] font-black shrink-0 ml-auto" style="white-space: nowrap; word-break: keep-all;">
+                  ${formattedAmountStr} ${cov.premium > 0 ? `(월 ${formattedPremium}원)` : ""}
+                </span>
+              </div>
+              <p class="text-[10px] text-slate-500 leading-relaxed font-semibold break-keep">${cov.basis}</p>
             </div>
-            <p class="text-[10px] text-slate-500 leading-relaxed font-semibold break-keep">${cov.basis}</p>
-          </div>
-        `).join("");
+          `;
+        }).join("");
       }
 
       // 2. Populate intro text with metrics
