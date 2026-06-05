@@ -4788,6 +4788,10 @@ function setupDeviceSimulator() {
       // PC 모드에서는 스마트폰 노치, 상단바, 하단 홈 바를 모두 숨깁니다.
       notch?.classList.add("sm:hidden");
       statusbar?.classList.add("sm:hidden");
+      
+      // 💡 Tailwind의 sm:flex 클래스가 남아 있으면 sm:hidden과 우선순위 충돌이 날 수 있으므로 
+      // sm:flex를 제거하고 sm:hidden을 적용하여 완전히 숨깁니다.
+      homebar?.classList.remove("sm:flex");
       homebar?.classList.add("sm:hidden");
     } else if (mode === "tablet") {
       // 태블릿 모드 버튼 활성화 색상 지정
@@ -4800,6 +4804,9 @@ function setupDeviceSimulator() {
       // 태블릿 모드에서도 스마트폰 전용 요소(노치, 상단바, 하단 홈 바)는 숨깁니다.
       notch?.classList.add("sm:hidden");
       statusbar?.classList.add("sm:hidden");
+      
+      // 💡 마찬가지로 sm:flex를 제거하고 sm:hidden을 적용합니다.
+      homebar?.classList.remove("sm:flex");
       homebar?.classList.add("sm:hidden");
     } else {
       // 모바일 모드 버튼 활성화 색상 지정
@@ -4812,7 +4819,10 @@ function setupDeviceSimulator() {
       // 모바일 모드에서는 진짜 스마트폰처럼 보이도록 노치, 상태바, 하단 홈 바를 모두 다시 화면에 보여줍니다.
       notch?.classList.remove("sm:hidden");
       statusbar?.classList.remove("sm:hidden");
+      
+      // 💡 모바일 모드일 때는 반대로 sm:hidden을 지우고 sm:flex를 활성화시켜 정상 노출되게 합니다.
       homebar?.classList.remove("sm:hidden");
+      homebar?.classList.add("sm:flex");
     }
   }
 
