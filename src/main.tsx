@@ -4750,51 +4750,69 @@ function setupPremiumBasisModal() {
 // 11. [디바이스 시뮬레이터 툴바 제어] PC | 태블릿 | 모바일 동적 스위칭 (NEW)
 // ========================================================
 function setupDeviceSimulator() {
+  // 상단 시뮬레이션 제어 바의 버튼들을 가져옵니다.
   const btnPc = $("btn-device-pc");
   const btnTablet = $("btn-device-tablet");
   const btnMobile = $("btn-device-mobile");
 
+  // 전체 화면 및 시뮬레이터 구성 요소를 가져옵니다.
   const container = $("device-simulator-container");
   const body = $("root-body");
-  const notch = $("simulator-notch");
-  const statusbar = $("simulator-statusbar");
+  const notch = $("simulator-notch"); // 스마트폰 노치 (카메라 영역)
+  const statusbar = $("simulator-statusbar"); // 스마트폰 최상단 상태바
+  const homebar = $("simulator-homebar"); // 스마트폰 최하단 홈 바 (iOS 홈 바 스타일)
 
+  // 필수 요소가 없으면 스크립트 실행을 종료합니다.
   if (!btnPc || !btnTablet || !btnMobile || !container || !body) return;
 
+  /**
+   * 시뮬레이터 모드를 전환하는 핵심 함수입니다.
+   * @param mode 'pc' | 'tablet' | 'mobile'
+   */
   function updateDeviceMode(mode: "pc" | "tablet" | "mobile") {
-    // 1. 버튼 활성화 상태 업데이트
+    // 1. 모든 버튼의 스타일을 기본(비활성화) 형태로 초기화합니다.
     const btns = [btnPc, btnTablet, btnMobile];
     btns.forEach(btn => {
       btn.className = "px-3.5 py-1.5 rounded-full font-bold transition-all hover:bg-slate-800 cursor-pointer text-slate-400";
     });
 
+    // 2. 선택된 모드에 따라 알맞은 화면 배치 스타일과 가상 장치 요소(노치, 홈 바 등)를 제어합니다.
     if (mode === "pc") {
+      // PC 모드 버튼 활성화 색상 지정
       btnPc.className = "px-3.5 py-1.5 rounded-full font-bold bg-[#f37321] text-white cursor-pointer shadow-sm";
       
-      // PC 모드 클래스 스위칭
+      // PC 모드 클래스 스위칭: 화면을 꽉 차게 하고 회색 배경을 제거하여 넓게 봅니다.
       body.className = "h-full text-slate-900 antialiased sm:bg-[#efeee8] sm:block sm:min-h-0 sm:overflow-y-auto sm:py-0";
       container.className = "w-full h-auto sm:h-auto sm:max-h-none sm:min-h-none sm:w-full sm:bg-[#efeee8] sm:rounded-none sm:shadow-none sm:border-0 sm:relative sm:flex sm:flex-col sm:overflow-visible sm:[transform:none] z-10 transition-all duration-300";
       
+      // PC 모드에서는 스마트폰 노치, 상단바, 하단 홈 바를 모두 숨깁니다.
       notch?.classList.add("sm:hidden");
       statusbar?.classList.add("sm:hidden");
+      homebar?.classList.add("sm:hidden");
     } else if (mode === "tablet") {
+      // 태블릿 모드 버튼 활성화 색상 지정
       btnTablet.className = "px-3.5 py-1.5 rounded-full font-bold bg-[#f37321] text-white cursor-pointer shadow-sm";
 
-      // 태블릿 모드 클래스 스위칭
+      // 태블릿 모드 클래스 스위칭: 가로 768px의 기기 규격 안에 화면을 맞춰 렌더링합니다.
       body.className = "h-full text-slate-900 antialiased sm:bg-[#111216] sm:flex sm:items-center sm:justify-center sm:min-h-screen sm:overflow-y-auto sm:py-6";
       container.className = "w-full h-auto sm:h-[85vh] sm:max-h-[1024px] sm:min-h-[800px] sm:w-[768px] sm:bg-white sm:rounded-[36px] sm:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.8)] sm:border-[14px] sm:border-slate-800 sm:relative sm:flex sm:flex-col sm:overflow-hidden sm:[transform:translate3d(0,0,0)] z-10 transition-all duration-300";
 
+      // 태블릿 모드에서도 스마트폰 전용 요소(노치, 상단바, 하단 홈 바)는 숨깁니다.
       notch?.classList.add("sm:hidden");
       statusbar?.classList.add("sm:hidden");
+      homebar?.classList.add("sm:hidden");
     } else {
+      // 모바일 모드 버튼 활성화 색상 지정
       btnMobile.className = "px-3.5 py-1.5 rounded-full font-bold bg-[#f37321] text-white cursor-pointer shadow-sm";
 
-      // 모바일 모드 클래스 스위칭
+      // 모바일 모드 클래스 스위칭: 가로 420px 스마트폰 프레임으로 감싸서 모바일 뷰를 구현합니다.
       body.className = "h-full text-slate-900 antialiased sm:bg-[#111216] sm:flex sm:items-center sm:justify-center sm:min-h-screen sm:overflow-y-auto sm:py-6";
       container.className = "w-full h-auto sm:h-[90vh] sm:max-h-[880px] sm:min-h-[720px] sm:w-[420px] sm:bg-white sm:rounded-[48px] sm:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.8)] sm:border-[12px] sm:border-slate-800 sm:relative sm:flex sm:flex-col sm:overflow-hidden sm:[transform:translate3d(0,0,0)] z-10 transition-all duration-300";
 
+      // 모바일 모드에서는 진짜 스마트폰처럼 보이도록 노치, 상태바, 하단 홈 바를 모두 다시 화면에 보여줍니다.
       notch?.classList.remove("sm:hidden");
       statusbar?.classList.remove("sm:hidden");
+      homebar?.classList.remove("sm:hidden");
     }
   }
 
