@@ -2298,28 +2298,39 @@ function renderConsultingTab() {
  
   // --- [신규 구현] 보장 격차 비교를 반영한 표 행(row) HTML 템플릿 빌드 ---
   const coveragesHtml = coverages.map((cov) => {
-    const formattedRecAmount = (cov.recommendedAmount / 10000).toLocaleString() + "만원";
-    const formattedExistAmount = (cov.existingAmount / 10000).toLocaleString() + "만원";
-    
-    // 격차 배지 디자인 및 조건 분기
-    let gapBadge = "";
-    if (cov.gapAmount > 0) {
-      gapBadge = `<span class="px-2.5 py-1 rounded-full bg-rose-50 text-rose-600 font-extrabold border border-rose-100/50 text-[10px] inline-block shadow-3xs">${(cov.gapAmount / 10000).toLocaleString()}만원 보강 필요</span>`;
-    } else {
-      gapBadge = `<span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 font-extrabold border border-emerald-100/50 text-[10px] inline-block shadow-3xs">보장 충분</span>`;
-    }
-    
+    const recVal = cov.recommendedAmount / 10000;
+    const existVal = cov.existingAmount / 10000;
+    const gapVal = recVal - existVal;
+    const isDeficient = gapVal > 0;
+    const absGap = Math.abs(gapVal);
+
+    const formattedRecAmount = recVal.toLocaleString() + "만원";
+    const formattedExistAmount = existVal.toLocaleString() + "만원";
+    const formattedGapAmount = absGap.toLocaleString() + "만원";
+
+    // 세로형 산수식 디자인 (과하면 초록색, 부족하면 빨간색)
+    const gapFormulaHtml = `
+      <div class="flex flex-col items-end text-[10.5px] sm:text-xs font-mono leading-tight select-none">
+        <div class="flex justify-between w-full max-w-[120px] text-slate-500 font-sans"><span class="text-slate-400 font-medium">추천</span> <span>${formattedRecAmount}</span></div>
+        <div class="flex justify-between w-full max-w-[120px] text-slate-500 border-b border-slate-150 pb-0.5 font-sans"><span class="text-slate-400 font-medium">기존</span> <span>-${formattedExistAmount}</span></div>
+        <div class="flex justify-between w-full max-w-[120px] pt-1 font-black ${isDeficient ? 'text-rose-600' : 'text-emerald-600'}">
+          <span class="text-[9.5px] font-sans">${isDeficient ? '부족' : (gapVal === 0 ? '충분' : '초과')}</span>
+          <span>${isDeficient ? '-' : '+'}${formattedGapAmount}</span>
+        </div>
+      </div>
+    `;
+
     const formattedPremium = cov.premium.toLocaleString();
     return `
       <tr class="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50 transition-colors">
-        <td class="py-3 px-3">
-          <div class="font-bold text-slate-800 text-xs sm:text-sm">${cov.name}</div>
-          <div class="text-[9.5px] text-slate-450 mt-0.5 font-medium leading-relaxed">${cov.basis}</div>
+        <td class="py-3.5 px-3 align-middle">
+          <div class="font-bold text-slate-800 text-xs sm:text-sm leading-snug">${cov.name}</div>
+          <div class="text-[9.5px] sm:text-[10px] text-slate-450 mt-1 font-medium leading-relaxed break-keep">${cov.basis}</div>
         </td>
-        <td class="py-3 px-2 text-right font-extrabold text-slate-900 text-xs sm:text-sm">${formattedRecAmount}</td>
-        <td class="py-3 px-2 text-right font-bold text-slate-600 text-xs sm:text-sm">${formattedExistAmount}</td>
-        <td class="py-3 px-2 text-center">${gapBadge}</td>
-        <td class="py-3 px-3 text-right font-black text-[#f37321] text-xs sm:text-sm">
+        <td class="py-3.5 px-2 align-middle text-right">
+          ${gapFormulaHtml}
+        </td>
+        <td class="py-3.5 px-3 align-middle text-right font-black text-[#f37321] text-xs sm:text-sm whitespace-nowrap">
           ${cov.premium > 0 ? `+${formattedPremium} 원` : "0 원"}
         </td>
       </tr>
@@ -2434,11 +2445,9 @@ function renderConsultingTab() {
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-[10.5px]">
-                    <th class="py-3 px-3 font-black">담보명</th>
-                    <th class="py-3 px-2 text-right font-black">추천 보장액</th>
-                    <th class="py-3 px-2 text-right font-black">내 기존 보장액</th>
-                    <th class="py-3 px-2 text-center font-black">보장 격차</th>
-                    <th class="py-3 px-3 text-right font-black">추천 월보험료</th>
+                    <th class="py-3 px-3 font-black w-[55%]">담보명 및 분석 근거</th>
+                    <th class="py-3 px-2 text-right font-black w-[28%]">보장 금액 분석 (추천 - 기존)</th>
+                    <th class="py-3 px-3 text-right font-black w-[17%]">추천 월보험료</th>
                   </tr>
                 </thead>
                 <tbody class="text-xs text-slate-700">

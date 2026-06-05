@@ -316,7 +316,15 @@ export function renderCodefSummary(ctx: DashboardContext): void {
           <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${bpColor}">${bpLevel}</span>
         </div>
       </div>
-      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">${bpDesc}</p>
+      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-1 font-semibold">${bpDesc}</p>
+      ${bpLevel !== "정상" ? `
+      <p class="text-[9.5px] text-[#e06612] pl-4 border-l-2 border-[#f37321]/45 leading-normal break-keep mb-3 font-extrabold flex items-center gap-1">
+        <svg class="w-3.5 h-3.5 text-[#f37321] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <span>연계 추천 보장: <b>뇌혈관질환 진단비</b> 및 <b>허혈성심장질환 진단비</b> (혈압 경계/위험 관리를 위해 한도 보강 권장)</span>
+      </p>
+      ` : '<div class="mb-2"></div>'}
 
       <!-- 2. 혈당 -->
       <div class="bg-white border border-slate-100/80 rounded-xl p-3 flex flex-row justify-between items-center gap-2 shadow-xs transition-all hover:border-[#f37321]/20">
@@ -339,7 +347,15 @@ export function renderCodefSummary(ctx: DashboardContext): void {
           <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${glColor}">${glLevel}</span>
         </div>
       </div>
-      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">${glDesc}</p>
+      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-1 font-semibold">${glDesc}</p>
+      ${glLevel !== "정상" ? `
+      <p class="text-[9.5px] text-[#e06612] pl-4 border-l-2 border-[#f37321]/45 leading-normal break-keep mb-3 font-extrabold flex items-center gap-1">
+        <svg class="w-3.5 h-3.5 text-[#f37321] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <span>연계 추천 보장: <b>대사성 만성질환 특별보완 특약</b> (혈당 상승 대비용 당뇨 합병증 및 진단 케어)</span>
+      </p>
+      ` : '<div class="mb-2"></div>'}
 
       <!-- 3. 콜레스테롤 -->
       <div class="bg-white border border-slate-100/80 rounded-xl p-3 flex flex-row justify-between items-center gap-2 shadow-xs transition-all hover:border-[#f37321]/20">
@@ -363,7 +379,15 @@ export function renderCodefSummary(ctx: DashboardContext): void {
           <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${cholColor}">${cholLevel}</span>
         </div>
       </div>
-      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-3 font-semibold">${cholDesc}</p>
+      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-1 font-semibold">${cholDesc}</p>
+      ${cholLevel !== "정상" ? `
+      <p class="text-[9.5px] text-[#e06612] pl-4 border-l-2 border-[#f37321]/45 leading-normal break-keep mb-3 font-extrabold flex items-center gap-1">
+        <svg class="w-3.5 h-3.5 text-[#f37321] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <span>연계 추천 보장: <b>뇌/심장질환 2대 진단비</b> 및 <b>혈관 수술비 특약</b> (고콜레스테롤 혈관 건강 보완)</span>
+      </p>
+      ` : '<div class="mb-2"></div>'}
 
       <!-- 4. 체질량지수 (BMI) -->
       <div class="bg-white border border-slate-100/80 rounded-xl p-3 flex flex-row justify-between items-center gap-2 shadow-xs transition-all hover:border-[#f37321]/20">
@@ -386,7 +410,15 @@ export function renderCodefSummary(ctx: DashboardContext): void {
           <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${bmiColor}">${bmiLevel}</span>
         </div>
       </div>
-      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-1.5 font-semibold">${bmiDesc}</p>
+      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-1 font-semibold">${bmiDesc}</p>
+      ${bmiLevel !== "정상" ? `
+      <p class="text-[9.5px] text-[#e06612] pl-4 border-l-2 border-[#f37321]/45 leading-normal break-keep mb-2 font-extrabold flex items-center gap-1">
+        <svg class="w-3.5 h-3.5 text-[#f37321] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <span>연계 추천 보장: <b>다빈도 질병 수술비 및 3대 주요 진단비</b> (대사 저하 대비 및 성인 합병 케어)</span>
+      </p>
+      ` : '<div class="mb-1.5"></div>'}
     `;
   }
 
