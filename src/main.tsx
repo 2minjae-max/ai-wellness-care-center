@@ -137,7 +137,68 @@ async function logAccessEvent(actionType: string, details?: any) {
 
 // 기동 시 바인딩 수행
 window.addEventListener("DOMContentLoaded", () => {
-  initApp();
+  // 모바일 디바이스 감지 및 URL 내 embedded=true 파라미터 유무 체크
+  const isMobileDevice = /Mobi|Android|iPhone|iPad|Macintosh/i.test(navigator.userAgent) && window.innerWidth < 1024;
+  const isEmbedded = window.location.search.includes("embedded=true") || isMobileDevice;
+
+  if (isEmbedded) {
+    // 1. 임베디드 모드 (진짜 모바일 및 시뮬레이터 내부 본 콘텐츠 실행)
+    // 시뮬레이터 툴바, 백드롭 그라데이션 장식 및 스마트폰 껍데기 레이아웃을 DOM에서 깨끗하게 제거
+    const toolbar = document.querySelector("body > div.fixed.top-4.right-4");
+    const backdrop = document.querySelector("body > div.hidden.sm\\:block.absolute:not(.top-\\[20\\%\\])");
+    const backdropPulse = document.querySelector("body > div.hidden.sm\\:block.absolute.top-\\[20\\%\\]");
+    
+    toolbar?.remove();
+    backdrop?.remove();
+    backdropPulse?.remove();
+
+    const notch = document.getElementById("simulator-notch");
+    const statusbar = document.getElementById("simulator-statusbar");
+    const homebar = document.getElementById("simulator-homebar");
+    
+    notch?.remove();
+    statusbar?.remove();
+    homebar?.remove();
+
+    const container = document.getElementById("device-simulator-container");
+    const appViewport = document.getElementById("app-viewport");
+
+    if (container && appViewport) {
+      document.body.appendChild(appViewport);
+      container.remove();
+    }
+
+    // body의 flex 및 디바이스 시뮬레이터용 프레임 정렬을 제거하여 100% 모바일 전체 화면 복원
+    document.body.className = "h-full text-slate-900 antialiased bg-[#efeee8]";
+
+    // 순정 앱 초기화 기동
+    initApp();
+  } else {
+    // 2. 부모 시뮬레이터 껍데기 모드
+    // 부모 창에서는 실제 콘텐츠 영역(#app-viewport)을 렌더링하지 않고 제거
+    const appViewport = document.getElementById("app-viewport");
+    appViewport?.remove();
+
+    const container = document.getElementById("device-simulator-container");
+    const homebar = document.getElementById("simulator-homebar");
+
+    if (container) {
+      // 그라데이션 스마트폰 프레임 안에 진짜 뷰포트를 갖는 iframe 동적 주입
+      const iframe = document.createElement("iframe");
+      iframe.id = "simulator-iframe";
+      iframe.src = window.location.pathname + "?embedded=true" + window.location.hash;
+      iframe.className = "flex-1 w-full h-full border-0";
+      
+      if (homebar) {
+        container.insertBefore(iframe, homebar);
+      } else {
+        container.appendChild(iframe);
+      }
+    }
+
+    // 시뮬레이터 선택 버튼 클릭 바인딩 활성화
+    setupDeviceSimulator();
+  }
 });
 
 // --- Step 1과 상호작용하기 위한 상태 제어 컨텍스트 객체 정의 ---
