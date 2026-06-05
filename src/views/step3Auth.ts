@@ -436,17 +436,17 @@ export function executeSync(ctx: Step3Context) {
 
   // 시각적인 API 파이프라인 연출 (진행상황 애니메이션)
   const nhisStages = [
-    { text: "🔒 국민건강보험공단 건강검진 내부 가상세션 획득 완료...", percent: 25, delay: 400 },
-    { text: "✍️ 모바일 서명 검인증 및 전자증명서 무결성 대조 통과...", percent: 50, delay: 400 },
-    { text: "📥 최근 5개년치 15대 만성 대사증후군 건강 인덱스 수집 완료...", percent: 75, delay: 400 },
-    { text: "📊 요합 지표 매핑 최적화 설계 및 클라이언트 암호화 로딩 성공...", percent: 95, delay: 400 }
+    { text: "🔒 국민건강보험공단 건강검진 내부 가상세션 획득 완료...", percent: 25, delay: 650 },
+    { text: "✍️ 모바일 서명 검인증 및 전자증명서 무결성 대조 통과...", percent: 50, delay: 650 },
+    { text: "📥 최근 5개년치 15대 만성 대사증후군 건강 인덱스 수집 완료...", percent: 75, delay: 650 },
+    { text: "📊 요합 지표 매핑 최적화 설계 및 클라이언트 암호화 로딩 성공...", percent: 95, delay: 650 }
   ];
 
   const insStages = [
-    { text: "🔒 한국신용정보원 내보험다보여 가상 세션 보안키 생성...", percent: 25, delay: 400 },
-    { text: "✍️ 간편인증 서명 검증 및 암호 키 교환 보안 매핑 통과...", percent: 50, delay: 400 },
-    { text: "📥 계약 유지 상태 및 납입 중인 월 보험료 계약 리스트 수집...", percent: 75, delay: 400 },
-    { text: "📊 담보별 보장 한도 대조 분석 및 신규 추천 요율 매핑 완료...", percent: 95, delay: 400 }
+    { text: "🔒 한국신용정보원 내보험다보여 가상 세션 보안키 생성...", percent: 25, delay: 650 },
+    { text: "✍️ 간편인증 서명 검증 및 암호 키 교환 보안 매핑 통과...", percent: 50, delay: 650 },
+    { text: "📥 계약 유지 상태 및 납입 중인 월 보험료 계약 리스트 수집...", percent: 75, delay: 650 },
+    { text: "📊 담보별 보장 한도 대조 분석 및 신규 추천 요율 매핑 완료...", percent: 95, delay: 650 }
   ];
 
   const stages = currentSyncType === "nhis" ? nhisStages : insStages;

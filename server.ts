@@ -749,6 +749,797 @@ app.post("/api/log-access", async (req, res): Promise<void> => {
   res.json({ status: "success" });
 });
 
+// -------------------------------------------------------------
+// ✍️ 종합 상담 접수 및 DB 적재 API 엔드포인트
+// -------------------------------------------------------------
+app.post("/api/consultation/submit", async (req, res): Promise<void> => {
+  const { userName, birthDate, gender, height, weight, healthRecords, existingInsurances, recommendedProduct, details } = req.body;
+  const ipAddress = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "";
+  const userAgent = req.headers["user-agent"] || "";
+
+  const consultationDetails = {
+    gender: gender || null,
+    height: height || null,
+    weight: weight || null,
+    healthRecords: healthRecords || [],
+    existingInsurances: existingInsurances || [],
+    recommendedProduct: recommendedProduct || null,
+    submittedAt: getKstIsoString(),
+    ...(details || {})
+  };
+
+  try {
+    await saveAccessLog(
+      userName,
+      birthDate,
+      "consultation_request",
+      ipAddress,
+      userAgent,
+      consultationDetails
+    );
+    res.json({ status: "success", message: "상담 신청이 정상적으로 접수되었습니다." });
+  } catch (err: any) {
+    console.error(`${logPrefix} 상담 접수 중 에러 발생:`, err);
+    res.status(500).json({ error: "상담 접수 처리에 실패했습니다.", details: err.message });
+  }
+});
+
+// -------------------------------------------------------------
+// 📊 [Admin] 이용 통계 조회 API
+// -------------------------------------------------------------
+app.get("/api/admin/stats", async (req, res) => {
+  const supabase = getSupabaseClient();
+  
+  if (!supabase) {
+    return res.json({
+      totalCalls: 342,
+      totalCostKrw: 1245.82,
+      modelStats: {
+        "gemini-3.1-flash-lite": 182,
+        "clinical-rule-based-engine": 110,
+        "gemini-3.5-flash": 50
+      },
+      actionStats: {
+        "landing": 95,
+        "nhis_sync_success": 42,
+        "insurance_sync_success": 38,
+        "ai_analysis_prescription": 65,
+        "consultation_request": 15,
+        "chatbot_question": 87
+      },
+      dailyTrend: [
+        { date: "05-27", count: 12 },
+        { date: "05-28", count: 24 },
+        { date: "05-29", count: 18 },
+        { date: "05-30", count: 35 },
+        { date: "05-31", count: 42 },
+        { date: "06-01", count: 28 },
+        { date: "06-02", count: 48 },
+        { date: "06-03", count: 55 },
+        { date: "06-04", count: 50 },
+        { date: "06-05", count: 30 }
+      ]
+    });
+  }
+
+  try {
+    const { data: logs, error } = await supabase
+      .from("access_logs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(2000);
+
+    if (error) throw error;
+
+    let totalCostKrw = 0;
+    const modelStats: Record<string, number> = {};
+    const actionStats: Record<string, number> = {};
+    const dailyMap: Record<string, number> = {};
+
+    logs.forEach((log: any) => {
+      if (log.details && typeof log.details === "object") {
+        const cost = (log.details as any).costKrw || 0;
+        totalCostKrw += Number(cost);
+      }
+      
+      const model = log.model_name || (log.details && (log.details.model_name || log.details.model_used)) || "N/A";
+      modelStats[model] = (modelStats[model] || 0) + 1;
+
+      const action = log.action_type || "unknown";
+      actionStats[action] = (actionStats[action] || 0) + 1;
+
+      if (log.created_at) {
+        const dateStr = log.created_at.substring(5, 10);
+        dailyMap[dateStr] = (dailyMap[dateStr] || 0) + 1;
+      }
+    });
+
+    const dailyTrend = Object.keys(dailyMap)
+      .sort()
+      .slice(-10)
+      .map(date => ({ date, count: dailyMap[date] }));
+
+    res.json({
+      totalCalls: logs.length,
+      totalCostKrw: Number(totalCostKrw.toFixed(2)),
+      modelStats,
+      actionStats,
+      dailyTrend
+    });
+  } catch (err: any) {
+    console.error("어드민 통계 에러:", err);
+    res.status(500).json({ error: "통계 집계 실패", details: err.message });
+  }
+});
+
+// -------------------------------------------------------------
+// 📋 [Admin] 개별 이용 로그 조회 API (최근 150건)
+// -------------------------------------------------------------
+app.get("/api/admin/logs", async (req, res) => {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    return res.json([
+      { id: 1, user_name: "이민재", birth_date: "910522", action_type: "landing", ip_address: "127.0.0.1", created_at: new Date().toISOString(), model_name: null, details: {} },
+      { id: 2, user_name: "김수진", birth_date: "850211", action_type: "nhis_sync_success", ip_address: "127.0.0.1", created_at: new Date().toISOString(), model_name: null, details: { recordCount: 5 } }
+    ]);
+  }
+
+  try {
+    const { data: logs, error } = await supabase
+      .from("access_logs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(150);
+
+    if (error) throw error;
+    res.json(logs);
+  } catch (err: any) {
+    res.status(500).json({ error: "로그 조회 실패", details: err.message });
+  }
+});
+
+// -------------------------------------------------------------
+// ✍️ [Admin] 종합 상담 신청 내역 조회 API
+// -------------------------------------------------------------
+app.get("/api/admin/consultations", async (req, res) => {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    return res.json([
+      {
+        id: 101,
+        user_name: "이민재",
+        birth_date: "910522",
+        action_type: "consultation_request",
+        ip_address: "192.168.0.1",
+        created_at: new Date().toISOString(),
+        details: {
+          gender: "M",
+          height: 178,
+          weight: 74,
+          healthRecords: [
+            { year: 2025, systolicBP: 128, fastingGlucose: 102, bmi: 23.4 }
+          ],
+          existingInsurances: [
+            { company: "삼성화재", productName: "무배당 삼성 든든 건강보험", status: "유지", premium: 45000 }
+          ],
+          recommendedProduct: "한화 더건강한 한아름종합보험 무배당[NEW]",
+          submittedAt: new Date().toISOString()
+        }
+      }
+    ]);
+  }
+
+  try {
+    const { data: consultations, error } = await supabase
+      .from("access_logs")
+      .select("*")
+      .eq("action_type", "consultation_request")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    res.json(consultations);
+  } catch (err: any) {
+    res.status(500).json({ error: "상담 조회 실패", details: err.message });
+  }
+});
+
+// -------------------------------------------------------------
+// 💻 [Admin] 어드민 통합 대시보드 페이지 렌더링
+// -------------------------------------------------------------
+app.get("/admin", (req, res) => {
+  const adminHtml = `
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> 한화손보 Wellness AI: 통합 어드민 포털</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #080b11;
+            color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-b: 1px solid #1f2937;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .logo-title h1 {
+            font-family: 'Outfit', sans-serif;
+            color: #f37321;
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.02em;
+        }
+        .logo-title p {
+            color: #9ca3af;
+            font-size: 0.85rem;
+            margin: 0.25rem 0 0 0;
+        }
+        .btn-home {
+            background-color: #1f2937;
+            color: #f3f4f6;
+            border: 1px solid #374151;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-home:hover {
+            background-color: #374151;
+        }
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background-color: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .stat-label {
+            color: #9ca3af;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        .stat-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0.5rem 0 0 0;
+        }
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid #1f2937;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tab-btn.active {
+            background-color: #f37321;
+            color: #ffffff;
+        }
+        .tab-btn:hover:not(.active) {
+            color: #ffffff;
+            background-color: #1f2937;
+        }
+        /* Tables & Lists */
+        .content-card {
+            background-color: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+        th {
+            background-color: #1f2937;
+            color: #9ca3af;
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid #374151;
+        }
+        td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #1f2937;
+            color: #e5e7eb;
+        }
+        tr:hover td {
+            background-color: #1a2235;
+        }
+        .badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.25rem;
+            text-transform: uppercase;
+        }
+        .badge-request {
+            background-color: rgba(243, 115, 33, 0.15);
+            color: #f37321;
+            border: 1px solid rgba(243, 115, 33, 0.3);
+        }
+        .badge-success {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .badge-info {
+            background-color: rgba(99, 102, 241, 0.15);
+            color: #6366f1;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+        /* Accordion style for consultations */
+        .consultation-item {
+            border: 1px solid #1f2937;
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+        }
+        .consultation-header {
+            background-color: #1a2235;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .consultation-header:hover {
+            background-color: #242e47;
+        }
+        .consultation-body {
+            background-color: #111827;
+            padding: 1.25rem;
+            border-t: 1px solid #1f2937;
+            display: none;
+        }
+        .grid-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+        .detail-box {
+            background-color: #0b0f19;
+            border: 1px solid #1f2937;
+            border-radius: 0.5rem;
+            padding: 0.85rem;
+        }
+        .detail-title {
+            color: #f37321;
+            font-size: 0.75rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #1f2937;
+            padding-bottom: 0.25rem;
+        }
+        /* Custom graph */
+        .graph-container {
+            height: 120px;
+            display: flex;
+            align-items: flex-end;
+            gap: 0.5rem;
+            border-bottom: 1px solid #374151;
+            padding-bottom: 0.25rem;
+            margin-top: 1rem;
+        }
+        .graph-bar-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: flex-end;
+        }
+        .graph-bar {
+            width: 100%;
+            background: linear-gradient(180deg, #f37321 0%, #a54100 100%);
+            border-radius: 0.25rem 0.25rem 0 0;
+            min-height: 4px;
+            transition: height 0.5s ease;
+        }
+        .graph-label {
+            font-size: 9px;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+        .pre-wrap {
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            max-height: 150px;
+            overflow-y: auto;
+            background-color: #0b0f19;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="header">
+            <div class="logo-title">
+                <h1> 한화손보 Wellness AI 관리자 포털</h1>
+                <p>시스템 호출 추이, 누적 트렌드 모니터링 및 종합 상담 접수 내역 관리 센터</p>
+            </div>
+            <a href="/" class="btn-home">⬅️ 메인 사이트로</a>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">총 호출수</div>
+                <div class="stat-value" id="stat-total-calls">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">누적 API 소모 비용</div>
+                <div class="stat-value" id="stat-total-cost">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">접수된 상담 건수</div>
+                <div class="stat-value" id="stat-total-consultations">-</div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('stats')">📊 이용 통계 & 지표</button>
+            <button class="tab-btn" onclick="switchTab('consultations')">✍️ 상담 신청 내역 (<span id="badge-consult-count">0</span>)</button>
+            <button class="tab-btn" onclick="switchTab('logs')">📋 개별 이용 실시간 로그</button>
+        </div>
+
+        <!-- Tab Contents -->
+        <!-- 1. Stats Tab -->
+        <div id="tab-stats" class="content-card">
+            <div class="grid-details" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+                <div>
+                    <h3 style="margin-top:0; font-size:1.1rem;">📅 최근 10일간 호출 트렌드</h3>
+                    <div class="graph-container" id="trend-graph"></div>
+                </div>
+                <div>
+                    <h3 style="margin-top:0; font-size:1.1rem;">🧠 AI 모델별 점유 카운트</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>모델명</th>
+                                    <th style="text-align: right;">호출 횟수</th>
+                                </tr>
+                            </thead>
+                            <tbody id="model-stats-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-slate-100 mt-6 pt-6" style="margin-top:2rem; border-top:1px solid #1f2937;">
+                <h3 style="font-size:1.1rem; margin-bottom:1rem;">⚡ 액션 타입별 이용 통계</h3>
+                <div class="table-responsive">
+                    <table style="min-width: 500px;">
+                        <thead>
+                            <tr>
+                                <th>액션 코드</th>
+                                <th>설명</th>
+                                <th style="text-align: right;">누적 횟수</th>
+                            </tr>
+                        </thead>
+                        <tbody id="action-stats-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Consultations Tab -->
+        <div id="tab-consultations" class="content-card" style="display:none;">
+            <h3 style="margin-top:0; font-size:1.1rem; margin-bottom:1.25rem;">📝 접수된 종합 상담 목록</h3>
+            <div id="consultation-list-container" class="space-y-3">
+                <!-- Consultations injected here -->
+            </div>
+        </div>
+
+        <!-- 3. Logs Tab -->
+        <div id="tab-logs" class="content-card" style="display:none;">
+            <h3 style="margin-top:0; font-size:1.1rem; margin-bottom:1.25rem;">🔍 최근 150건의 시스템 로그</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>사용자</th>
+                            <th>생년월일</th>
+                            <th>액션 타입</th>
+                            <th>IP</th>
+                            <th>모델</th>
+                            <th>시각</th>
+                            <th>상세 내용</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logs-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.content-card').forEach(card => card.style.display = 'none');
+            
+            const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.innerText.includes(tabId === 'stats' ? '통계' : tabId === 'consultations' ? '상담' : '로그'));
+            if(btn) btn.classList.add('active');
+            
+            const card = document.getElementById('tab-' + tabId);
+            if(card) card.style.display = 'block';
+        }
+
+        // Accordion toggle
+        function toggleAccordion(el) {
+            const body = el.nextElementSibling;
+            const isVisible = body.style.display === 'block';
+            body.style.display = isVisible ? 'none' : 'block';
+        }
+
+        // Format dates
+        function formatKstDate(isoStr) {
+            if(!isoStr) return 'N/A';
+            const date = new Date(isoStr);
+            return date.toLocaleDateString('ko-KR', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        // Load dashboard data
+        async function loadAdminDashboard() {
+            try {
+                // 1. Stats
+                const statsRes = await fetch('/api/admin/stats');
+                const stats = await statsRes.json();
+                
+                document.getElementById('stat-total-calls').innerText = stats.totalCalls.toLocaleString() + '회';
+                document.getElementById('stat-total-cost').innerText = stats.totalCostKrw.toLocaleString() + '원';
+                
+                // Draw Model Stats
+                const modelTbody = document.getElementById('model-stats-tbody');
+                modelTbody.innerHTML = Object.entries(stats.modelStats).map(([model, count]) => \`
+                    <tr>
+                        <td style="font-weight:700;">\${model}</td>
+                        <td style="text-align: right; font-weight:800; color:#f37321;">\${count}회</td>
+                    </tr>
+                \`).join('');
+
+                // Draw Action Stats
+                const actionMapDescriptions = {
+                    "landing": "메인 페이지 랜드 진입",
+                    "nhis_sync_request_start": "건강검진 간편인증 1차 PUSH 요청",
+                    "nhis_sync_success": "건강검진 수집 완료 성공",
+                    "insurance_sync_request_start": "보험연동 간편인증 1차 PUSH 요청",
+                    "insurance_sync_success": "보험 계약 리스트 수집 완료",
+                    "insurance_manual_management_save": "보험 수동 관리 및 갱신 저장",
+                    "consultation_request": "종합 상담 신청 완료",
+                    "chatbot_question": "AI 주치의 챗봇 질의응답",
+                    "prescription_vision_analysis": "처방전/약봉투 이미지 분석"
+                };
+
+                const actionTbody = document.getElementById('action-stats-tbody');
+                actionTbody.innerHTML = Object.entries(stats.actionStats).map(([action, count]) => {
+                    const desc = actionMapDescriptions[action] || "기타 API 통신 액션";
+                    return \`
+                        <tr>
+                            <td><span class="badge \${action.includes('success') || action.includes('request') ? 'badge-success' : 'badge-info'}">\${action}</span></td>
+                            <td style="color:#cbd5e1;">\${desc}</td>
+                            <td style="text-align: right; font-weight:800;">\${count}회</td>
+                        </tr>
+                    \`;
+                }).join('');
+
+                // Draw Trend Graph
+                const graphContainer = document.getElementById('trend-graph');
+                if (stats.dailyTrend && stats.dailyTrend.length > 0) {
+                    const maxVal = Math.max(...stats.dailyTrend.map(d => d.count), 5);
+                    graphContainer.innerHTML = stats.dailyTrend.map(d => {
+                        const heightPercent = (d.count / maxVal) * 100;
+                        return \`
+                            <div class="graph-bar-wrapper">
+                                <span style="font-size:9px; color:#ffffff; font-weight:700; margin-bottom:4px;">\${d.count}</span>
+                                <div class="graph-bar" style="height: \${heightPercent}%;"></div>
+                                <div class="graph-label">\${d.date}</div>
+                            </div>
+                        \`;
+                    }).join('');
+                } else {
+                    graphContainer.innerHTML = '<div style="color:#9ca3af; font-size:0.8rem; margin:auto;">최근 추이 로그 없음</div>';
+                }
+
+                // 2. Consultations
+                const consultRes = await fetch('/api/admin/consultations');
+                const consultations = await consultRes.json();
+                
+                document.getElementById('badge-consult-count').innerText = consultations.length;
+                document.getElementById('stat-total-consultations').innerText = consultations.length.toLocaleString() + '건';
+
+                const consultContainer = document.getElementById('consultation-list-container');
+                if (consultations.length === 0) {
+                    consultContainer.innerHTML = \`
+                        <div style="text-align:center; padding:3rem; color:#9ca3af; font-size:0.85rem;">
+                            📭 접수된 상담 내역이 존재하지 않습니다.
+                        </div>
+                    \`;
+                } else {
+                    consultContainer.innerHTML = consultations.map((c, index) => {
+                        const det = c.details || {};
+                        const healthList = det.healthRecords || [];
+                        const insList = det.existingInsurances || [];
+                        
+                        const genderText = det.gender === 'F' ? '여성' : det.gender === 'M' ? '남성' : 'N/A';
+                        const specText = (det.height && det.weight) ? \` / \${det.height}cm / \${det.weight}kg\` : '';
+
+                        // 건강검진 지표 간략화
+                        const latestHealth = healthList[0] || {};
+                        const healthSummary = latestHealth.year 
+                            ? \`최근(\${latestHealth.year}년) 혈압: \${latestHealth.systolicBP || 'N/A'}/\${latestHealth.diastolicBP || 'N/A'} 공복혈당: \${latestHealth.fastingGlucose || 'N/A'} BMI: \${latestHealth.bmi || 'N/A'}\`
+                            : '건강검진 이력 없음';
+
+                        return \`
+                            <div class="consultation-item">
+                                <div class="consultation-header" onclick="toggleAccordion(this)">
+                                    <div style="display:flex; align-items:center; gap:3rem;">
+                                        <div>
+                                            <span style="font-weight:800; font-size:0.95rem; color:#ffffff;">\${c.user_name || '비회원'}</span>
+                                            <span style="color:#9ca3af; font-size:0.8rem; margin-left:0.5rem;">(\${c.birth_date || 'N/A'}생 / \${genderText}\${specText})</span>
+                                        </div>
+                                        <div style="color:#cbd5e1; font-size:0.8rem; max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                            🎯 \${det.recommendedProduct || '추천 상품 없음'}
+                                        </div>
+                                    </div>
+                                    <div style="display:flex; align-items:center; gap:1.5rem;">
+                                        <span class="badge badge-request">상담접수</span>
+                                        <span style="font-size:0.75rem; color:#9ca3af;">\${formatKstDate(c.created_at)}</span>
+                                        <svg style="width:16px; height:16px; color:#9ca3af;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="consultation-body">
+                                    <div class="grid-details">
+                                        <!-- 기본 정보 및 추천 상품 -->
+                                        <div class="detail-box">
+                                            <div class="detail-title">👤 고객 신청 요약</div>
+                                            <div style="font-size:0.8rem; space-y-2; line-height:1.6; color:#e5e7eb;">
+                                                <b>신청 고객:</b> \${c.user_name} (\${c.birth_date}생)<br/>
+                                                <b>성별/체격:</b> \${genderText}\${specText}<br/>
+                                                <b>상담 접수일:</b> \${formatKstDate(c.created_at)}<br/>
+                                                <b style="color:#f37321;">추천된 한화상품:</b> \${det.recommendedProduct || 'N/A'}<br/>
+                                                <b>인증 유형:</b> \${c.ip_address} (IP)
+                                            </div>
+                                        </div>
+
+                                        <!-- 건강 지표 -->
+                                        <div class="detail-box">
+                                            <div class="detail-title">⚕️ 건강검진 수집 지표</div>
+                                            <div style="font-size:0.8rem; line-height:1.6; color:#e5e7eb;">
+                                                <div style="margin-bottom:0.5rem; color:#9ca3af;">\${healthSummary}</div>
+                                                <div style="max-height:80px; overflow-y:auto;">
+                                                    \${healthList.map(h => \`
+                                                        <div style="font-size:11px; margin-bottom:2px; color:#cbd5e1;">
+                                                            • <b>\${h.year}년</b> - BP: \${h.systolicBP}/\${h.diastolicBP} | Glucose: \${h.fastingGlucose} | BMI: \${h.bmi} | ALT: \${h.alt || 'N/A'} | Chol: \${h.totalCholesterol || 'N/A'}
+                                                        </div>
+                                                    \`).join('')}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 기존 보험 -->
+                                        <div class="detail-box">
+                                            <div class="detail-title">🛡️ 기존 가입 보험 현황 (\${insList.length}건)</div>
+                                            <div style="font-size:0.8rem; line-height:1.6; color:#e5e7eb;">
+                                                <div style="max-height:100px; overflow-y:auto; space-y-1;">
+                                                    \${insList.map(ins => \`
+                                                        <div style="font-size:11px; display:flex; justify-content:between; border-bottom:1px solid #1f2937; padding-bottom:2px; margin-bottom:2px;">
+                                                            <span style="flex:1;">• <b>[\${ins.company}]</b> \${ins.productName}</span>
+                                                            <span style="color:#f37321; font-weight:700;">\${Number(ins.premium).toLocaleString()}원</span>
+                                                        </div>
+                                                    \`).join('')}
+                                                    \${insList.length === 0 ? '<div style="color:#9ca3af; font-size:11px;">가입한 기존 보험 없음</div>' : ''}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        \`;
+                    }).join('');
+                }
+
+                // 3. Logs Table
+                const logsRes = await fetch('/api/admin/logs');
+                const logs = await logsRes.json();
+                
+                const logsTbody = document.getElementById('logs-tbody');
+                logsTbody.innerHTML = logs.map(l => {
+                    const model = l.model_name || 'N/A';
+                    return \`
+                        <tr>
+                            <td style="font-weight:700; color:#ffffff;">\${l.user_name || '비회원'}</td>
+                            <td style="font-family:monospace; color:#9ca3af;">\${l.birth_date || 'N/A'}</td>
+                            <td><span class="badge \${l.action_type.includes('success') ? 'badge-success' : l.action_type.includes('request') ? 'badge-request' : 'badge-info'}">\${l.action_type}</span></td>
+                            <td style="font-family:monospace; color:#9ca3af;">\${l.ip_address}</td>
+                            <td style="font-size:11px; color:#cbd5e1;">\${model}</td>
+                            <td style="color:#9ca3af;">\${formatKstDate(l.created_at)}</td>
+                            <td><pre class="pre-wrap">\${JSON.stringify(l.details)}</pre></td>
+                        </tr>
+                    \`;
+                }).join('');
+
+            } catch (err) {
+                console.error("어드민 데이터 로드 실패:", err);
+            }
+        }
+
+        // On Load
+        window.addEventListener('DOMContentLoaded', loadAdminDashboard);
+    </script>
+</body>
+</html>
+  `;
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(adminHtml);
+});
+
+
 // Supabase 자가 진단 및 테스트 엔드포인트
 app.get("/api/test-supabase", async (req, res) => {
   const url = process.env.SUPABASE_URL;

@@ -96,6 +96,7 @@ let existingCoverages: Record<string, number> = {
 let analysisResult: AIAnalysisResult | null = null;
 let isSimulated = true;
 let prescriptionData: any = null; // 처방전 비전 분석 데이터 글로벌 상태 보관
+let lastRecommendedProduct = "";
 
 // 다른 설계서 비교 분석 상태 보관 및 캐싱
 let isComparisonCompleted = false;
@@ -2104,6 +2105,8 @@ function renderConsultingTab() {
       guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan(2604)_01.pdf";
     }
   }
+  
+  lastRecommendedProduct = productName;
      
   // 3. 가족력 & 건강 수치 분석 기반의 구체적 의학/보험 공학 사유 조립
   let reasonList: string[] = [];
@@ -2519,10 +2522,52 @@ function renderConsultingTab() {
   `;
 
   // Attach consultation request button event listener
-  const submitBtn = $("btn-consulting-consult-submit");
+  const submitBtn = $("btn-consulting-consult-submit") as HTMLButtonElement | null;
   if (submitBtn) {
-    submitBtn.addEventListener("click", () => {
-      $("consultation-success-modal")?.classList.remove("hidden");
+    submitBtn.addEventListener("click", async () => {
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerText = "상담 접수 중...";
+
+      const sortedRecs = [...nhisRecords].sort((a, b) => b.year - a.year);
+      const latestRec = sortedRecs[0] || {};
+      const heightVal = latestRec.weight && latestRec.bmi ? Math.round(Math.sqrt(latestRec.weight / latestRec.bmi) * 100) : null;
+      const weightVal = latestRec.weight || null;
+
+      const payload = {
+        userName,
+        birthDate,
+        gender,
+        height: heightVal,
+        weight: weightVal,
+        healthRecords: nhisRecords,
+        existingInsurances,
+        recommendedProduct: lastRecommendedProduct,
+        details: {
+          overallScore: analysisResult?.overallScore || null,
+          consultationRequestedAt: new Date().toISOString()
+        }
+      };
+
+      try {
+        const res = await fetch("/api/consultation/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          throw new Error("서버 응답 오류");
+        }
+
+        $("consultation-success-modal")?.classList.remove("hidden");
+      } catch (err: any) {
+        console.error("상담 접수 예외:", err);
+        alert("상담 접수 중 오류가 발생했습니다. 다시 시도해 주세요. (" + err.message + ")");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
     });
   }
 
