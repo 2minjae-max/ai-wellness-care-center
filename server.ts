@@ -894,6 +894,66 @@ app.post("/api/health/nhis-sync-confirm", async (req, res): Promise<void> => {
 });
 
 // -------------------------------------------------------------
+// [CODEF 1차 보험인증 PUSH 발송 API]
+// -------------------------------------------------------------
+app.post("/api/insurance/sync-request", async (req, res): Promise<void> => {
+  const { userName, identity, phoneNo, telecom, loginType2, bypassDummy, syncMode } = req.body;
+
+  const ipAddress = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "";
+  const userAgent = req.headers["user-agent"] || "";
+  await saveAccessLog(userName, identity, "insurance_sync_request_start", ipAddress, userAgent, { phoneNo, telecom, loginType2 });
+
+  try {
+    const result = await codefService.requestInsuranceSync({
+      userName,
+      identity,
+      phoneNo,
+      telecom,
+      loginType2,
+      bypassDummy,
+      syncMode,
+      logPrefix
+    });
+    res.json(result);
+  } catch (err: any) {
+    console.error(`${logPrefix} CODEF 보험 1차인증 예외 발생:`, err);
+    res.status(500).json({ error: err.message, cause: err.cause?.message || String(err.cause) });
+  }
+});
+
+// -------------------------------------------------------------
+// [CODEF 2차 보험인증 완료 및 목록 수집 API]
+// -------------------------------------------------------------
+app.post("/api/insurance/sync-confirm", async (req, res): Promise<void> => {
+  const { userName, identity, phoneNo, telecom, loginType2, jti, twoWayInfo, bypassDummy, syncMode } = req.body;
+
+  const ipAddress = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "";
+  const userAgent = req.headers["user-agent"] || "";
+  await saveAccessLog(userName, identity, "insurance_sync_confirm_start", ipAddress, userAgent, { jti });
+
+  try {
+    const result = await codefService.confirmInsuranceSync({
+      userName,
+      identity,
+      phoneNo,
+      telecom,
+      loginType2,
+      jti,
+      twoWayInfo,
+      bypassDummy,
+      syncMode,
+      logPrefix,
+      body: req.body
+    });
+    res.json(result);
+  } catch (err: any) {
+    console.error(`${logPrefix} CODEF 보험 2차인증 확인 예외 발생:`, err);
+    res.status(500).json({ error: err.message, cause: err.cause?.message || String(err.cause) });
+  }
+});
+
+
+// -------------------------------------------------------------
 // AI 처방전 / 약봉투 이미지 비전 분석 라우트 (Gemini Vision)
 // -------------------------------------------------------------
 app.post("/api/health/analyze-prescription", upload.single("prescriptionImage"), async (req, res): Promise<void> => {

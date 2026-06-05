@@ -265,7 +265,44 @@ const step3Ctx: Step3Context = {
   setNhisRecords: (records) => { nhisRecords = records; },
   setIsStep1Completed: (completed) => { isStep1Completed = completed; },
   updateAuthProgress: () => { updateAuthProgress(); },
-  logAccessEvent: (action, details) => { logAccessEvent(action, details); }
+  logAccessEvent: (action, details) => { logAccessEvent(action, details); },
+  setSyncedInsurances: (insurances) => {
+    existingInsurances = insurances;
+    // 연동된 실보험을 바탕으로 보장 한도를 지능적으로 자동 맵핑 업데이트
+    existingCoverages = {
+      "cov-cancer": 0,
+      "cov-brain": 0,
+      "cov-heart": 0,
+      "cov-metabolic": 0,
+      "cov-surgery": 0
+    };
+    insurances.forEach(ins => {
+      const pName = ins.productName || "";
+      if (pName.includes("암") || pName.includes("종양")) {
+        existingCoverages["cov-cancer"] += 20000000;
+      }
+      if (pName.includes("뇌") || pName.includes("졸중") || pName.includes("혈관")) {
+        existingCoverages["cov-brain"] += 10000000;
+      }
+      if (pName.includes("심장") || pName.includes("협심") || pName.includes("혈관") || pName.includes("건강")) {
+        existingCoverages["cov-heart"] += 10000000;
+      }
+      if (pName.includes("당뇨") || pName.includes("대사") || pName.includes("만성")) {
+        existingCoverages["cov-metabolic"] += 5000000;
+      }
+      if (pName.includes("수술") || pName.includes("종합")) {
+        existingCoverages["cov-surgery"] += 2000000;
+      }
+    });
+    // 기본값 설정 (만약 다 미가입으로 판정되면 최소 보장 보정)
+    if (existingCoverages["cov-cancer"] === 0) existingCoverages["cov-cancer"] = 10000000;
+    if (existingCoverages["cov-brain"] === 0) existingCoverages["cov-brain"] = 10000000;
+    if (existingCoverages["cov-heart"] === 0) existingCoverages["cov-heart"] = 10000000;
+    if (existingCoverages["cov-surgery"] === 0) existingCoverages["cov-surgery"] = 1000000;
+  },
+  renderConsultingTab: () => {
+    renderConsultingTab();
+  }
 };
 
 // --- Step 4(대시보드/챗봇)와 상호작용하기 위한 상태 제어 컨텍스트 객체 정의 ---
@@ -2308,12 +2345,28 @@ function renderConsultingTab() {
         <!-- 🛡️ [신규 추가] 기존 보험 가입 요약 카드 목록 -->
         <div class="bg-slate-50/70 border border-slate-200/60 p-4 sm:p-5 rounded-2xl space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <h4 class="font-black text-slate-800 text-sm sm:text-base flex items-center gap-1.5">
-                    <svg class="w-4.5 h-4.5 text-[#f37321] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    내 기존 보험 가입 현황 (${existingInsurances.length}건)
-                </h4>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h4 class="font-black text-slate-800 text-sm sm:text-base flex items-center gap-1.5">
+                        <svg class="w-4.5 h-4.5 text-[#f37321] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        내 기존 보험 가입 현황 (${existingInsurances.length}건)
+                    </h4>
+                    <!-- 🔄 [실시간 보험 조회 연동] 버튼 배치 -->
+                    <button type="button" id="btn-sync-real-insurance" class="bg-[#353968] hover:bg-[#24274d] text-white rounded-lg px-2 py-1 text-[9.5px] font-bold tracking-tight transition-all cursor-pointer flex items-center gap-1 shadow-3xs">
+                      <svg class="w-3 h-3 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89" />
+                      </svg>
+                      실시간 보험 불러오기
+                    </button>
+                    <!-- ✍️ [내 보험 직접 관리] 버튼 배치 -->
+                    <button type="button" id="btn-manage-insurance-manual" class="bg-slate-600 hover:bg-slate-700 text-white rounded-lg px-2 py-1 text-[9.5px] font-bold tracking-tight transition-all cursor-pointer flex items-center gap-1 shadow-3xs">
+                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      보험 내역 직접 관리
+                    </button>
+                </div>
                 <span class="text-xs font-bold text-slate-500">기존 납입료 합계: <strong class="text-[#f37321] font-black">${totalExistingPremium.toLocaleString()}원</strong> / 월</span>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2470,6 +2523,205 @@ function renderConsultingTab() {
   if (submitBtn) {
     submitBtn.addEventListener("click", () => {
       $("consultation-success-modal")?.classList.remove("hidden");
+    });
+  }
+
+  // 실시간 보험 연동 버튼 리스너 바인딩
+  const syncInsuBtn = $("btn-sync-real-insurance");
+  if (syncInsuBtn) {
+    syncInsuBtn.addEventListener("click", () => {
+      // 1. 이름 및 생년월일 존재 여부 검사
+      if (!userName.trim() || !birthDate.trim()) {
+        alert("기본 인적사항(이름, 생년월일)이 있어야 기존 보험을 조회할 수 있습니다. 1단계로 이동하여 인풋값을 체크해 주세요.");
+        return;
+      }
+      // 2. step3Auth 모달 열기 (insurance 모드로 구동)
+      step3Auth.openSyncModal("insurance");
+    });
+  }
+
+  // ✍️ [내 보험 직접 관리] 수동 보험 관리 모달 제어 로직 추가
+  let tempInsurancesCopy: Array<{
+    company: string;
+    productName: string;
+    status: string;
+    premium: number;
+  }> = [];
+
+  function renderManualInsuranceList() {
+    const listContainer = $("manual-insurance-list");
+    if (!listContainer) return;
+    
+    if (tempInsurancesCopy.length === 0) {
+      listContainer.innerHTML = `
+        <div class="text-center py-6 text-xs text-slate-400 font-medium">
+          등록된 보험 내역이 없습니다. 아래에서 새 보험을 추가해 주세요.
+        </div>
+      `;
+      return;
+    }
+
+    listContainer.innerHTML = tempInsurancesCopy.map((ins, index) => `
+      <div class="bg-slate-50 border border-slate-200/85 rounded-xl p-3 flex justify-between items-center shadow-3xs mb-2 last:mb-0">
+        <div class="space-y-0.5">
+          <div class="font-bold text-slate-800 text-[11px] sm:text-xs">${ins.productName}</div>
+          <div class="text-[9.5px] text-slate-500 font-medium">${ins.company} <span class="text-emerald-600 font-bold ml-1">${ins.status}</span></div>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <span class="font-extrabold text-slate-900 text-xs">${ins.premium.toLocaleString()}원</span>
+          <button type="button" class="btn-delete-manual-ins text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition-all cursor-pointer" data-index="${index}">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    `).join("");
+
+    // 각 삭제 버튼에 이벤트 등록
+    const deleteBtns = listContainer.querySelectorAll(".btn-delete-manual-ins");
+    deleteBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const index = parseInt(btn.getAttribute("data-index") || "0", 10);
+        tempInsurancesCopy.splice(index, 1);
+        renderManualInsuranceList();
+      });
+    });
+  }
+
+  // 모달 열기
+  function openManageInsuranceModal() {
+    const modal = $("manage-insurance-modal");
+    if (!modal) return;
+    
+    // 현재의 기존 가입 보험을 깊은 복사하여 임시 카피본 저장
+    tempInsurancesCopy = JSON.parse(JSON.stringify(existingInsurances));
+    
+    // 목록 렌더링 및 모달 노출
+    renderManualInsuranceList();
+    modal.classList.remove("hidden");
+    
+    // 입력 필드 초기화
+    const compInput = $("input-manual-company") as HTMLInputElement;
+    const premInput = $("input-manual-premium") as HTMLInputElement;
+    const prodInput = $("input-manual-product") as HTMLInputElement;
+    if (compInput) compInput.value = "";
+    if (premInput) premInput.value = "";
+    if (prodInput) prodInput.value = "";
+  }
+
+  // 모달 닫기
+  function closeManageInsuranceModal() {
+    $("manage-insurance-modal")?.classList.add("hidden");
+  }
+
+  // 모달 이벤트 바인딩
+  $("btn-close-manage-insurance-modal")?.addEventListener("click", closeManageInsuranceModal);
+  
+  // 보험 추가 버튼 이벤트
+  $("btn-add-manual-insurance")?.addEventListener("click", () => {
+    const compInput = $("input-manual-company") as HTMLInputElement;
+    const premInput = $("input-manual-premium") as HTMLInputElement;
+    const prodInput = $("input-manual-product") as HTMLInputElement;
+    
+    const company = compInput ? compInput.value.trim() : "";
+    const premiumVal = premInput ? parseInt(premInput.value, 10) : 0;
+    const productName = prodInput ? prodInput.value.trim() : "";
+
+    if (!company) {
+      alert("보험회사 이름을 입력해 주세요.");
+      compInput?.focus();
+      return;
+    }
+    if (!productName) {
+      alert("보험 상품명을 입력해 주세요.");
+      prodInput?.focus();
+      return;
+    }
+    if (isNaN(premiumVal) || premiumVal <= 0) {
+      alert("올바른 납입 보험료(숫자)를 입력해 주세요.");
+      premInput?.focus();
+      return;
+    }
+
+    // 목록에 추가
+    tempInsurancesCopy.push({
+      company,
+      productName,
+      status: "유지",
+      premium: premiumVal
+    });
+
+    // 화면 갱신 및 인풋 초기화
+    renderManualInsuranceList();
+    compInput.value = "";
+    premInput.value = "";
+    prodInput.value = "";
+  });
+
+  // 기본값 리셋 버튼 이벤트
+  $("btn-reset-insurance-modal")?.addEventListener("click", () => {
+    if (confirm("보험 내역을 시뮬레이션 기본값(삼성화재, 메리츠화재)으로 리셋하시겠습니까?")) {
+      tempInsurancesCopy = [
+        { company: "삼성화재", productName: "무배당 삼성 든든 건강보험", status: "유지", premium: 45000 },
+        { company: "메리츠화재", productName: "무배당 메리츠 실손의료보험", status: "유지", premium: 12000 }
+      ];
+      renderManualInsuranceList();
+    }
+  });
+
+  // 저장 및 분석 반영 버튼 이벤트
+  $("btn-save-insurance-modal")?.addEventListener("click", () => {
+    // 1. 전역 변수에 업데이트
+    existingInsurances = tempInsurancesCopy;
+    
+    // 2. 가입 한도(existingCoverages)를 지능적으로 동기화 맵핑 갱신
+    existingCoverages = {
+      "cov-cancer": 0,
+      "cov-brain": 0,
+      "cov-heart": 0,
+      "cov-metabolic": 0,
+      "cov-surgery": 0
+    };
+    
+    existingInsurances.forEach(ins => {
+      const pName = ins.productName || "";
+      if (pName.includes("암") || pName.includes("종양")) {
+        existingCoverages["cov-cancer"] += 20000000;
+      }
+      if (pName.includes("뇌") || pName.includes("졸중") || pName.includes("혈관")) {
+        existingCoverages["cov-brain"] += 10000000;
+      }
+      if (pName.includes("심장") || pName.includes("협심") || pName.includes("혈관") || pName.includes("건강")) {
+        existingCoverages["cov-heart"] += 10000000;
+      }
+      if (pName.includes("당뇨") || pName.includes("대사") || pName.includes("만성")) {
+        existingCoverages["cov-metabolic"] += 5000000;
+      }
+      if (pName.includes("수술") || pName.includes("종합")) {
+        existingCoverages["cov-surgery"] += 2000000;
+      }
+    });
+
+    // 기본 보정
+    if (existingCoverages["cov-cancer"] === 0) existingCoverages["cov-cancer"] = 10000000;
+    if (existingCoverages["cov-brain"] === 0) existingCoverages["cov-brain"] = 10000000;
+    if (existingCoverages["cov-heart"] === 0) existingCoverages["cov-heart"] = 10000000;
+    if (existingCoverages["cov-surgery"] === 0) existingCoverages["cov-surgery"] = 1000000;
+
+    // 3. 모달 닫기 및 컨설팅 화면 강제 리렌더링
+    closeManageInsuranceModal();
+    renderConsultingTab();
+    
+    // 이력 로깅
+    logAccessEvent("insurance_manual_management_save", { count: existingInsurances.length });
+  });
+
+  // 수동 보험 관리 버튼 리스너 바인딩
+  const manageInsuranceBtn = $("btn-manage-insurance-manual");
+  if (manageInsuranceBtn) {
+    manageInsuranceBtn.addEventListener("click", () => {
+      openManageInsuranceModal();
     });
   }
 

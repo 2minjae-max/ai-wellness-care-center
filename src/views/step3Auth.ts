@@ -19,6 +19,7 @@ let authPollInterval: any = null;
 // 연동 모드 상태 관리 변수 (bypass, sandbox, development)
 // 기본값: "development" → 실제(Real Dev) 모드가 디폴트로 체크됩니다.
 let currentSyncMode: "bypass" | "sandbox" | "development" = "development";
+let currentSyncType: "nhis" | "insurance" = "nhis";
 
 // main.tsx의 전역 상태 값을 직접 변경하거나 참조하지 않고,
 // 인터페이스를 통해 안전하게 교류할 수 있도록 설계된 컨텍스트 사양입니다.
@@ -35,6 +36,8 @@ export interface Step3Context {
   setIsStep1Completed(completed: boolean): void;
   updateAuthProgress(): void;
   logAccessEvent(actionType: string, details?: any): void;
+  setSyncedInsurances?(insurances: any[]): void;
+  renderConsultingTab?(): void;
 }
 
 // 본인인증 모달 내에 에러 문구를 노출하는 헬퍼 함수
@@ -142,8 +145,12 @@ export function bindAuthModalEvents(ctx: Step3Context) {
       syncMode: currentSyncMode
     };
 
+    const requestUrl = currentSyncType === "nhis" 
+      ? "/api/health/nhis-sync-request" 
+      : "/api/insurance/sync-request";
+
     try {
-      const res = await fetch("/api/health/nhis-sync-request", {
+      const res = await fetch(requestUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -194,11 +201,11 @@ export function bindAuthModalEvents(ctx: Step3Context) {
 
     try {
       // 1. 로딩창 전환 및 타이머 정지 전에 즉시 2차 확인 API를 쏘아 서명 통과 여부 검인증
-      const isSuccess = await verifyNhisSyncSignature(ctx);
+      const isSuccess = await verifySyncSignature(ctx);
       if (isSuccess) {
         // 서명 검인증 성공 시 비로소 타이머 정지 및 API 연동 시각 연출 가동
         stopAuthCountdown();
-        executeNhisSync(ctx);
+        executeSync(ctx);
       }
     } catch (err: any) {
       console.error(err);
@@ -224,7 +231,7 @@ export function bindAuthModalEvents(ctx: Step3Context) {
 }
 
 // 실제 서명이 성공 완료되었는지 2차 API로 신속 대조만 수행하는 비동기 헬퍼 함수
-export async function verifyNhisSyncSignature(ctx: Step3Context): Promise<boolean> {
+export async function verifySyncSignature(ctx: Step3Context): Promise<boolean> {
   const phoneInput = $("modal-input-phone") as HTMLInputElement;
   const phoneNo = phoneInput ? phoneInput.value : "";
   const telecomSelect = $("modal-input-telecom") as HTMLSelectElement;
@@ -241,7 +248,11 @@ export async function verifyNhisSyncSignature(ctx: Step3Context): Promise<boolea
     syncMode: currentSyncMode
   };
 
-  const res = await fetch("/api/health/nhis-sync-confirm", {
+  const confirmUrl = currentSyncType === "nhis"
+    ? "/api/health/nhis-sync-confirm"
+    : "/api/insurance/sync-confirm";
+
+  const res = await fetch(confirmUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
@@ -257,20 +268,34 @@ export async function verifyNhisSyncSignature(ctx: Step3Context): Promise<boolea
     throw new Error(errMsg);
   }
 
-  // 성공 완료된 건강정보 레코드를 전역 컨텍스트 상태에 동기화 유입
-  ctx.setNhisRecords(body.data.syncedRecords);
-  
-  // 성공 이력 Supabase 로그 전송
-  ctx.logAccessEvent("nhis_sync_success", { recordCount: body.data.syncedRecords ? body.data.syncedRecords.length : 0 });
+  if (currentSyncType === "nhis") {
+    // 성공 완료된 건강정보 레코드를 전역 컨텍스트 상태에 동기화 유입
+    ctx.setNhisRecords(body.data.syncedRecords);
+    // 성공 이력 Supabase 로그 전송
+    ctx.logAccessEvent("nhis_sync_success", { recordCount: body.data.syncedRecords ? body.data.syncedRecords.length : 0 });
+  } else {
+    // 성공 완료된 보험 정보를 전역 컨텍스트 상태에 동기화 유입
+    if (ctx.setSyncedInsurances) {
+      ctx.setSyncedInsurances(body.data.syncedInsurances);
+    }
+    ctx.logAccessEvent("insurance_sync_success", { recordCount: body.data.syncedInsurances ? body.data.syncedInsurances.length : 0 });
+  }
   return true;
 }
 
 // 본인인증 및 동기화 모달을 띄우고 내부 상태들을 리셋하는 오픈 함수
-export function openSyncModal() {
+export function openSyncModal(syncType: "nhis" | "insurance" = "nhis") {
+  currentSyncType = syncType;
   const modal = $("auth-modal");
   if (modal) {
     modal.classList.remove("hidden");
     $("final-analysis-cta-container")?.classList.add("hidden");
+
+    // 모달 상단 타이틀 동적 전환
+    const modalTitle = document.querySelector("#auth-modal h3.font-extrabold");
+    if (modalTitle) {
+      modalTitle.textContent = syncType === "nhis" ? "간편본인인증 (건강검진)" : "간편본인인증 (내보험다보여)";
+    }
     
     // 연동 모드 선택 리셋 (기본값: 'development' 실제 모드)
     currentSyncMode = "development";
@@ -352,10 +377,10 @@ export function startAuthCountdown(ctx: Step3Context) {
   authPollInterval = setInterval(async () => {
     if (authTimerInterval) {
       try {
-        const isSuccess = await verifyNhisSyncSignature(ctx);
+        const isSuccess = await verifySyncSignature(ctx);
         if (isSuccess) {
           stopAuthCountdown();
-          executeNhisSync(ctx);
+          executeSync(ctx);
         }
       } catch (err) {
         // 아직 인증이 완료되지 않은 상태 — 조용히 다음 폴링을 기다립니다.
@@ -393,7 +418,7 @@ export function updateTimerDisplay() {
 }
 
 // 2차인증 획득 후 화면에 가시적인 데이터 가공 연출 및 최종 성공 마무리를 짓는 함수
-export function executeNhisSync(ctx: Step3Context) {
+export function executeSync(ctx: Step3Context) {
   $("modal-step-requesting")?.classList.add("hidden");
   $("modal-step-api-loading")?.classList.remove("hidden");
   $("modal-bypass-disclaimer")?.classList.add("hidden");
@@ -403,13 +428,28 @@ export function executeNhisSync(ctx: Step3Context) {
   const pPercent = $("modal-api-bar-percent");
   const pText = $("modal-api-loading-text");
 
+  // 모달 3단계 로딩 서두 타이틀 갱신
+  const loadingTitle = document.querySelector("#modal-step-api-loading h4.font-extrabold");
+  if (loadingTitle) {
+    loadingTitle.textContent = currentSyncType === "nhis" ? "국민건강보험 API 연동 중" : "한국신용정보원 API 연동 중";
+  }
+
   // 시각적인 API 파이프라인 연출 (진행상황 애니메이션)
-  const stages = [
+  const nhisStages = [
     { text: "🔒 국민건강보험공단 건강검진 내부 가상세션 획득 완료...", percent: 25, delay: 400 },
     { text: "✍️ 모바일 서명 검인증 및 전자증명서 무결성 대조 통과...", percent: 50, delay: 400 },
     { text: "📥 최근 5개년치 15대 만성 대사증후군 건강 인덱스 수집 완료...", percent: 75, delay: 400 },
     { text: "📊 요합 지표 매핑 최적화 설계 및 클라이언트 암호화 로딩 성공...", percent: 95, delay: 400 }
   ];
+
+  const insStages = [
+    { text: "🔒 한국신용정보원 내보험다보여 가상 세션 보안키 생성...", percent: 25, delay: 400 },
+    { text: "✍️ 간편인증 서명 검증 및 암호 키 교환 보안 매핑 통과...", percent: 50, delay: 400 },
+    { text: "📥 계약 유지 상태 및 납입 중인 월 보험료 계약 리스트 수집...", percent: 75, delay: 400 },
+    { text: "📊 담보별 보장 한도 대조 분석 및 신규 추천 요율 매핑 완료...", percent: 95, delay: 400 }
+  ];
+
+  const stages = currentSyncType === "nhis" ? nhisStages : insStages;
 
   let idx = 0;
   function nextStage() {
@@ -422,34 +462,41 @@ export function executeNhisSync(ctx: Step3Context) {
         nextStage();
       }, stages[idx].delay);
     } else {
-      // 이미 2차 검증이 완수되었으므로 즉각 성공 상태로 100% 매핑
-      if (pText) pText.innerText = "🎉 국민건강보험검진 지표 실시간 로딩 완벽 성공!";
+      if (pText) {
+        pText.innerText = currentSyncType === "nhis" 
+          ? "🎉 국민건강보험검진 지표 실시간 로딩 완벽 성공!"
+          : "🎉 기가입 보험 및 월 보험료 계약 동기화 완벽 성공!";
+      }
       if (pFill) pFill.style.width = "100%";
       if (pPercent) pPercent.innerText = "100%";
 
       setTimeout(() => {
         closeSyncModal();
-        ctx.setIsStep1Completed(true);
-        ctx.updateAuthProgress();
+        
+        if (currentSyncType === "nhis") {
+          ctx.setIsStep1Completed(true);
+          ctx.updateAuthProgress();
 
-        // [UX 개선] "건강검진 DATA" 타이틀 영역으로 즉시 부드럽게 스크롤 스위칭
-        const scrollTarget = $("scroll-target-nhis-data");
-        if (scrollTarget) {
-          scrollTarget.scrollIntoView({ behavior: "smooth", block: "start" });
-          
-          // 아래로 내릴 수 있게 바운싱 시각 유도 애니메이션을 일시적으로 추가 (3회 바운싱 후 정지)
-          const parentContainer = $("codef-summary-section");
-          if (parentContainer) {
-            parentContainer.classList.add("animate-bounce-subtle");
-            setTimeout(() => {
-              parentContainer.classList.remove("animate-bounce-subtle");
-            }, 2000);
+          const scrollTarget = $("scroll-target-nhis-data");
+          if (scrollTarget) {
+            scrollTarget.scrollIntoView({ behavior: "smooth", block: "start" });
+            const parentContainer = $("codef-summary-section");
+            if (parentContainer) {
+              parentContainer.classList.add("animate-bounce-subtle");
+              setTimeout(() => {
+                parentContainer.classList.remove("animate-bounce-subtle");
+              }, 2000);
+            }
+          } else {
+            const ctaContainer = $("final-analysis-cta-container");
+            if (ctaContainer) {
+              ctaContainer.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
           }
         } else {
-          // 대체 백업 포커스
-          const ctaContainer = $("final-analysis-cta-container");
-          if (ctaContainer) {
-            ctaContainer.scrollIntoView({ behavior: "smooth", block: "center" });
+          // 보험 연동 완료 시
+          if (ctx.renderConsultingTab) {
+            ctx.renderConsultingTab();
           }
         }
       }, 700);
