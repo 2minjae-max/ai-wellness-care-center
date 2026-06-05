@@ -248,6 +248,7 @@ function initApp() {
     $("consultation-success-modal")?.classList.add("hidden");
   });
   setupPremiumBasisModal();
+  setupDeviceSimulator();
 }
 
 // ========================================================
@@ -4743,4 +4744,61 @@ function setupPremiumBasisModal() {
       });
     });
   });
+}
+
+// ========================================================
+// 11. [디바이스 시뮬레이터 툴바 제어] PC | 태블릿 | 모바일 동적 스위칭 (NEW)
+// ========================================================
+function setupDeviceSimulator() {
+  const btnPc = $("btn-device-pc");
+  const btnTablet = $("btn-device-tablet");
+  const btnMobile = $("btn-device-mobile");
+
+  const container = $("device-simulator-container");
+  const body = $("root-body");
+  const notch = $("simulator-notch");
+  const statusbar = $("simulator-statusbar");
+
+  if (!btnPc || !btnTablet || !btnMobile || !container || !body) return;
+
+  function updateDeviceMode(mode: "pc" | "tablet" | "mobile") {
+    // 1. 버튼 활성화 상태 업데이트
+    const btns = [btnPc, btnTablet, btnMobile];
+    btns.forEach(btn => {
+      btn.className = "px-3.5 py-1.5 rounded-full font-bold transition-all hover:bg-slate-800 cursor-pointer text-slate-400";
+    });
+
+    if (mode === "pc") {
+      btnPc.className = "px-3.5 py-1.5 rounded-full font-bold bg-[#f37321] text-white cursor-pointer shadow-sm";
+      
+      // PC 모드 클래스 스위칭
+      body.className = "h-full text-slate-900 antialiased sm:bg-[#efeee8] sm:block sm:min-h-0 sm:overflow-y-auto sm:py-0";
+      container.className = "w-full h-auto sm:h-auto sm:max-h-none sm:min-h-none sm:w-full sm:bg-[#efeee8] sm:rounded-none sm:shadow-none sm:border-0 sm:relative sm:flex sm:flex-col sm:overflow-visible sm:[transform:none] z-10 transition-all duration-300";
+      
+      notch?.classList.add("sm:hidden");
+      statusbar?.classList.add("sm:hidden");
+    } else if (mode === "tablet") {
+      btnTablet.className = "px-3.5 py-1.5 rounded-full font-bold bg-[#f37321] text-white cursor-pointer shadow-sm";
+
+      // 태블릿 모드 클래스 스위칭
+      body.className = "h-full text-slate-900 antialiased sm:bg-[#111216] sm:flex sm:items-center sm:justify-center sm:min-h-screen sm:overflow-y-auto sm:py-6";
+      container.className = "w-full h-auto sm:h-[85vh] sm:max-h-[1024px] sm:min-h-[800px] sm:w-[768px] sm:bg-white sm:rounded-[36px] sm:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.8)] sm:border-[14px] sm:border-slate-800 sm:relative sm:flex sm:flex-col sm:overflow-hidden sm:[transform:translate3d(0,0,0)] z-10 transition-all duration-300";
+
+      notch?.classList.add("sm:hidden");
+      statusbar?.classList.add("sm:hidden");
+    } else {
+      btnMobile.className = "px-3.5 py-1.5 rounded-full font-bold bg-[#f37321] text-white cursor-pointer shadow-sm";
+
+      // 모바일 모드 클래스 스위칭
+      body.className = "h-full text-slate-900 antialiased sm:bg-[#111216] sm:flex sm:items-center sm:justify-center sm:min-h-screen sm:overflow-y-auto sm:py-6";
+      container.className = "w-full h-auto sm:h-[90vh] sm:max-h-[880px] sm:min-h-[720px] sm:w-[420px] sm:bg-white sm:rounded-[48px] sm:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.8)] sm:border-[12px] sm:border-slate-800 sm:relative sm:flex sm:flex-col sm:overflow-hidden sm:[transform:translate3d(0,0,0)] z-10 transition-all duration-300";
+
+      notch?.classList.remove("sm:hidden");
+      statusbar?.classList.remove("sm:hidden");
+    }
+  }
+
+  btnPc.addEventListener("click", () => updateDeviceMode("pc"));
+  btnTablet.addEventListener("click", () => updateDeviceMode("tablet"));
+  btnMobile.addEventListener("click", () => updateDeviceMode("mobile"));
 }

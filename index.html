@@ -29,17 +29,24 @@
       }
     </style>
   </head>
-  <body class="h-full text-slate-900 antialiased sm:bg-[#111216] sm:flex sm:items-center sm:justify-center sm:min-h-screen sm:overflow-y-auto sm:py-6">
+  <body id="root-body" class="h-full text-slate-900 antialiased sm:bg-[#111216] sm:flex sm:items-center sm:justify-center sm:min-h-screen sm:overflow-y-auto sm:py-6">
+
+    <!-- 🛠️ 상단 디바이스 시뮬레이터 툴바 (PC에서만 노출) -->
+    <div class="hidden sm:flex fixed top-4 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white rounded-full p-1.5 shadow-2xl border border-slate-700/60 z-50 items-center gap-1.5 select-none text-xs">
+      <button type="button" id="btn-device-pc" class="px-3.5 py-1.5 rounded-full font-bold transition-all hover:bg-slate-800 cursor-pointer text-slate-400">PC 대화면</button>
+      <button type="button" id="btn-device-tablet" class="px-3.5 py-1.5 rounded-full font-bold transition-all hover:bg-slate-800 cursor-pointer text-slate-400">태블릿</button>
+      <button type="button" id="btn-device-mobile" class="px-3.5 py-1.5 rounded-full font-bold bg-[#f37321] text-white cursor-pointer shadow-sm">모바일 폰</button>
+    </div>
 
     <!-- 배경 장식 (데스크탑 화면에서 보일 프리미엄 백드롭 그라데이션) -->
     <div class="hidden sm:block absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#fff8f3] via-[#111216] to-[#08090c] opacity-95 pointer-events-none z-0"></div>
     <div class="hidden sm:block absolute top-[20%] left-[10%] w-[30rem] h-[30rem] bg-[#f37321]/5 rounded-full blur-[120px] pointer-events-none z-0 animate-pulse" style="animation-duration: 8s;"></div>
 
     <!-- 스마트폰 프레임 컨테이너 (데스크탑에서만 보이고, 모바일에서는 풀스크린으로 꽉참) -->
-    <div class="w-full h-auto sm:h-[90vh] sm:max-h-[880px] sm:min-h-[720px] sm:w-[420px] sm:bg-white sm:rounded-[48px] sm:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.8)] sm:border-[12px] sm:border-slate-800 sm:relative sm:flex sm:flex-col sm:overflow-hidden sm:[transform:translate3d(0,0,0)] z-10 transition-all">
+    <div id="device-simulator-container" class="w-full h-auto sm:h-[90vh] sm:max-h-[880px] sm:min-h-[720px] sm:w-[420px] sm:bg-white sm:rounded-[48px] sm:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.8)] sm:border-[12px] sm:border-slate-800 sm:relative sm:flex sm:flex-col sm:overflow-hidden sm:[transform:translate3d(0,0,0)] z-10 transition-all duration-300">
       
       <!-- 📱 데스크탑용 스마트폰 전면 노치 -->
-      <div class="hidden sm:flex absolute top-3 left-1/2 -translate-x-1/2 w-28 h-5.5 bg-slate-800 rounded-full z-50 items-center justify-between px-3.5 shadow-inner">
+      <div id="simulator-notch" class="hidden sm:flex absolute top-3 left-1/2 -translate-x-1/2 w-28 h-5.5 bg-slate-800 rounded-full z-50 items-center justify-between px-3.5 shadow-inner">
         <!-- 카메라 렌즈 -->
         <div class="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700/50 flex items-center justify-center">
           <div class="w-1 h-1 rounded-full bg-blue-900/60"></div>
@@ -49,7 +56,7 @@
       </div>
 
       <!-- 🔋 데스크탑용 상단 상태바 (Mock Status Bar) -->
-      <div class="hidden sm:flex h-9 bg-white text-slate-800 text-[10px] font-extrabold items-center justify-between px-6 select-none shrink-0 border-b border-slate-100/50 z-40">
+      <div id="simulator-statusbar" class="hidden sm:flex h-9 bg-white text-slate-800 text-[10px] font-extrabold items-center justify-between px-6 select-none shrink-0 border-b border-slate-100/50 z-40">
         <span id="mock-status-time">09:41</span>
         <div class="flex items-center gap-1.5">
           <span>5G</span>
