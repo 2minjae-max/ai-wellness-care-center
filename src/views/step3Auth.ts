@@ -11,10 +11,11 @@
 import { $, $$ } from "../utils/chartHelper";
 import { clearInputErrors, triggerInputError } from "../utils/formHelper";
 
-// 3분 카운트다운 타이머용 모듈 내부 지역 상태 변수
+// 3분 카운트다운 타이머 및 자동 폴링 제어용 모듈 내부 지역 상태 변수
 let authTimerInterval: any = null;
 let authTimerSeconds = 180;
 let authPollInterval: any = null;
+let isPollingActive = false; // 🔄 중복 폴링 및 레이스 컨디션 방지 플래그
 
 // 연동 모드 상태 관리 변수 (bypass, sandbox, development)
 // 기본값: "development" → 실제(Real Dev) 모드가 디폴트로 체크됩니다.
@@ -126,6 +127,22 @@ export function bindAuthModalEvents(ctx: Step3Context) {
       return;
     }
 
+    // 만약 인증 우회(bypass) 모드인 경우, PUSH 발송 및 확인 대기창을 거치지 않고 즉시 시뮬레이션 데이터를 동기화하여 넘어갑니다.
+    if (currentSyncMode === "bypass") {
+      try {
+        ctx.setCodefJti(`mock_jti_${Date.now()}`);
+        ctx.setCodefTwoWayInfo({ mock: true });
+        
+        const isSuccess = await verifySyncSignature(ctx);
+        if (isSuccess) {
+          executeSync(ctx);
+        }
+      } catch (err: any) {
+        showModalError(err.message || "우회 인증 처리 중 오류가 발생했습니다.");
+      }
+      return;
+    }
+
     // PUSH 발송을 위한 버튼 로더화 및 비활성화
     const reqBtn = $("btn-modal-request-auth") as HTMLButtonElement | null;
     if (reqBtn) {
@@ -189,6 +206,11 @@ export function bindAuthModalEvents(ctx: Step3Context) {
 
   // 모달 - 인증 승인완료 후 동기화 실시
   $("btn-modal-confirm-sync")?.addEventListener("click", async () => {
+    if (isPollingActive) {
+      console.log("현재 자동 서명 확인이 진행 중입니다. 잠시만 기다려주세요.");
+      return;
+    }
+
     const confirmBtn = $("btn-modal-confirm-sync") as HTMLButtonElement | null;
     if (confirmBtn) {
       // 통신 중 중복 클릭을 방지하기 위해 버튼을 비활성화하고 로딩 상태를 표시합니다.
@@ -199,6 +221,7 @@ export function bindAuthModalEvents(ctx: Step3Context) {
     // 새로운 확인 시도를 위해 이전 단계의 에러 배너를 숨깁니다.
     $("modal-request-error-box")?.classList.add("hidden");
 
+    isPollingActive = true;
     try {
       // 1. 로딩창 전환 및 타이머 정지 전에 즉시 2차 확인 API를 쏘아 서명 통과 여부 검인증
       const isSuccess = await verifySyncSignature(ctx);
@@ -221,6 +244,7 @@ export function bindAuthModalEvents(ctx: Step3Context) {
         showModalError(err.message || "아직 간편인증 서명이 확인되지 않았습니다. 스마트폰에서 서명 완료 후 다시 [서명 완료] 버튼을 클릭해 주세요.");
       }
     } finally {
+      isPollingActive = false;
       if (confirmBtn) {
         // API 요청 작업이 모두 끝났으므로 버튼 상태를 다시 클릭 가능하도록 활성화 복구합니다.
         confirmBtn.disabled = false;
@@ -259,6 +283,20 @@ export async function verifySyncSignature(ctx: Step3Context): Promise<boolean> {
   });
 
   const body = await res.json();
+
+  // [중요] 2차 인증 대기 중(CF-03002 등)일 때, CODEF가 매번 갱신하여 돌려주는 차기 twoWayInfo(twoWayTimestamp 포함)를
+  // 컨텍스트에 실시간 업데이트해주어야 다음 폴링 요청 시 올바른 정보(갱신된 타임스탬프)로 전송할 수 있습니다.
+  if (body && body.data) {
+    if (body.data.jti) {
+      ctx.setCodefJti(body.data.jti);
+    }
+    if (body.data.twoWayInfo) {
+      ctx.setCodefTwoWayInfo(body.data.twoWayInfo);
+    } else if (body.data.twoWayTimestamp) {
+      ctx.setCodefTwoWayInfo(body.data);
+    }
+  }
+
   if (!res.ok || body.result?.code !== "CF-00000") {
     let errMsg = body.result?.message || "스마트폰에서 간편인증 승인이 확인되지 않았습니다.";
     // [보안/UX 수정] 2차 서명 미완료 상태에서 API 통신 자체만 성공하여 message가 "성공"으로 리턴되는 현상 예외 대응
@@ -358,6 +396,7 @@ export function startAuthCountdown(ctx: Step3Context) {
 
   authTimerSeconds = 180;
   updateTimerDisplay();
+  isPollingActive = false; // 플래그 초기화
 
   authTimerInterval = setInterval(() => {
     authTimerSeconds--;
@@ -372,28 +411,10 @@ export function startAuthCountdown(ctx: Step3Context) {
     }
   }, 1000);
 
-  // 🔄 모든 모드에서 3초 간격 자동 폴링 — 인증 완료를 자동 감지하여 다음 단계로 전환
-  // (버튼 없이 자동으로 넘어가는 UX)
-  authPollInterval = setInterval(async () => {
-    if (authTimerInterval) {
-      try {
-        const isSuccess = await verifySyncSignature(ctx);
-        if (isSuccess) {
-          stopAuthCountdown();
-          executeSync(ctx);
-        }
-      } catch (err) {
-        // 아직 인증이 완료되지 않은 상태 — 조용히 다음 폴링을 기다립니다.
-        console.log("자동 감지 폴링 중... 아직 인증 미완료");
-      }
-    } else {
-      // 타이머가 이미 정지되었으면 폴링도 함께 중단합니다.
-      if (authPollInterval) {
-        clearInterval(authPollInterval);
-        authPollInterval = null;
-      }
-    }
-  }, 1000); // 1초마다 인증 완료 여부를 체크합니다
+  // ⛔ 자동 폴링 비활성화 — CODEF API는 2차인증 시 최대 3회 재시도만 허용합니다.
+  // 2초 간격 자동 폴링은 사용자가 스마트폰에서 서명하기 전에 3회를 소진시켜
+  // CF-12872(재시도 초과) → CF-00025(이미 완료, 빈 데이터) 상태를 유발합니다.
+  // 따라서 사용자가 스마트폰에서 서명 완료 후 수동으로 [서명 완료] 버튼을 클릭하도록 합니다.
 }
 
 // 활성화되어 있는 카운트다운 타이머를 중단(정지)시킵니다.
@@ -406,6 +427,7 @@ export function stopAuthCountdown() {
     clearInterval(authPollInterval);
     authPollInterval = null;
   }
+  isPollingActive = false; // 플래그 리셋
 }
 
 // 화면 상에 분:초(MM:SS) 포맷으로 남은 대기 시간을 표출합니다.
