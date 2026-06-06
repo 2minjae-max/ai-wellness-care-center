@@ -5392,7 +5392,7 @@ function setupDeviceSimulator() {
 
       // 태블릿 모드 클래스 스위칭: 가로 768px의 기기 규격 안에 화면을 맞춰 렌더링합니다.
       body.className = "h-full text-slate-900 antialiased sm:bg-[#111216] sm:flex sm:items-center sm:justify-center sm:min-h-screen sm:overflow-y-auto sm:py-6";
-      container.className = "w-full h-auto sm:h-[85vh] sm:max-h-[1024px] sm:min-h-[800px] sm:w-[768px] sm:bg-white sm:rounded-[36px] sm:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.8)] sm:border-[14px] sm:border-slate-800 sm:relative sm:flex sm:flex-col sm:overflow-hidden sm:[transform:translate3d(0,0,0)] z-10 transition-all duration-300";
+      container.className = "w-full max-w-full h-auto sm:h-[85vh] sm:max-h-[1024px] sm:min-h-[800px] sm:w-[768px] sm:bg-white sm:rounded-[36px] sm:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.8)] sm:border-[14px] sm:border-slate-800 sm:relative sm:flex sm:flex-col sm:overflow-hidden sm:[transform:translate3d(0,0,0)] z-10 transition-all duration-300";
 
       // 태블릿 모드에서도 스마트폰 전용 요소(노치, 상단바, 하단 홈 바)는 숨깁니다.
       notch?.classList.add("sm:hidden");
@@ -5407,7 +5407,7 @@ function setupDeviceSimulator() {
 
       // 모바일 모드 클래스 스위칭: 가로 420px 스마트폰 프레임으로 감싸서 모바일 뷰를 구현합니다.
       body.className = "h-full text-slate-900 antialiased sm:bg-[#111216] sm:flex sm:items-center sm:justify-center sm:min-h-screen sm:overflow-y-auto sm:py-6";
-      container.className = "w-full h-auto sm:h-[90vh] sm:max-h-[880px] sm:min-h-[720px] sm:w-[420px] sm:bg-white sm:rounded-[48px] sm:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.8)] sm:border-[12px] sm:border-slate-800 sm:relative sm:flex sm:flex-col sm:overflow-hidden sm:[transform:translate3d(0,0,0)] z-10 transition-all duration-300";
+      container.className = "w-full max-w-full h-auto sm:h-[90vh] sm:max-h-[880px] sm:min-h-[720px] sm:w-[420px] sm:bg-white sm:rounded-[48px] sm:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.8)] sm:border-[12px] sm:border-slate-800 sm:relative sm:flex sm:flex-col sm:overflow-hidden sm:[transform:translate3d(0,0,0)] z-10 transition-all duration-300";
 
       // 모바일 모드에서는 진짜 스마트폰처럼 보이도록 노치, 상태바, 하단 홈 바를 모두 다시 화면에 보여줍니다.
       notch?.classList.remove("sm:hidden");
