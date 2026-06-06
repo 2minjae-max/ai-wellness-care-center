@@ -2360,16 +2360,10 @@ function renderConsultingTab() {
             
             <!-- 🔗 상품 보러가기 / 설명서 다운로드 버튼 (모바일 한 손 조작 최적화) -->
             <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 relative z-10">
-              <a href="${productUrl}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-[#f37321] bg-white text-[#f37321] hover:bg-[#fff5ee] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                   <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
+              <a href="${productUrl}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center py-2.5 px-1.5 rounded-xl border border-[#f37321] bg-white text-[#f37321] hover:bg-[#fff5ee] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline whitespace-nowrap">
                 공식 상품 정보
               </a>
-              <a href="${guidePdfUrl}" target="_blank" download class="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#f37321] text-white hover:bg-[#dd6216] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
+              <a href="${guidePdfUrl}" target="_blank" download class="flex items-center justify-center py-2.5 px-1.5 rounded-xl bg-[#f37321] text-white hover:bg-[#dd6216] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline whitespace-nowrap">
                 설명서 PDF 받기
               </a>
             </div>
@@ -2377,10 +2371,7 @@ function renderConsultingTab() {
         
         <!-- Recommended Coverages -->
         <div class="space-y-3.5">
-            <h4 class="font-extrabold text-slate-800 text-sm sm:text-base flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-[#f37321]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
+            <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm md:text-base break-keep">
               가족력 및 검진 기반 보장 공백(Gap) 대조 분석
             </h4>
 
@@ -2423,7 +2414,6 @@ function renderConsultingTab() {
             </p>
             ${discountRate > 0 ? `<p class="text-[10px] text-emerald-600 font-extrabold mt-1">✓ 건강등급 우량체 특별 할인 완료 (-${discountAmount.toLocaleString()}원)</p>` : ""}
             ${isSimplifiedTarget ? `<p class="text-[10px] text-[#f37321] font-extrabold mt-1">✓ 만성질환 보장 우대 유병자형 간편인수 적용</p>` : ""}
-            <p class="text-[9.5px] text-slate-450 mt-1 leading-none">*기존에 이미 가입된 보장 한도는 제외하고, **부족한 격차 보강액**에 대해서만 실속 산출된 보험료입니다.</p>
           </div>
           <button type="button" id="btn-open-premium-basis" class="w-full sm:w-auto bg-[#353968] hover:bg-[#24274d] text-white rounded-xl py-3 px-4 font-bold text-xs tracking-wide flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -2462,8 +2452,8 @@ function renderConsultingTab() {
                             </svg>
                         </div>
                         <div class="space-y-1 max-w-md mx-auto">
-                            <h4 class="text-sm font-bold text-slate-800">나의 실제 가입 보험 정보를 가져와 비교해 보세요</h4>
-                            <p class="text-xs text-slate-500 leading-relaxed">한국신용정보원(보험다모아) 인증을 통해 현재 가입 중인 보험 상품 및 담보별 한도를 자동으로 가져와 AI 추천 설계서와 1:1로 비교해 드립니다.</p>
+                            <h4 class="text-xs sm:text-sm font-bold text-slate-800 break-keep">나의 실제 가입 보험 정보를<br class="xs:inline hidden"/> 가져와 비교해 보세요</h4>
+                            <p class="text-xs text-slate-500 leading-relaxed break-keep">한국신용정보원(보험다모아) 인증을 통해 현재 가입 중인 보험 상품 및 담보별 한도를 자동으로 가져와 AI 추천 설계서와 1:1로 비교해 드립니다.</p>
                         </div>
                         <button type="button" id="btn-sync-my-insurance" class="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-[#353968] hover:from-indigo-700 hover:to-[#24274d] text-white rounded-xl py-3 px-6 font-extrabold text-xs tracking-wide flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -4831,10 +4821,10 @@ function updateAuthProgress() {
   if (btnFinal) {
     if (isStep1Completed || isStep2Completed) {
       btnFinal.disabled = false;
-      btnFinal.className = "w-full bg-[#f37321] hover:bg-[#dd6216] text-white rounded-xl py-4 px-6 font-extrabold text-base tracking-wide flex items-center justify-center gap-2.5 transition-all shadow-md hover:shadow-lg active:scale-[0.99] cursor-pointer";
+      btnFinal.className = "w-full bg-[#f37321] hover:bg-[#dd6216] text-white rounded-xl py-4 px-4 font-extrabold text-base tracking-wide flex items-center justify-center transition-all shadow-md hover:shadow-lg active:scale-[0.99] cursor-pointer whitespace-nowrap";
     } else {
       btnFinal.disabled = true;
-      btnFinal.className = "w-full bg-slate-200 text-slate-400 rounded-xl py-4 px-6 font-extrabold text-base tracking-wide flex items-center justify-center gap-2.5 transition-all opacity-50 cursor-not-allowed";
+      btnFinal.className = "w-full bg-slate-200 text-slate-400 rounded-xl py-4 px-4 font-extrabold text-base tracking-wide flex items-center justify-center transition-all opacity-50 cursor-not-allowed whitespace-nowrap";
     }
   }
 
