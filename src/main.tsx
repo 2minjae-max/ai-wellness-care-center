@@ -155,10 +155,10 @@ async function logAccessEvent(actionType: string, details?: any) {
 }
 
 // 기동 시 바인딩 수행
-window.addEventListener("DOMContentLoaded", () => {
-  // 모바일 디바이스 감지 및 URL 내 embedded=true 파라미터 유무 체크
+function bootstrap() {
+  // 모바일 디바이스 감지 및 URL 내 embedded=true 파라미터 혹은 화면 너비가 768px 미만인지 체크
   const isMobileDevice = /Mobi|Android|iPhone|iPad|Macintosh/i.test(navigator.userAgent) && window.innerWidth < 1024;
-  const isEmbedded = window.location.search.includes("embedded=true") || isMobileDevice;
+  const isEmbedded = window.location.search.includes("embedded=true") || isMobileDevice || window.innerWidth < 768;
 
   if (isEmbedded) {
     // 1. 임베디드 모드 (진짜 모바일 및 시뮬레이터 내부 본 콘텐츠 실행)
@@ -226,7 +226,13 @@ window.addEventListener("DOMContentLoaded", () => {
     // 시뮬레이터 선택 버튼 클릭 바인딩 활성화
     setupDeviceSimulator();
   }
-});
+}
+
+if (document.readyState === "complete" || document.readyState === "interactive") {
+  bootstrap();
+} else {
+  window.addEventListener("DOMContentLoaded", bootstrap);
+}
 
 // --- Step 1과 상호작용하기 위한 상태 제어 컨텍스트 객체 정의 ---
 const step1Ctx: Step1Context = {
