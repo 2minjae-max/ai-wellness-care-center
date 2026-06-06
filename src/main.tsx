@@ -1878,7 +1878,6 @@ function triggerAIAnalysis() {
   const loadingFill = $("loading-bar-fill");
   const loadingPct = $("loading-bar-percent");
   const loadingText = $("loading-step-text");
-  const globalFill = $("global-top-loading-bar-fill");
 
   let stepIdx = 0;
   function animateLoader() {
@@ -1888,7 +1887,6 @@ function triggerAIAnalysis() {
       const pct = Math.min(100, Math.floor(((stepIdx + 1) / loadingSteps.length) * 100));
       if (loadingFill) loadingFill.style.width = `${pct}%`;
       if (loadingPct) loadingPct.innerText = `${pct}%`;
-      if (globalFill) globalFill.style.width = `${pct}%`;
 
       setTimeout(() => {
         stepIdx++;
@@ -1974,14 +1972,10 @@ function updateStepView() {
   const sAuth = $("auth-container");
   const sLoad = $("loading-container");
   const sDash = $("dashboard-container");
-  const globalBar = $("global-top-loading-bar-container");
-  const shield = $("loading-interaction-shield");
 
   if (sAuth) sAuth.classList.add("hidden");
   if (sLoad) sLoad.classList.add("hidden");
   if (sDash) sDash.classList.add("hidden");
-  if (globalBar) globalBar.classList.add("hidden");
-  if (shield) shield.classList.add("hidden");
 
   // 스크린 전환 시 스크롤 포커스를 최상단으로 강제 초기화 (상 Sticky 헤더 가림 방지)
   window.scrollTo(0, 0);
@@ -1993,10 +1987,7 @@ function updateStepView() {
   if (currentStep === "auth") {
     if (sAuth) sAuth.classList.remove("hidden");
   } else if (currentStep === "loading") {
-    // 바닥페이지(auth-container)를 그대로 보이고, 상단 로딩바와 상호작용 방지 실드만 활성화
-    if (sAuth) sAuth.classList.remove("hidden");
-    if (globalBar) globalBar.classList.remove("hidden");
-    if (shield) shield.classList.remove("hidden");
+    if (sLoad) sLoad.classList.remove("hidden");
     $("final-analysis-cta-container")?.classList.add("hidden");
   } else if (currentStep === "dashboard") {
     if (sDash) sDash.classList.remove("hidden");

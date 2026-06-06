@@ -125,7 +125,7 @@
       <div class="flex-1 overflow-y-visible sm:overflow-y-auto flex flex-col bg-[#efeee8] h-auto sm:min-h-0 relative" id="app-viewport">
 
         <!-- ⚕️ 상단 글로벌 탑바 (한화손보 브랜드 스타일) -->
-        <header class="bg-white sticky top-0 z-40 shadow-sm border-b-2 border-[#f37321] relative">
+        <header class="bg-white sticky top-0 z-40 shadow-sm border-b-2 border-[#f37321]">
           <div class="max-w-7xl lg:max-w-4xl mx-auto px-3.5 h-14 flex items-center justify-between">
             <a href="/" class="flex items-center gap-1.5 select-none hover:opacity-90 transition-opacity cursor-pointer shrink-0">
               <!-- 한화그룹 심볼 이미지 -->
@@ -136,10 +136,6 @@
                 <span class="font-sans font-bold text-sm sm:text-base text-[#f37321] tracking-tighter leading-none break-keep">AI Wellness <span class="text-[#000000]">Care Center</span></span>
               </div>
             </a>
-          </div>
-          <!-- 글로벌 탑 로딩바 (Global Top Loading Bar) -->
-          <div id="global-top-loading-bar-container" class="hidden absolute bottom-0 left-0 w-full h-[4px] bg-slate-100 overflow-hidden">
-            <div id="global-top-loading-bar-fill" class="bg-gradient-to-r from-[#f37321] to-amber-500 h-full w-[0%] transition-all duration-300"></div>
           </div>
         </header>
  
@@ -713,7 +709,7 @@
       <!-- ======================================================== -->
       <!-- 2. AI 보고서 융합 처리 로딩 단계 (STEP 2: Loading) -->
       <!-- ======================================================== -->
-      <section id="loading-container" class="hidden max-w-md mx-auto my-auto bg-white rounded-3xl border border-slate-200 p-5 shadow-md text-center space-y-6 animate-fade-in h-[340px] flex flex-col justify-center">
+      <section id="loading-container" class="hidden max-w-md mx-auto my-auto text-center space-y-6 animate-fade-in flex flex-col justify-center px-4 py-8">
         <div class="relative w-20 h-20 mx-auto self-center flex items-center justify-center">
           <!-- Center Cute Logo -->
           <img src="/src/assets/images/hanwha_loader_icon.png" alt="분석 중" class="w-16 h-16 object-contain" />
@@ -2012,9 +2008,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 로딩 중 인터랙션 방지 오버레이 -->
-    <div id="loading-interaction-shield" class="hidden fixed inset-0 z-50 bg-black/5 cursor-wait"></div>
 
     <!-- Vanilla Script 실행 -->
     <script type="module" src="/src/main.tsx"></script>
