@@ -228,11 +228,6 @@ function bootstrap() {
   }
 }
 
-if (document.readyState === "complete" || document.readyState === "interactive") {
-  bootstrap();
-} else {
-  window.addEventListener("DOMContentLoaded", bootstrap);
-}
 
 // --- Step 1과 상호작용하기 위한 상태 제어 컨텍스트 객체 정의 ---
 const step1Ctx: Step1Context = {
@@ -5429,3 +5424,10 @@ function setupDeviceSimulator() {
   btnTablet.addEventListener("click", () => updateDeviceMode("tablet"));
   btnMobile.addEventListener("click", () => updateDeviceMode("mobile"));
 }
+
+if (document.readyState === "complete" || document.readyState === "interactive") {
+  bootstrap();
+} else {
+  window.addEventListener("DOMContentLoaded", bootstrap);
+}
+
