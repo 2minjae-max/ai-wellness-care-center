@@ -2316,7 +2316,7 @@ function renderConsultingTab() {
           ${formattedRecAmount}
         </td>
         <td class="py-3.5 px-3 align-middle text-right font-black text-[#f37321] text-xs sm:text-sm whitespace-nowrap">
-          ${cov.premium > 0 ? `+${formattedPremium} 원` : "0 원"}
+          ${cov.premium > 0 ? `${formattedPremium} 원` : "0 원"}
         </td>
       </tr>
     `;
