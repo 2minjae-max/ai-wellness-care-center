@@ -709,13 +709,13 @@
       <!-- ======================================================== -->
       <!-- 2. AI 보고서 융합 처리 로딩 단계 (STEP 2: Loading) -->
       <!-- ======================================================== -->
-      <section id="loading-container" class="hidden max-w-md mx-auto my-auto text-center space-y-6 animate-fade-in flex flex-col justify-center px-4 py-8">
-        <div class="relative w-20 h-20 mx-auto self-center flex items-center justify-center">
+      <section id="loading-container" class="hidden absolute inset-0 z-50 bg-white text-center space-y-6 animate-fade-in flex flex-col justify-center items-center px-6">
+        <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
           <!-- Center Cute Logo -->
           <img src="/src/assets/images/hanwha_loader_icon.png" alt="분석 중" class="w-16 h-16 object-contain" />
         </div>
 
-        <div class="space-y-2">
+        <div class="space-y-2 w-full max-w-xs mx-auto">
           <h2 class="text-xl font-black text-slate-900">한화손보<br />AI Wellness <span class="text-[#000000] font-black">Care Center<br /></span> 분석 진행 중</h2>
           <!-- [교육용 주석] 로딩 상태 텍스트의 길이에 따라 카드의 높이가 아래위로 출렁이는 덜렁거림 현상을 방지하기 위해, min-h 대신 고정 높이 h-12 flex items-center justify-center를 사용하여 세로 크기를 48px로 상시 홀딩합니다. -->
           <p id="loading-step-text" class="text-slate-500 text-[11px] sm:text-xs h-12 flex items-center justify-center px-4 leading-normal">
@@ -724,7 +724,7 @@
         </div>
 
         <!-- 커스텀 선형 프로그레스 바 -->
-        <div class="space-y-1">
+        <div class="space-y-1 w-full max-w-xs mx-auto">
           <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
             <div id="loading-bar-fill" class="bg-gradient-to-r from-[#f37321] to-amber-500 h-full w-[0%] progress-transition"></div>
           </div>
