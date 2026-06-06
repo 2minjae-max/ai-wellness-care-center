@@ -3,7 +3,7 @@
 @import "tailwindcss";
 
 html {
-  font-size: 17px; /* 브라우저 기본값 16px에서 1px(1포인트) 상향 조정 */
+  font-size: 18px; /* 가독성을 극대화하기 위해 18px(기본값 16px 대비 12.5% 확대)로 조정 */
 }
 
 @theme {
