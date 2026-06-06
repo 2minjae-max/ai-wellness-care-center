@@ -391,19 +391,19 @@
                   <span class="w-1 h-3.5 bg-[#f37321] rounded-full"></span>
                   <span class="text-xs font-black text-slate-500 uppercase tracking-wider">연도별 주요 지표 추이</span>
                 </div>
-                <div class="overflow-x-auto border border-slate-100/90 rounded-2xl bg-white shadow-3xs">
-                  <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                <div class="overflow-hidden border border-slate-100/90 rounded-2xl bg-white shadow-3xs">
+                  <table class="w-full text-left border-collapse text-[11px] sm:text-xs">
                     <thead>
-                      <tr class="bg-slate-50 border-b border-slate-100 text-[10px] sm:text-xs font-black text-slate-500 text-center">
-                        <th class="py-2.5 px-3 text-left w-[14%]">연도</th>
-                        <th class="py-2.5 text-center w-[24%]">혈압 (mmHg)</th>
-                        <th class="py-2.5 text-center w-[16%]">공복혈당</th>
-                        <th class="py-2.5 text-center w-[18%]">총콜레스테롤</th>
-                        <th class="py-2.5 text-center w-[16%]">BMI</th>
+                      <tr class="bg-slate-50 border-b border-slate-100 text-[10.5px] sm:text-[11.5px] font-black text-slate-500 text-center">
+                        <th class="py-2.5 px-2 text-left w-[12%]">연도</th>
+                        <th class="py-2.5 text-center w-[22%]">혈압<br class="sm:hidden"/><span class="text-[8px] sm:text-[9.5px] text-slate-400 font-medium">(mmHg)</span></th>
+                        <th class="py-2.5 text-center w-[18%]">혈당<br class="sm:hidden"/><span class="text-[8px] sm:text-[9.5px] text-slate-400 font-medium">(mg/dL)</span></th>
+                        <th class="py-2.5 text-center w-[20%]">콜레스테롤<br class="sm:hidden"/><span class="text-[8px] sm:text-[9.5px] text-slate-400 font-medium">(mg/dL)</span></th>
+                        <th class="py-2.5 text-center w-[16%]">BMI<br class="sm:hidden"/><span class="text-[8px] sm:text-[9.5px] text-slate-400 font-medium">(kg/㎡)</span></th>
                         <th class="py-2.5 text-center w-[12%]">요단백</th>
                       </tr>
                     </thead>
-                    <tbody id="codef-summary-table-body" class="text-[11px] sm:text-xs divide-y divide-slate-100 text-center font-medium">
+                    <tbody id="codef-summary-table-body" class="text-xs sm:text-sm divide-y divide-slate-100 text-center font-medium">
                       <!-- Dynamic injection -->
                     </tbody>
                   </table>

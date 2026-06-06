@@ -304,21 +304,21 @@ export function renderCodefSummary(ctx: DashboardContext): void {
             </svg>
           </div>
           <div>
-            <div class="text-[11px] font-extrabold text-slate-800">최수 혈압 수치</div>
-            <div class="text-[9px] text-[#767676] mt-0.5">${sys}/${dia} mmHg 기재 데이터 파싱 완료</div>
+            <div class="text-xs sm:text-[13px] font-extrabold text-slate-800">최근 혈압 수치</div>
+            <div class="text-[10.5px] text-[#767676] mt-0.5">${sys}/${dia} mmHg 기재 데이터 파싱 완료</div>
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <div class="text-right">
-            <span class="text-xs font-black text-slate-800">${sys}/${dia}</span>
-            <span class="text-[9px] text-slate-400">mmHg</span>
+            <span class="text-xs sm:text-sm font-black text-slate-800">${sys}/${dia}</span>
+            <span class="text-[10px] text-slate-400">mmHg</span>
           </div>
-          <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${bpColor}">${bpLevel}</span>
+          <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${bpColor}">${bpLevel}</span>
         </div>
       </div>
-      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-1 font-semibold">${bpDesc}</p>
+      <p class="text-[11.5px] sm:text-xs text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-1 font-semibold">${bpDesc}</p>
       ${bpLevel !== "정상" ? `
-      <p class="text-[9.5px] text-[#e06612] pl-4 border-l-2 border-[#f37321]/45 leading-normal break-keep mb-3 font-extrabold flex items-center gap-1">
+      <p class="text-[11px] sm:text-[12px] text-[#e06612] pl-4 border-l-2 border-[#f37321]/45 leading-normal break-keep mb-3 font-extrabold flex items-center gap-1">
         <svg class="w-3.5 h-3.5 text-[#f37321] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
         </svg>
@@ -335,21 +335,21 @@ export function renderCodefSummary(ctx: DashboardContext): void {
             </svg>
           </div>
           <div>
-            <div class="text-[11px] font-extrabold text-slate-800">공복 식전 혈당</div>
-            <div class="text-[9px] text-[#767676] mt-0.5">${gl} mg/dL 인슐린 대조 유입 분석 완료</div>
+            <div class="text-xs sm:text-[13px] font-extrabold text-slate-800">공복 식전 혈당</div>
+            <div class="text-[10.5px] text-[#767676] mt-0.5">${gl} mg/dL 인슐린 대조 유입 분석 완료</div>
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <div class="text-right">
-            <span class="text-xs font-black text-slate-800">${gl}</span>
-            <span class="text-[9px] text-slate-400">mg/dL</span>
+            <span class="text-xs sm:text-sm font-black text-slate-800">${gl}</span>
+            <span class="text-[10px] text-slate-400">mg/dL</span>
           </div>
-          <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${glColor}">${glLevel}</span>
+          <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${glColor}">${glLevel}</span>
         </div>
       </div>
-      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-1 font-semibold">${glDesc}</p>
+      <p class="text-[11.5px] sm:text-xs text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-1 font-semibold">${glDesc}</p>
       ${glLevel !== "정상" ? `
-      <p class="text-[9.5px] text-[#e06612] pl-4 border-l-2 border-[#f37321]/45 leading-normal break-keep mb-3 font-extrabold flex items-center gap-1">
+      <p class="text-[11px] sm:text-[12px] text-[#e06612] pl-4 border-l-2 border-[#f37321]/45 leading-normal break-keep mb-3 font-extrabold flex items-center gap-1">
         <svg class="w-3.5 h-3.5 text-[#f37321] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
         </svg>
@@ -367,21 +367,21 @@ export function renderCodefSummary(ctx: DashboardContext): void {
             </svg>
           </div>
           <div>
-            <div class="text-[11px] font-extrabold text-slate-800">총 콜레스테롤</div>
-            <div class="text-[9px] text-[#767676] mt-0.5">${chol} mg/dL 고화 지질 농도 안전 측정 연동</div>
+            <div class="text-xs sm:text-[13px] font-extrabold text-slate-800">총 콜레스테롤</div>
+            <div class="text-[10.5px] text-[#767676] mt-0.5">${chol} mg/dL 고화 지질 농도 안전 측정 연동</div>
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <div class="text-right">
-            <span class="text-xs font-black text-slate-800">${chol}</span>
-            <span class="text-[9px] text-slate-400">mg/dL</span>
+            <span class="text-xs sm:text-sm font-black text-slate-800">${chol}</span>
+            <span class="text-[10px] text-slate-400">mg/dL</span>
           </div>
-          <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${cholColor}">${cholLevel}</span>
+          <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${cholColor}">${cholLevel}</span>
         </div>
       </div>
-      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-1 font-semibold">${cholDesc}</p>
+      <p class="text-[11.5px] sm:text-xs text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-1 font-semibold">${cholDesc}</p>
       ${cholLevel !== "정상" ? `
-      <p class="text-[9.5px] text-[#e06612] pl-4 border-l-2 border-[#f37321]/45 leading-normal break-keep mb-3 font-extrabold flex items-center gap-1">
+      <p class="text-[11px] sm:text-[12px] text-[#e06612] pl-4 border-l-2 border-[#f37321]/45 leading-normal break-keep mb-3 font-extrabold flex items-center gap-1">
         <svg class="w-3.5 h-3.5 text-[#f37321] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
         </svg>
@@ -398,21 +398,21 @@ export function renderCodefSummary(ctx: DashboardContext): void {
             </svg>
           </div>
           <div>
-            <div class="text-[11px] font-extrabold text-slate-800">체질량 지수 (BMI)</div>
-            <div class="text-[9px] text-[#767676] mt-0.5">${bmiVal.toFixed(1)} kg/㎡ 신장 대비 고유 비만 비율 대조</div>
+            <div class="text-xs sm:text-[13px] font-extrabold text-slate-800">체질량 지수 (BMI)</div>
+            <div class="text-[10.5px] text-[#767676] mt-0.5">${bmiVal.toFixed(1)} kg/㎡ 신장 대비 고유 비만 비율 대조</div>
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <div class="text-right">
-            <span class="text-xs font-black text-slate-800">${bmiVal.toFixed(1)}</span>
-            <span class="text-[9px] text-slate-400">kg/㎡</span>
+            <span class="text-xs sm:text-sm font-black text-slate-800">${bmiVal.toFixed(1)}</span>
+            <span class="text-[10px] text-slate-400">kg/㎡</span>
           </div>
-          <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${bmiColor}">${bmiLevel}</span>
+          <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${bmiColor}">${bmiLevel}</span>
         </div>
       </div>
-      <p class="text-[10px] text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-1 font-semibold">${bmiDesc}</p>
+      <p class="text-[11.5px] sm:text-xs text-[#767676] pl-4 border-l-2 border-slate-200 leading-normal -mt-2.5 break-keep mb-1 font-semibold">${bmiDesc}</p>
       ${bmiLevel !== "정상" ? `
-      <p class="text-[9.5px] text-[#e06612] pl-4 border-l-2 border-[#f37321]/45 leading-normal break-keep mb-2 font-extrabold flex items-center gap-1">
+      <p class="text-[11px] sm:text-[12px] text-[#e06612] pl-4 border-l-2 border-[#f37321]/45 leading-normal break-keep mb-2 font-extrabold flex items-center gap-1">
         <svg class="w-3.5 h-3.5 text-[#f37321] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
         </svg>
@@ -425,32 +425,30 @@ export function renderCodefSummary(ctx: DashboardContext): void {
   // 연도별 테이블 렌더러 (BMI 및 요단백 칼럼 결합 복구)
   if (tableBody) {
     tableBody.innerHTML = sortedRecords.map((rec) => {
-      // [교육용 주석] 혈압(bpStr) 렌더링 시 모바일의 좁은 뷰포트에서 개행이나 겹침이 발생하지 않도록
-      // whitespace-nowrap(줄바꿈 방지)과 font-mono, tracking-tighter(자간 좁힘)를 단단히 입히고 폰트 크기를 미세 조율합니다.
+      // 횡스크롤 방지를 위해 모든 단위 텍스트(mmHg, mg/dL 등)는 뷰포트에서 삭제하고 오직 숫자만 렌더링합니다 (단위는 헤더에 명시).
       const bpStr = (rec.systolicBP && rec.diastolicBP)
-        ? `<span class="whitespace-nowrap font-mono tracking-tighter text-[10px] sm:text-[11px] text-slate-800">${rec.systolicBP}</span><span class="text-slate-400 text-[8.5px] sm:text-[9.5px] font-semibold whitespace-nowrap">/${rec.diastolicBP}mmHg</span>`
+        ? `<span class="whitespace-nowrap font-mono tracking-tighter text-[11px] sm:text-[12px] text-slate-800">${rec.systolicBP}</span><span class="text-slate-400 text-[9.5px] sm:text-[10px] font-semibold whitespace-nowrap">/${rec.diastolicBP}</span>`
         : `<span class="text-slate-300">-</span>`;
       const glucoseStr = rec.fastingGlucose 
-        ? `${rec.fastingGlucose}<span class="text-slate-400 text-[8.5px] sm:text-[9px] font-semibold">mg/dL</span>`
+        ? `<span class="font-mono text-[11px] sm:text-[12px] text-slate-800">${rec.fastingGlucose}</span>`
         : `<span class="text-slate-300">-</span>`;
       const cholStr = rec.totalCholesterol 
-        ? `${rec.totalCholesterol}<span class="text-[#f37321]/60 text-[8.5px] sm:text-[9px] font-semibold">mg/dL</span>`
+        ? `<span class="font-mono text-[11px] sm:text-[12px] text-[#f37321]">${rec.totalCholesterol}</span>`
         : `<span class="text-slate-300">-</span>`;
       const bmiStr = rec.bmi 
-        ? `${rec.bmi.toFixed(1)}<span class="text-slate-400 text-[8.5px] sm:text-[9px] font-semibold">kg/㎡</span>`
+        ? `<span class="font-mono text-[11px] sm:text-[12px] text-slate-800">${rec.bmi.toFixed(1)}</span>`
         : `<span class="text-slate-300">-</span>`;
       const urineStr = rec.urineProtein || `<span class="text-slate-300">-</span>`;
 
-      // [교육용 주석] 테이블 각 td 셀에 thead 헤더와 정확히 일치하는 백분율 너비(w-[14%], w-[24%] 등)를 부여하여
-      // 화면 너비에 반응형으로 균등 분포되게 유도하며, 텍스트가 겹치거나 찌그러지지 않도록 방어합니다.
+      // 테이블 각 td 셀에 백분율 너비를 지정하고, 패딩 및 폰트 사이즈를 조정하여 횡스크롤을 전면 배제합니다.
       return `
-        <tr class="hover:bg-[#fff5ee]/40 transition-all font-semibold border-b border-slate-100 text-slate-700">
-          <td class="py-3 px-1.5 text-left font-extrabold text-[#767676] w-[14%] whitespace-nowrap">${rec.year}년</td>
-          <td class="py-3 px-0.5 text-center font-bold text-slate-800 w-[24%] whitespace-nowrap">${bpStr}</td>
-          <td class="py-3 px-0.5 text-center font-bold text-slate-800 w-[16%] whitespace-nowrap">${glucoseStr}</td>
-          <td class="py-3 px-0.5 text-center font-bold text-[#f37321] w-[18%] whitespace-nowrap">${cholStr}</td>
-          <td class="py-3 px-0.5 text-center font-bold text-slate-800 w-[16%] whitespace-nowrap">${bmiStr}</td>
-          <td class="py-3 px-0.5 text-center font-bold text-slate-800 w-[12%] whitespace-nowrap">${urineStr}</td>
+        <tr class="hover:bg-[#fff5ee]/40 transition-all font-semibold border-b border-slate-100 text-slate-700 text-[11px] sm:text-xs">
+          <td class="py-3 px-1 text-left font-extrabold text-[#767676] w-[12%] whitespace-nowrap">${rec.year}년</td>
+          <td class="py-3 px-0.5 text-center font-bold w-[22%] whitespace-nowrap">${bpStr}</td>
+          <td class="py-3 px-0.5 text-center font-bold w-[18%] whitespace-nowrap">${glucoseStr}</td>
+          <td class="py-3 px-0.5 text-center font-bold w-[20%] whitespace-nowrap">${cholStr}</td>
+          <td class="py-3 px-0.5 text-center font-bold w-[16%] whitespace-nowrap">${bmiStr}</td>
+          <td class="py-3 px-0.5 text-center font-bold text-slate-850 w-[12%] whitespace-nowrap">${urineStr}</td>
         </tr>
       `;
     }).join("");
