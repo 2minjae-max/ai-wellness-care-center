@@ -4414,6 +4414,13 @@ function renderActionTab() {
 
   if (!analysisResult) return;
 
+  // 특정 지표 숫자 및 단위를 하이라이트하는 헬퍼 함수
+  const highlightMetrics = (text: string): string => {
+    if (!text) return "";
+    const metricRegex = /(\d+(?:,\d+)?(?:\.\d+)?(?:\/\d+)?\s*(?:mg\/dL|mmHg|U\/L|kg\/㎡|kg\/m2|mg|kg|cm|%|회|분|시간|g|세|점))/g;
+    return text.replace(metricRegex, '<strong class="px-1 py-0.5 bg-slate-100 text-slate-900 font-extrabold rounded text-[10px] leading-none font-mono">$1</strong>');
+  };
+
   const dietContainer = $("checklist-diet-container");
   const exerciseContainer = $("checklist-exercise-container");
   const lifestyleContainer = $("checklist-lifestyle-container");
@@ -4424,10 +4431,27 @@ function renderActionTab() {
 
   if (dietContainer && dietPlan) {
     dietContainer.innerHTML = dietPlan.map((plan) => {
+      const text = typeof plan === "object" && plan !== null ? (plan as any).text : plan;
+      const evidence = typeof plan === "object" && plan !== null ? (plan as any).evidence : "";
+      const reference = typeof plan === "object" && plan !== null ? (plan as any).reference : "";
       return `
-        <div class="flex items-start gap-2.5 py-2.5 border-b border-slate-100 last:border-0 hover:bg-slate-50/40 px-2 rounded-xl transition-colors">
-          <div class="w-1.5 h-1.5 rounded-full bg-[#f37321] mt-1.5 shrink-0"></div>
-          <span class="text-xs sm:text-sm text-slate-700 leading-relaxed font-bold break-keep">${plan}</span>
+        <div class="flex flex-col gap-1.5 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50/40 px-2 rounded-xl transition-colors">
+          <div class="flex items-start gap-2.5">
+            <div class="w-1.5 h-1.5 rounded-full bg-[#f37321] mt-1.5 shrink-0"></div>
+            <span class="text-xs sm:text-sm text-slate-800 leading-relaxed font-bold break-keep">${highlightMetrics(text)}</span>
+          </div>
+          ${evidence ? `
+            <div class="flex items-start gap-1.5 text-[11px] text-slate-500 pl-4 leading-relaxed mt-0.5">
+              <span class="inline-block shrink-0 px-1 py-0.5 text-[9px] font-black text-slate-600 bg-slate-150 rounded leading-none">사유</span>
+              <span class="break-keep font-medium text-slate-600">${highlightMetrics(evidence)}</span>
+            </div>
+          ` : ""}
+          ${reference ? `
+            <div class="flex items-start gap-1.5 text-[10px] pl-4 leading-relaxed mt-0.5">
+              <span class="inline-block shrink-0 px-1 py-0.5 text-[8.5px] font-black text-[#e06612] bg-[#f37321]/10 rounded leading-none">문헌</span>
+              <span class="break-keep font-bold text-[#e06612]">${reference}</span>
+            </div>
+          ` : ""}
         </div>
       `;
     }).join("");
@@ -4435,10 +4459,27 @@ function renderActionTab() {
 
   if (exerciseContainer && exercisePlan) {
     exerciseContainer.innerHTML = exercisePlan.map((plan) => {
+      const text = typeof plan === "object" && plan !== null ? (plan as any).text : plan;
+      const evidence = typeof plan === "object" && plan !== null ? (plan as any).evidence : "";
+      const reference = typeof plan === "object" && plan !== null ? (plan as any).reference : "";
       return `
-        <div class="flex items-start gap-2.5 py-2.5 border-b border-slate-100 last:border-0 hover:bg-slate-50/40 px-2 rounded-xl transition-colors">
-          <div class="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0"></div>
-          <span class="text-xs sm:text-sm text-slate-700 leading-relaxed font-semibold break-keep">${plan}</span>
+        <div class="flex flex-col gap-1.5 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50/40 px-2 rounded-xl transition-colors">
+          <div class="flex items-start gap-2.5">
+            <div class="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0"></div>
+            <span class="text-xs sm:text-sm text-slate-800 leading-relaxed font-semibold break-keep">${highlightMetrics(text)}</span>
+          </div>
+          ${evidence ? `
+            <div class="flex items-start gap-1.5 text-[11px] text-slate-500 pl-4 leading-relaxed mt-0.5">
+              <span class="inline-block shrink-0 px-1 py-0.5 text-[9px] font-black text-slate-600 bg-slate-150 rounded leading-none">사유</span>
+              <span class="break-keep font-medium text-slate-600">${highlightMetrics(evidence)}</span>
+            </div>
+          ` : ""}
+          ${reference ? `
+            <div class="flex items-start gap-1.5 text-[10px] pl-4 leading-relaxed mt-0.5">
+              <span class="inline-block shrink-0 px-1 py-0.5 text-[8.5px] font-black text-indigo-600 bg-indigo-50 rounded leading-none">문헌</span>
+              <span class="break-keep font-bold text-indigo-600">${reference}</span>
+            </div>
+          ` : ""}
         </div>
       `;
     }).join("");
@@ -4446,10 +4487,27 @@ function renderActionTab() {
 
   if (lifestyleContainer && lifestylePlan) {
     lifestyleContainer.innerHTML = lifestylePlan.map((plan) => {
+      const text = typeof plan === "object" && plan !== null ? (plan as any).text : plan;
+      const evidence = typeof plan === "object" && plan !== null ? (plan as any).evidence : "";
+      const reference = typeof plan === "object" && plan !== null ? (plan as any).reference : "";
       return `
-        <div class="flex items-start gap-2.5 py-2.5 border-b border-slate-100 last:border-0 hover:bg-slate-50/40 px-2 rounded-xl transition-colors">
-          <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></div>
-          <span class="text-xs sm:text-sm text-slate-700 leading-relaxed font-semibold break-keep">${plan}</span>
+        <div class="flex flex-col gap-1.5 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50/40 px-2 rounded-xl transition-colors">
+          <div class="flex items-start gap-2.5">
+            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></div>
+            <span class="text-xs sm:text-sm text-slate-800 leading-relaxed font-semibold break-keep">${highlightMetrics(text)}</span>
+          </div>
+          ${evidence ? `
+            <div class="flex items-start gap-1.5 text-[11px] text-slate-500 pl-4 leading-relaxed mt-0.5">
+              <span class="inline-block shrink-0 px-1 py-0.5 text-[9px] font-black text-slate-600 bg-slate-150 rounded leading-none">사유</span>
+              <span class="break-keep font-medium text-slate-600">${highlightMetrics(evidence)}</span>
+            </div>
+          ` : ""}
+          ${reference ? `
+            <div class="flex items-start gap-1.5 text-[10px] pl-4 leading-relaxed mt-0.5">
+              <span class="inline-block shrink-0 px-1 py-0.5 text-[8.5px] font-black text-emerald-600 bg-emerald-50 rounded leading-none">문헌</span>
+              <span class="break-keep font-bold text-emerald-600">${reference}</span>
+            </div>
+          ` : ""}
         </div>
       `;
     }).join("");
