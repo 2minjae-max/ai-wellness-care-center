@@ -64,6 +64,17 @@
       .progress-transition {
         transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       }
+      /* iOS Safari input focus auto-zoom fix (WebKit prevents zoom if computed font-size >= 16px on focus) */
+      @media screen and (max-width: 767px) {
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="tel"]:focus,
+        input[type="email"]:focus,
+        select:focus,
+        textarea:focus {
+          font-size: 16px !important;
+        }
+      }
     </style>
   </head>
   <body id="root-body" class="h-full text-slate-900 antialiased sm:bg-[#111216] sm:flex sm:items-center sm:justify-center sm:min-h-screen sm:overflow-y-auto sm:py-6">
