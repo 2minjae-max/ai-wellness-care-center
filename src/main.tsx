@@ -78,18 +78,15 @@ let existingInsurances: Array<{
   productName: string;   // 가입된 보험 상품명
   status: string;        // 계약 유지 상태 (유지, 실효 등)
   premium: number;       // 매월 납입 중인 보험료
-}> = [
-  { company: "삼성화재", productName: "무배당 삼성 든든 건강보험", status: "유지", premium: 45000 },
-  { company: "메리츠화재", productName: "무배당 메리츠 실손의료보험", status: "유지", premium: 12000 }
-];
+}> = [];
 
 // 가입되어 있는 주요 5대 담보별 기존 보장 한도 금액 (원 단위)
 let existingCoverages: Record<string, number> = {
-  "cov-cancer": 20000000,    // 암 진단비: 2,000만 원 가입 중
-  "cov-brain": 10000000,     // 뇌혈관질환 진단비: 1,000만 원 가입 중
-  "cov-heart": 10000000,     // 허혈성심장질환 진단비: 1,000만 원 가입 중
-  "cov-metabolic": 0,        // 대사성 만성질환 특별보완 특약: 미가입 상태 (0 원)
-  "cov-surgery": 2000000     // 일반 질병 및 다빈도 수술비: 200만 원 가입 중
+  "cov-cancer": 0,    // 암 진단비
+  "cov-brain": 0,     // 뇌혈관질환 진단비
+  "cov-heart": 0,     // 허혈성심장질환 진단비
+  "cov-metabolic": 0, // 대사성 만성질환 특별보완 특약
+  "cov-surgery": 0    // 일반 질병 및 다빈도 수술비
 };
 
 // 결과 분석 데이터 보관
@@ -2363,49 +2360,7 @@ function renderConsultingTab() {
           </p>
         </div>
 
-        <!-- 🛡️ [신규 추가] 기존 보험 가입 요약 카드 목록 -->
-        <div class="bg-slate-50/70 border border-slate-200/60 p-4 sm:p-5 rounded-2xl space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div class="flex items-center gap-2 flex-wrap">
-                    <h4 class="font-black text-slate-800 text-sm sm:text-base flex items-center gap-1.5">
-                        <svg class="w-4.5 h-4.5 text-[#f37321] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                        내 기존 보험 가입 현황 (${existingInsurances.length}건)
-                    </h4>
-                    <!-- 🔄 [실시간 보험 조회 연동] 버튼 배치 -->
-                    <button type="button" id="btn-sync-real-insurance" class="bg-[#353968] hover:bg-[#24274d] text-white rounded-lg px-2 py-1 text-[9.5px] font-bold tracking-tight transition-all cursor-pointer flex items-center gap-1 shadow-3xs">
-                      <svg class="w-3 h-3 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89" />
-                      </svg>
-                      실시간 보험 불러오기
-                    </button>
-                    <!-- ✍️ [내 보험 직접 관리] 버튼 배치 -->
-                    <button type="button" id="btn-manage-insurance-manual" class="bg-slate-600 hover:bg-slate-700 text-white rounded-lg px-2 py-1 text-[9.5px] font-bold tracking-tight transition-all cursor-pointer flex items-center gap-1 shadow-3xs">
-                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                      보험 내역 직접 관리
-                    </button>
-                </div>
-                <span class="text-xs font-bold text-slate-500">기존 납입료 합계: <strong class="text-[#f37321] font-black">${totalExistingPremium.toLocaleString()}원</strong> / 월</span>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                ${existingInsurances.map(ins => `
-                    <div class="bg-white border border-slate-200/80 rounded-xl p-3.5 flex justify-between items-center shadow-3xs hover:border-[#f37321]/30 transition-all">
-                        <div class="space-y-1">
-                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 font-extrabold border border-emerald-100">${ins.status}</span>
-                            <div class="font-bold text-slate-850 text-xs sm:text-xs.5 mt-1">${ins.productName}</div>
-                            <div class="text-[9.5px] text-slate-400 font-medium">${ins.company}</div>
-                        </div>
-                        <div class="text-right shrink-0">
-                            <span class="font-extrabold text-slate-900 text-xs sm:text-sm">${ins.premium.toLocaleString()} 원</span>
-                            <span class="text-[9px] text-slate-400 block mt-0.5">월 보험료</span>
-                        </div>
-                    </div>
-                `).join("")}
-            </div>
-        </div>
+
         
         <!-- Product Box -->
         <div class="bg-[#fffdfb] p-5 rounded-2xl border border-[#f37321]/20 space-y-4.5 relative overflow-hidden">
@@ -2495,6 +2450,129 @@ function renderConsultingTab() {
             </svg>
             산출 및 가입 적정성 근거 보기
           </button>
+        </div>
+
+        <!-- 🛡️ 내 보험 정보와 비교 분석 섹션 -->
+        <div class="mt-8 pt-8 border-t border-slate-200 space-y-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 text-left">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-slate-800">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        <h3 class="font-extrabold text-base sm:text-lg text-slate-900">내 보험 정보와 비교 분석</h3>
+                    </div>
+                    ${existingInsurances.length > 0 ? `
+                        <button type="button" id="btn-sync-my-insurance-retry" class="flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors bg-transparent border-0 cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17" />
+                            </svg>
+                            다시 불러오기
+                        </button>
+                    ` : ""}
+                </div>
+
+                ${existingInsurances.length === 0 ? `
+                    <!-- 불러오기 전 상태 -->
+                    <div class="bg-slate-50/70 border border-slate-150 rounded-2xl p-6 text-center space-y-4 flex flex-col items-center justify-center">
+                        <div class="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="space-y-1 max-w-md mx-auto">
+                            <h4 class="text-sm font-bold text-slate-800">나의 실제 가입 보험 정보를 가져와 비교해 보세요</h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">한국신용정보원(보험다모아) 인증을 통해 현재 가입 중인 보험 상품 및 담보별 한도를 자동으로 가져와 AI 추천 설계서와 1:1로 비교해 드립니다.</p>
+                        </div>
+                        <button type="button" id="btn-sync-my-insurance" class="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-[#353968] hover:from-indigo-700 hover:to-[#24274d] text-white rounded-xl py-3 px-6 font-extrabold text-xs tracking-wide flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                            내 보험 정보 불러오기 (보험다모아)
+                        </button>
+                    </div>
+                ` : `
+                    <!-- 불러온 이후 상태: 추천 담보 vs 가입 담보 대조 분석 -->
+                    <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">
+                        고객님이 보유하신 기가입 보험 계약 내역을 토대로 분석된 <strong>가입 담보 한도</strong>와 AI가 처방한 <strong>추천 담보 한도</strong>의 세부 격차를 비교 분석한 내용입니다.
+                    </p>
+
+                    <div class="border border-slate-200 bg-white rounded-2xl shadow-xs overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-[10.5px]">
+                                    <th class="py-3 px-3 font-black w-[40%]">분석 담보 영역</th>
+                                    <th class="py-3 px-2 text-right font-black w-[20%]">AI 추천한도</th>
+                                    <th class="py-3 px-2 text-right font-black w-[20%]">내가 가입한도</th>
+                                    <th class="py-3 px-3 text-right font-black w-[20%]">과부족 격차</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-xs text-slate-700">
+                                ${
+                                    [
+                                        { name: "암 진단비", rec: cancerCoverageVal, exist: existCancerVal, desc: isFemale ? "여성특화 암 진단비" : "일반암 진단비" },
+                                        { name: "뇌혈관 진단비", rec: brainCoverageVal, exist: existBrainVal, desc: "뇌혈관질환 진단비" },
+                                        { name: "심장질환 진단비", rec: heartCoverageVal, exist: existHeartVal, desc: "허혈성심장질환 진단비" },
+                                        { name: "대사성 만성질환", rec: metabolicCoverageVal, exist: existMetabolicVal, desc: "당뇨/고혈압 등 특별보완" },
+                                        { name: "수술비 보장", rec: surgeryCoverageVal, exist: existSurgeryVal, desc: "일반 질병 및 다빈도 수술비" }
+                                    ].map(item => {
+                                        const gap = item.rec - item.exist;
+                                        const isDeficient = gap > 0;
+                                        const absGap = Math.abs(gap);
+                                        const formattedGap = gap === 0 ? "0원" : (isDeficient ? `-${absGap.toLocaleString()}만원` : `+${absGap.toLocaleString()}만원`);
+                                        const gapClass = gap === 0 ? "text-slate-500 font-semibold" : (isDeficient ? "text-rose-600 font-black" : "text-emerald-600 font-black");
+
+                                        return `
+                                            <tr class="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50 transition-colors">
+                                                <td class="py-3.5 px-3 align-middle">
+                                                    <div class="font-bold text-slate-800 text-xs sm:text-sm leading-snug">${item.name}</div>
+                                                    <div class="text-[9.5px] sm:text-[10px] text-slate-400 mt-0.5 leading-none font-medium">${item.desc}</div>
+                                                </td>
+                                                <td class="py-3.5 px-2 align-middle text-right font-semibold text-slate-700 font-mono">${item.rec.toLocaleString()}만원</td>
+                                                <td class="py-3.5 px-2 align-middle text-right font-semibold text-slate-700 font-mono">${item.exist.toLocaleString()}만원</td>
+                                                <td class="py-3.5 px-3 align-middle text-right ${gapClass} font-mono">
+                                                    <span class="text-[9.5px] font-sans mr-1">${gap === 0 ? '충분' : (isDeficient ? '부족' : '초과')}</span>${formattedGap}
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join("")
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 동기화된 기존 보험 리스트 요약 카드 -->
+                    <div class="space-y-2.5 pt-2">
+                        <h4 class="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                            동기화된 나의 가입 보험 계약 (${existingInsurances.length}건)
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            ${existingInsurances.map(ins => `
+                                <div class="bg-slate-50/70 border border-slate-150 p-3.5 rounded-xl flex items-center justify-between text-left transition-all hover:bg-slate-50">
+                                    <div class="space-y-1">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-[9.5px] px-1.5 py-0.5 rounded-md bg-[#e3e6fc] text-indigo-700 font-extrabold">${ins.status || "유지"}</span>
+                                            <span class="text-[10px] text-slate-400 font-bold">${ins.company}</span>
+                                        </div>
+                                        <div class="text-xs font-bold text-slate-800 truncate max-w-[180px]">${ins.productName}</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs font-black text-slate-900">${ins.premium.toLocaleString()}원</div>
+                                        <div class="text-[9px] text-slate-400 font-medium leading-none">월 보험료</div>
+                                    </div>
+                                </div>
+                            `).join("")}
+                        </div>
+                        <div class="bg-indigo-50/40 border border-indigo-100 rounded-xl p-3.5 mt-2 flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-700">기가입 보험 월 보험료 합산</span>
+                            <span class="text-sm font-black text-indigo-700">${totalExistingPremium.toLocaleString()}원 / 월</span>
+                        </div>
+                    </div>
+                `}
+            </div>
         </div>
         
         <!-- 📂 다른 설계서와 비교 분석 섹션 (독립 하단 섹션으로 분리) -->
@@ -2587,16 +2665,25 @@ function renderConsultingTab() {
     });
   }
 
-  // 실시간 보험 연동 버튼 리스너 바인딩
-  const syncInsuBtn = $("btn-sync-real-insurance");
-  if (syncInsuBtn) {
-    syncInsuBtn.addEventListener("click", () => {
-      // 1. 이름 및 생년월일 존재 여부 검사
+  // 실시간 보험 연동 버튼 리스너 바인딩 (새 비교분석 섹션 내 버튼들)
+  const syncMyInsuBtn = $("btn-sync-my-insurance");
+  if (syncMyInsuBtn) {
+    syncMyInsuBtn.addEventListener("click", () => {
       if (!userName.trim() || !birthDate.trim()) {
         alert("기본 인적사항(이름, 생년월일)이 있어야 기존 보험을 조회할 수 있습니다. 1단계로 이동하여 인풋값을 체크해 주세요.");
         return;
       }
-      // 2. step3Auth 모달 열기 (insurance 모드로 구동)
+      step3Auth.openSyncModal("insurance");
+    });
+  }
+
+  const syncMyInsuRetryBtn = $("btn-sync-my-insurance-retry");
+  if (syncMyInsuRetryBtn) {
+    syncMyInsuRetryBtn.addEventListener("click", () => {
+      if (!userName.trim() || !birthDate.trim()) {
+        alert("기본 인적사항(이름, 생년월일)이 있어야 기존 보험을 조회할 수 있습니다. 1단계로 이동하여 인풋값을 체크해 주세요.");
+        return;
+      }
       step3Auth.openSyncModal("insurance");
     });
   }
