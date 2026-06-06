@@ -2314,12 +2314,12 @@ function renderConsultingTab() {
 
     // 세로형 산수식 디자인 (과하면 초록색, 부족하면 빨간색)
     const gapFormulaHtml = `
-      <div class="flex flex-col items-end text-[10.5px] sm:text-xs font-mono leading-tight select-none">
-        <div class="flex justify-between w-full max-w-[120px] text-slate-500 font-sans"><span class="text-slate-400 font-medium">추천</span> <span>${formattedRecAmount}</span></div>
-        <div class="flex justify-between w-full max-w-[120px] text-slate-500 border-b border-slate-150 pb-0.5 font-sans"><span class="text-slate-400 font-medium">기존</span> <span>-${formattedExistAmount}</span></div>
-        <div class="flex justify-between w-full max-w-[120px] pt-1 font-black ${isDeficient ? 'text-rose-600' : 'text-emerald-600'}">
-          <span class="text-[9.5px] font-sans">${isDeficient ? '부족' : (gapVal === 0 ? '충분' : '초과')}</span>
-          <span>${isDeficient ? '-' : '+'}${formattedGapAmount}</span>
+      <div class="flex flex-col items-end text-[10.5px] sm:text-xs font-mono leading-tight select-none whitespace-nowrap">
+        <div class="flex justify-between w-full max-w-[120px] text-slate-500 font-sans whitespace-nowrap"><span class="text-slate-400 font-medium mr-1 whitespace-nowrap">추천</span> <span class="whitespace-nowrap">${formattedRecAmount}</span></div>
+        <div class="flex justify-between w-full max-w-[120px] text-slate-500 border-b border-slate-150 pb-0.5 font-sans whitespace-nowrap"><span class="text-slate-400 font-medium mr-1 whitespace-nowrap">기존</span> <span class="whitespace-nowrap">-${formattedExistAmount}</span></div>
+        <div class="flex justify-between w-full max-w-[120px] pt-1 font-black ${isDeficient ? 'text-rose-600' : 'text-emerald-600'} whitespace-nowrap">
+          <span class="text-[9.5px] font-sans mr-1 whitespace-nowrap">${isDeficient ? '부족' : (gapVal === 0 ? '충분' : '초과')}</span>
+          <span class="whitespace-nowrap">${isDeficient ? '-' : '+'}${formattedGapAmount}</span>
         </div>
       </div>
     `;
@@ -2407,8 +2407,8 @@ function renderConsultingTab() {
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-[10.5px]">
-                    <th class="py-3 px-3 font-black w-[55%]">담보명 및 분석 근거</th>
-                    <th class="py-3 px-2 text-right font-black w-[28%]">보장 금액 분석 (추천 - 기존)</th>
+                    <th class="py-3 px-3 font-black w-[48%]">담보명 및 분석 근거</th>
+                    <th class="py-3 px-2 text-right font-black w-[35%]">보장 금액 분석 (추천 - 기존)</th>
                     <th class="py-3 px-3 text-right font-black w-[17%]">추천 월보험료</th>
                   </tr>
                 </thead>
@@ -2501,10 +2501,10 @@ function renderConsultingTab() {
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-[10.5px]">
-                                    <th class="py-3 px-3 font-black w-[40%]">분석 담보 영역</th>
-                                    <th class="py-3 px-2 text-right font-black w-[20%]">AI 추천한도</th>
-                                    <th class="py-3 px-2 text-right font-black w-[20%]">내가 가입한도</th>
-                                    <th class="py-3 px-3 text-right font-black w-[20%]">과부족 격차</th>
+                                    <th class="py-3 px-3 font-black w-[34%]">분석 담보 영역</th>
+                                    <th class="py-3 px-2 text-right font-black w-[22%] whitespace-nowrap">AI 추천한도</th>
+                                    <th class="py-3 px-2 text-right font-black w-[22%] whitespace-nowrap">내가 가입한도</th>
+                                    <th class="py-3 px-3 text-right font-black w-[22%] whitespace-nowrap">과부족 격차</th>
                                 </tr>
                             </thead>
                             <tbody class="text-xs text-slate-700">
@@ -2528,10 +2528,10 @@ function renderConsultingTab() {
                                                     <div class="font-bold text-slate-800 text-xs sm:text-sm leading-snug">${item.name}</div>
                                                     <div class="text-[9.5px] sm:text-[10px] text-slate-400 mt-0.5 leading-none font-medium">${item.desc}</div>
                                                 </td>
-                                                <td class="py-3.5 px-2 align-middle text-right font-semibold text-slate-700 font-mono">${item.rec.toLocaleString()}만원</td>
-                                                <td class="py-3.5 px-2 align-middle text-right font-semibold text-slate-700 font-mono">${item.exist.toLocaleString()}만원</td>
-                                                <td class="py-3.5 px-3 align-middle text-right ${gapClass} font-mono">
-                                                    <span class="text-[9.5px] font-sans mr-1">${gap === 0 ? '충분' : (isDeficient ? '부족' : '초과')}</span>${formattedGap}
+                                                <td class="py-3.5 px-2 align-middle text-right font-semibold text-slate-700 font-mono whitespace-nowrap">${item.rec.toLocaleString()}만원</td>
+                                                <td class="py-3.5 px-2 align-middle text-right font-semibold text-slate-700 font-mono whitespace-nowrap">${item.exist.toLocaleString()}만원</td>
+                                                <td class="py-3.5 px-3 align-middle text-right ${gapClass} font-mono whitespace-nowrap">
+                                                    <span class="text-[9.5px] font-sans mr-1 whitespace-nowrap">${gap === 0 ? '충분' : (isDeficient ? '부족' : '초과')}</span><span class="whitespace-nowrap">${formattedGap}</span>
                                                 </td>
                                             </tr>
                                         `;
