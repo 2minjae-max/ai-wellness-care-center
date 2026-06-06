@@ -1979,6 +1979,13 @@ function updateStepView() {
   if (sLoad) sLoad.classList.add("hidden");
   if (sDash) sDash.classList.add("hidden");
 
+  // 스크린 전환 시 스크롤 포커스를 최상단으로 강제 초기화 (상 Sticky 헤더 가림 방지)
+  window.scrollTo(0, 0);
+  const viewport = $("app-viewport");
+  if (viewport) {
+    viewport.scrollTop = 0;
+  }
+
   if (currentStep === "auth") {
     if (sAuth) sAuth.classList.remove("hidden");
   } else if (currentStep === "loading") {
