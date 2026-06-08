@@ -2424,7 +2424,7 @@ function renderConsultingTab() {
         </div>
 
         <!-- 🛡️ 내 보험 정보와 비교 분석 섹션 -->
-        <div class="mt-8 pt-8 border-t border-slate-200 space-y-4">
+        <div class="hidden mt-8 pt-8 border-t border-slate-200 space-y-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 text-left">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2 text-slate-800">
