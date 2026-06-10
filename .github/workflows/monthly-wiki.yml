@@ -29,7 +29,7 @@ jobs:
       - name: Install Puppeteer Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgbm-dev libnss3 libatk-bridge2.0-0 libgtk-3-0 libasound2 libxss1
+          sudo apt-get install -y libgbm-dev libnss3 libatk-bridge2.0-0 libgtk-3-0 libasound2t64 libxss1
 
       - name: Run Knowledge Wiki Update Script
         env:
