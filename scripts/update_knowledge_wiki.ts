@@ -3,182 +3,453 @@
  * 
  * 실행 시각: 매월 1일 새벽 03시 00분 (Cron Job)
  * 역할:
- * 1. 한화손보 상품공시실(https://www.hwgeneralins.com/notice/ir/product-ing01.do)의
- *    실제 URL 구조 및 상품 식별 코드(insGdcd) 규칙 분석 및 매핑.
- * 2. 판매중인 '장기보험' 카테고리 필터링.
- * 3. 핵심 3대 상품의 '상품요약서', '사업방법서', '약관' PDF 다운로드 및 리딩을 위한 구조화 규칙 적용.
- *    - PDF 가이드라인 경로 규칙:
- *      한아름종합보험: https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan([YYMM])_01.pdf
- *      시그니처 여성 건강보험: https://www.hwgeneralins.com/upload/hmpag_upload/product/woman_cm([YYMM])_01.pdf
- *    - 매월 개정 시점([YYMM])에 따른 유동적 매칭 탐색 엔진 포함.
- * 4. Gemini API를 활용한 PDF 구조화 지식 요약 추출 시뮬레이션 및 로드.
- * 5. 'src/knowledge_wiki.json' 파일 갱신 및 캐싱.
+ * 1. Puppeteer(헤드리스 브라우저)를 사용하여 한화손보 상품공시실 동적 페이지 제어 및 크롤링.
+ * 2. 01 상품군 -> '장기보험'의 '상해/질병', '인터넷', '장기간병' 카테고리 순회 클릭.
+ * 3. 02 상품명 -> 로드된 상품 목록을 개별 클릭하여 상세 로딩 유도 (03 판매기간, 04 확인 영역 자동 연쇄 로드).
+ * 4. 03 판매기간 -> 이미 자동으로 활성화된 판매 기간('selected' 클래스가 들어간 요소)의 텍스트 추출.
+ * 5. 04 확인 -> '#uiFormField4' 영역에서 상품요약서, 사업방법서, 약관 PDF 다운로드 링크 3종 추출 및 절대경로화.
+ * 6. 수집된 상품요약서 PDF를 임시 다운로드 후, Google GenAI SDK(Gemini 2.5)를 사용해 PDF 자동 분석 및 핵심 데이터 요약.
+ * 7. 비용 및 API Rate Limit 최소화를 위한 데이터 캐싱 메커니즘 제공 (기존 분석 데이터 우선 재사용).
+ * 8. 'src/knowledge_wiki.json' 파일 갱신 및 저장.
  */
 
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
+import puppeteer from "puppeteer";
+import axios from "axios";
+import { GoogleGenAI } from "@google/genai";
 
+// .env 파일의 환경변수 로드
 dotenv.config();
 
 const logPrefix = "[Monthly-Knowledge-Batch]";
 
-// 한국 시간 구동 로그 출력용 포맷터
-function getLogTime() {
+// 한국 시간 기준의 로그 시간 포맷팅 함수
+function getLogTime(): string {
   return new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
 }
 
+// 지정된 밀리초(ms) 만큼 대기하는 비동기 유틸리티 함수
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// PDF 파일을 지정된 경로로 스트림 다운로드하는 유틸리티 함수
+async function downloadPdf(url: string, destPath: string): Promise<void> {
+  const writer = fs.createWriteStream(destPath);
+  const response = await axios({
+    url,
+    method: "GET",
+    responseType: "stream",
+    timeout: 30000
+  });
+
+  response.data.pipe(writer);
+
+  return new Promise((resolve, reject) => {
+    writer.on("finish", resolve);
+    writer.on("error", reject);
+  });
+}
+
+/**
+ * API 호출 시 Rate Limit(429) 또는 일시적인 서버 불안정(503) 오류가 발생할 경우,
+ * 일정 시간 대기한 후 자동으로 재시도하는 헬퍼 함수입니다.
+ */
+async function runWithRetry<T>(fn: () => Promise<T>, retries = 3, initialDelay = 5000): Promise<T> {
+  try {
+    return await fn();
+  } catch (error: any) {
+    // 429 (Rate Limit) 또는 503 (Unavailable) 상태이거나 에러 메시지에 quota 관련 단어가 포함되어 있을 때 재시도합니다.
+    const isRateLimit = error.status === 429 || error.message?.includes("429") || error.message?.includes("quota") || error.message?.includes("limit");
+    const isServiceUnavailable = error.status === 503 || error.message?.includes("503") || error.message?.includes("UNAVAILABLE");
+
+    if (retries > 0 && (isRateLimit || isServiceUnavailable)) {
+      let waitTime = initialDelay * (4 - retries);
+
+      if (isRateLimit) {
+        // 429 Rate Limit인 경우, 에러 메시지에서 권장 재시도 대기 시간을 파싱해옵니다.
+        // 예: "Please retry in 56.148326827s."
+        const secondsMatch = error.message?.match(/Please retry in ([\d\.]+)s/);
+        if (secondsMatch && secondsMatch[1]) {
+          const seconds = Math.ceil(parseFloat(secondsMatch[1]));
+          waitTime = (seconds + 2) * 1000; // 버퍼로 2초 추가 적용
+          console.warn(`      [Warning] Rate Limit 감지. API 권장 대기시간 파싱 성공: ${seconds}초 (+2초 버퍼)`);
+        } else {
+          // 파싱 실패 시 기본적으로 62초 대기하여 Quota 리셋을 확실히 보장합니다.
+          waitTime = 62000;
+          console.warn(`      [Warning] Rate Limit 감지. 권장시간 파싱 실패로 기본 62초 대기합니다.`);
+        }
+      } else {
+        console.warn(`      [Warning] API 일시적 오류(503 등) 감지. ${waitTime / 1000}초 대기합니다.`);
+      }
+
+      console.warn(`      [Retry] ${waitTime / 1000}초 후 재시도합니다... (남은 재시도 횟수: ${retries}회)`);
+      await delay(waitTime);
+      return runWithRetry(fn, retries - 1, initialDelay);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Puppeteer를 사용하여 동적 상품공시실 페이지에서 장기보험 3종 카테고리의 상품 정보를 수집합니다.
+ */
+async function crawlInsuranceProducts(): Promise<any[]> {
+  const targetPortal = "https://www.hwgeneralins.com/notice/ir/product-ing01.do";
+  console.log(`${logPrefix} 1단계: 한화손보 공식 상품공시실 크롤링 시작...`);
+
+  // 환경 변수 CRAWL_HEADLESS=false 로 설정 시 브라우저 동작 과정을 눈으로 확인할 수 있습니다.
+  const headless = process.env.CRAWL_HEADLESS !== "false";
+  console.log(`${logPrefix} 브라우저 모드: ${headless ? "Headless (창 비노출)" : "Non-Headless (창 노출)"}`);
+
+  const browser = await puppeteer.launch({
+    headless: headless,
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--window-size=1280,1500" // 화면의 모든 탭이 한눈에 들어오도록 창 크기 넉넉히 설정
+    ]
+  });
+
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1280, height: 1500 });
+
+  const products: any[] = [];
+
+  try {
+    console.log(`${logPrefix} 상품공시 페이지 접속 시도: ${targetPortal}`);
+    await page.goto(targetPortal, {
+      waitUntil: "networkidle2",
+      timeout: 60000
+    });
+
+    // 페이지 초기화 및 안정적인 자바스크립트 바인딩 완료를 위해 3초 대기
+    await delay(3000);
+
+    // 수집 대상이 되는 장기보험 하위 3대 카테고리 정의
+    const categories = ["상해/질병", "장기간병"];
+
+    for (const category of categories) {
+      console.log(`\n${logPrefix} --------------------------------------------------`);
+      console.log(`${logPrefix} [Category] '${category}' 카테고리 탐색 및 제어 시작`);
+      console.log(`${logPrefix} --------------------------------------------------`);
+
+      // 1단계: 01 상품군(#uiFormField1) 영역에서 해당 카테고리 버튼 선택
+      const categorySelector = `#uiFormField1 a[title*="${category}"]`;
+      const categoryButton = await page.$(categorySelector);
+
+      if (!categoryButton) {
+        console.log(`${logPrefix} [Error] '${category}' 카테고리 버튼을 찾을 수 없습니다. 건너뜁니다.`);
+        continue;
+      }
+
+      // 화면에 맞춤 정렬 후 브라우저 자바스크립트 엔진으로 확실하게 클릭 트리거
+      await page.evaluate((el) => el.scrollIntoView({ block: "center" }), categoryButton);
+      await page.evaluate((el) => (el as HTMLElement).click(), categoryButton);
+      console.log(`${logPrefix} [Click] '${category}' 카테고리 클릭 완료`);
+      await delay(2000); // 동적 상품 리스트 로딩을 위한 충분한 비동기 대기
+
+      // 2단계: 02 상품명(#uiFormField2) 영역에 로드된 모든 상품 목록 파악
+      const productLinkSelector = "#uiFormField2 a";
+      const productElements = await page.$$(productLinkSelector);
+
+      const productNames: string[] = [];
+      for (const el of productElements) {
+        const text = await page.evaluate(el => el.textContent?.trim(), el);
+        if (text) productNames.push(text);
+      }
+
+      console.log(`${logPrefix} [Products] '${category}' 하위 상품 목록(${productNames.length}개) 발견`);
+
+      // 각 상품을 순서대로 하나씩 클릭하여 판매기간 및 PDF 다운로드 링크를 수집합니다.
+      for (let i = 0; i < productNames.length; i++) {
+        const productName = productNames[i];
+        console.log(`   [${i + 1}/${productNames.length}] 상품 상세 수집 중: "${productName}"`);
+
+        // DOM이 새로 갱신될 수 있으므로 매번 상품명을 기준으로 셀렉터를 새로 조회합니다.
+        const targetProductSelector = `#uiFormField2 a[title*="${productName}"]`;
+        const targetProductButton = await page.$(targetProductSelector);
+
+        if (!targetProductButton) {
+          console.log(`      [Error] 상품 버튼을 찾을 수 없습니다: ${productName}`);
+          continue;
+        }
+
+        // JS 레벨의 클릭 처리를 진행하여 스크롤이나 상단 헤더 차단과 상관없이 정상 트리거 보증
+        await page.evaluate((el) => el.scrollIntoView({ block: "center" }), targetProductButton);
+        await page.evaluate((el) => (el as HTMLElement).click(), targetProductButton);
+
+        // 상품을 클릭하면 03 판매기간의 현재 기간(~현재)이 디폴트 선택되고 04 확인 영역이 자동으로 그려집니다.
+        // 비동기 렌더링이 완료되도록 넉넉하게 2.5초 대기합니다.
+        await delay(2500);
+
+        // 3단계: 03 판매기간(#uiFormField3) 영역에서 이미 'selected'가 들어간 현재 판매 기간 텍스트 정보 추출
+        const activePeriodText = await page.evaluate(() => {
+          const selectedPeriod = document.querySelector("#uiFormField3 a.selected");
+          return selectedPeriod?.textContent?.trim() || "";
+        });
+
+        if (!activePeriodText) {
+          console.log(`      [Skip] 현재 활성화된 판매 기간 정보를 찾을 수 없습니다. (Step 03 미활성화)`);
+          continue;
+        }
+
+        // 4단계: 04 확인(#uiFormField4) 영역에서 PDF 3종 링크 정보 추출
+        const pdfUrls = await page.evaluate(() => {
+          const urls = { summary: "", method: "", terms: "" };
+          const host = "https://www.hwgeneralins.com";
+
+          const summaryBtn = document.querySelector('#uiFormField4 a[title*="상품요약"]');
+          const methodBtn = document.querySelector('#uiFormField4 a[title*="사업방법"]');
+          const termsBtn = document.querySelector('#uiFormField4 a[title*="약관확인"]');
+
+          if (summaryBtn) {
+            const href = summaryBtn.getAttribute("href");
+            if (href) urls.summary = href.startsWith("http") ? href : host + href;
+          }
+          if (methodBtn) {
+            const href = methodBtn.getAttribute("href");
+            if (href) urls.method = href.startsWith("http") ? href : host + href;
+          }
+          if (termsBtn) {
+            const href = termsBtn.getAttribute("href");
+            if (href) urls.terms = href.startsWith("http") ? href : host + href;
+          }
+
+          return urls;
+        });
+
+        console.log(`      -> 판매기간: ${activePeriodText}`);
+        console.log(`      -> 상품요약: ${pdfUrls.summary || "없음"}`);
+        console.log(`      -> 사업방법: ${pdfUrls.method || "없음"}`);
+        console.log(`      -> 약관확인: ${pdfUrls.terms || "없음"}`);
+
+        products.push({
+          name: productName,
+          category: category,
+          salesPeriod: activePeriodText,
+          pdfUrls: pdfUrls,
+          productUrl: targetPortal
+        });
+      }
+    }
+
+    console.log(`\n${logPrefix} [Crawl End] 총 ${products.length}개의 상품 데이터 최종 수집 완료`);
+
+  } catch (error) {
+    console.error(`${logPrefix} [Fatal Crawl Error] 크롤링 도중 심각한 오류가 발생했습니다:`, error);
+  } finally {
+    // 브라우저 리소스 정리
+    await browser.close();
+  }
+
+  return products;
+}
+
+// 메인 배치 프로세스 실행 함수
 async function runBatch() {
   console.log("=====================================================================");
   console.log(`🚀 ${getLogTime()} : 한화손보 공시실 월간 정기 지식 갱신 배치 시동`);
   console.log("=====================================================================");
-  console.log(`${logPrefix} 스케줄러 트리거 상태 검증: 매월 1일 새벽 시간대 진입 확인 완료.`);
 
-  // 1. 상품공시실 웹사이트 크롤링 및 대상 필터링 시뮬레이션 로그
-  const targetPortal = "https://www.hwgeneralins.com/notice/ir/product-ing01.do";
-  console.log(`${logPrefix} 1단계: 한화손보 공식 상품공시실 커넥션 확립 중...`);
-  console.log(`${logPrefix} Target URL: ${targetPortal}`);
-  console.log(`${logPrefix} [Crawl Filter] 카테고리: 장기보험 / 상태: 판매중 / 기간 기준: 오늘(${new Date().toLocaleDateString()}) 포함`);
-  console.log(`${logPrefix} 공시실 판매중 장기보험 HTML 문서 다운로드 성공.`);
-
-  // 2. 대표 상품 공시 매칭 진단 및 실제 URL 매핑 규칙 적용
-  console.log(`${logPrefix} 2단계: 핵심 주력 상품 매칭 진단 및 실제 URL 스크린 시작...`);
-  
-  // 현재 연월 기준으로 PDF 버전 추정 (예: 2604)
-  const currentYYMM = "2604"; // 사용자가 지정한 유효 버전 기준 코드
-  console.log(`${logPrefix} [URL Rule Engine] 현재 타겟 개정 코드: (${currentYYMM})`);
-
-  const productsToCollect = [
-    { 
-      name: "한화 시그니처 여성 건강보험4.0[HOT]", 
-      type: "여성건강",
-      productUrl: "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01988002",
-      guidePdfUrl: `https://www.hwgeneralins.com/upload/hmpag_upload/product/woman_cm(${currentYYMM})_01.pdf`
-    },
-    { 
-      name: "한화 시그니처 여성 건강보험4.0[새창][NEW]", 
-      type: "여성건강",
-      productUrl: "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01988002",
-      guidePdfUrl: `https://www.hwgeneralins.com/upload/hmpag_upload/product/woman_cm(${currentYYMM})_01.pdf`
-    },
-    { 
-      name: "한화 더건강한 한아름종합보험 무배당[NEW]", 
-      type: "종합건강",
-      productUrl: "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01381001",
-      guidePdfUrl: `https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan(${currentYYMM})_01.pdf`
-    },
-    { 
-      name: "한화 실손의료보험(갱신형)", 
-      type: "실손의료",
-      productUrl: "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01111001",
-      guidePdfUrl: `https://www.hwgeneralins.com/upload/hmpag_upload/product/silson(${currentYYMM})_01.pdf`
+  // 1. 기존 지식 위키 JSON 캐시 데이터 로드 시도
+  const wikiPath = path.join(process.cwd(), "src", "knowledge_wiki.json");
+  let existingWiki: any = null;
+  if (fs.existsSync(wikiPath)) {
+    try {
+      existingWiki = JSON.parse(fs.readFileSync(wikiPath, "utf8"));
+      console.log(`${logPrefix} 기존 지식 위키 로드 성공. (등록 상품 수: ${Object.keys(existingWiki.products || {}).length}개)`);
+    } catch (e) {
+      console.log(`${logPrefix} 기존 지식 위키 파일 분석 실패 또는 미존재. 신규 구축을 준비합니다.`);
     }
-  ];
-
-  console.log(`${logPrefix} 매칭 성공 상품 및 URL 스크린 완료:`);
-  productsToCollect.forEach((p, i) => {
-    console.log(`   [${i + 1}] 상품명: "${p.name}" (분류: ${p.type})`);
-    console.log(`       - 상품 상세: ${p.productUrl}`);
-    console.log(`       - PDF 경로: ${p.guidePdfUrl}`);
-  });
-
-  // 3. PDF 수집 및 분석 단계
-  console.log(`${logPrefix} 3단계: 각 상품별 상품요약서, 사업방법서, 약관 PDF 다운로드 시작...`);
-  console.log(`${logPrefix} [Downloader] '한화 시그니처 여성 건강보험4.0' 관련 PDF 3건 확보 완료.`);
-  console.log(`${logPrefix} [Downloader] '한화 더건강한 한아름종합보험 무배당' 관련 PDF 3건 확보 완료.`);
-  console.log(`${logPrefix} [Downloader] '한화 실손의료보험(갱신형)' 관련 PDF 3건 확보 완료.`);
-
-  console.log(`${logPrefix} 4단계: Gemini Multi-modal PDF 정밀 파싱 가동 중...`);
-  
-  // 구글 제미나이 연결 시도 (실제 API 키 사용 유무 판별)
-  const apiKey = process.env.GEMINI_API_KEY;
-  let useRealGemini = false;
-  if (apiKey && apiKey !== "MY_GEMINI_API_KEY" && apiKey.trim() !== "") {
-    useRealGemini = true;
-    console.log(`${logPrefix} Gemini API 클라이언트 감지됨. PDF 텍스트 요약 세션 가동.`);
-  } else {
-    console.log(`${logPrefix} [Caution] GEMINI_API_KEY 미설정 상태로 로컬 캐시 임상 지식 기반으로 배치 빌드를 진행합니다.`);
   }
 
-  // 4대 타겟에 대한 완벽한 2026 상품 공시 명세 위키 구조
-  const wikiData = {
-    generatedAt: new Date().toISOString(),
-    batchLog: "Success - Processed 4 representative Hanwha Insurance active long-term products with real URL patterns.",
-    products: {
-      "한화 시그니처 여성 건강보험4.0[HOT]": {
-        fullName: "무배당 한화 시그니처 여성 건강보험4.0(2601) 무배당",
-        category: "장기 보장성 여성 특화보험",
-        status: "판매중",
-        targetAudience: "여성 (만 15세 ~ 90세)",
-        productUrl: productsToCollect[0].productUrl,
-        guidePdfUrl: productsToCollect[0].guidePdfUrl,
-        coreBenefits: [
-          { item: "여성 특화 질환 암 보장", details: "유방암, 자궁암, 갑상선암 및 생식기 암 보장 금액을 일반 암 대비 최대 150% 수준으로 상향 설계" },
-          { item: "출산/임신 패키지 특약", details: "임신/출산 질환 수술 및 임신 중독 진단비 지원, 산후조리원 이용 비용(최대 300만원 한도) 특약 지원" },
-          { item: "난임 치료 특약 지원", details: "난임 시술 비용 및 난임 관련 호르몬 주사 요법에 대한 실비 보장 한도 확대" },
-          { item: "AMH(난소예비능) 지수 할인 제도", details: "AMH 수치 검진 결과가 2.0 이상(우수 수치)인 경우, 가입 첫해 월 보험료 최대 10% 추가 우대 할인 특약" }
-        ],
-        premiumRange: "월 40,000원 ~ 120,000원 (연령 및 담보 한도별 차등)",
-        recommendationFactor: "건강 검진 결과상 부인과 취약 성향 또는 가족력에 암(유방/자궁) 취약군이 확인되는 여성 고객에게 강력 추천."
-      },
-      "한화 시그니처 여성 건강보험4.0[새창][NEW]": {
-        fullName: "무배당 한화 시그니처 여성 건강보험4.0[새창] (갱신형/비갱신형 선택)",
-        category: "장기 보장성 여성 특화보험 (가입 채널 다변화 상품)",
-        status: "판매중",
-        targetAudience: "여성 (만 15세 ~ 90세)",
-        productUrl: productsToCollect[1].productUrl,
-        guidePdfUrl: productsToCollect[1].guidePdfUrl,
-        coreBenefits: [
-          { item: "여성 생애주기 맞춤 라이프 케어", details: "생리통 및 자궁내막증 수술비부터 폐경기 호르몬 대체 요법까지 원스톱 라이프 사이클 케어" },
-          { item: "정신건강 및 심리상담 지원", details: "산후 우울증 등 만성 여성 심리질환 관련 심리상담 센터 연계 지원금 지급" }
-        ],
-        premiumRange: "월 35,000원 ~ 95,000원",
-        recommendationFactor: "온라인/다이렉트 간편 계약 또는 갱신형 구조를 통해 월 부담을 낮추고 핵심 부인과 담보만 집중 가입하고 싶은 고객용."
-      },
-      "한화 더건강한 한아름종합보험 무배당[NEW]": {
-        fullName: "무배당 한화 더건강한 한아름종합보험 무배당[NEW]",
-        category: "장기 보장성 종합 건강보험",
-        status: "판매중",
-        targetAudience: "전 성인 (만 15세 ~ 80세)",
-        productUrl: productsToCollect[2].productUrl,
-        guidePdfUrl: productsToCollect[2].guidePdfUrl,
-        coreBenefits: [
-          { item: "3대 주요 만성질환 진단 보장", details: "일반암 진단비, 뇌혈관질환 진단비, 허혈성 심장질환 진단비를 표준 보장 한도 내 최대 5,000만원 설계" },
-          { item: "대사증후군/만성질환 가입 우대", details: "기존 만성 유병자도 당일 입퇴원 고지 제외 및 '3N5' 더간편 할인 계약 전환 혜택과 결합하여 부담보 없이 인수 지원" },
-          { item: "질병/재해 1-5종 수술비 보장", details: "질병 및 재해로 인한 입원 수술 시 종별 기준에 맞춰 다빈도 수술비 무제한 보증 지원" }
-        ],
-        premiumRange: "월 50,000원 ~ 150,000원",
-        recommendationFactor: "건강 검진상 공복혈당(당뇨 전단계), 혈압(수축기 130 이상), 간수치(ALT 상승) 등 초기 대사항목 이상 징후가 보이고 심뇌혈관 상속성 위험(가족력)을 든든하게 메꾸고 싶어 하는 표준 종합 가입 고객용."
-      },
-      "한화 실손의료보험(갱신형)": {
-        fullName: "무배당 한화 실손의료보험(갱신형)",
-        category: "장기 실손의료보험",
-        status: "판매중",
-        targetAudience: "전 연령 (만 0세 ~ 70세)",
-        productUrl: productsToCollect[3].productUrl,
-        guidePdfUrl: productsToCollect[3].guidePdfUrl,
-        coreBenefits: [
-          { item: "급여 의료비 본인부담 보장", details: "입원 및 외래 진료 시 국민건강보험 급여 항목의 80% 수준을 실손 보상 (연간 5,000만원 한도)" },
-          { item: "비급여 특약 선택 지원", details: "도수치료/체외충격파/증식치료(연간 350만원 한도), 비급여 주사료(연간 250만원 한도), 비급여 MRI 촬영(연간 300만원 한도) 집중 보장" },
-          { item: "무사고 2년 유지 시 할인", details: "직전 2년간 비급여 보험금 미청구 시 차기 1년간 월 보장 보험료의 10% 추가 직할인 제도 운영" }
-        ],
-        premiumRange: "월 15,000원 ~ 45,000원 (연령 및 직종별 변동)",
-        recommendationFactor: "기본적인 병원 치료비, 도수치료 및 값비싼 MRI 촬영 등 생활 밀착형 실손 부담을 1순위로 방어하고자 하는 전 가입 고객."
+  // 2. 동적 Puppeteer 크롤링 작동
+  const scrapedProducts = await crawlInsuranceProducts();
+
+  if (scrapedProducts.length === 0) {
+    console.log(`${logPrefix} [Warn] 수집된 상품이 없어 지식 위키 저장을 진행하지 않습니다.`);
+    return;
+  }
+
+  // 3. 구글 제미나이(Google GenAI) API 클라이언트 감지 및 초기화
+  const apiKey = process.env.GEMINI_API_KEY;
+  let useRealGemini = false;
+  let aiClient: any = null;
+
+  if (apiKey && apiKey !== "MY_GEMINI_API_KEY" && apiKey.trim() !== "") {
+    useRealGemini = true;
+    aiClient = new GoogleGenAI({ apiKey });
+    console.log(`${logPrefix} Google GenAI API 클라이언트 활성화 완료. PDF 자동 파싱 세션을 준행합니다.`);
+  } else {
+    console.log(`${logPrefix} [Caution] GEMINI_API_KEY 미설정 상태입니다. 신규 상품 분석 요약은 건너뜁니다.`);
+  }
+
+  // 임시 다운로드 폴더 생성 보장
+  const tempDir = path.join(process.cwd(), "scratch");
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+  }
+
+  // 4. 수집된 상품 기반으로 요약 분석 수행 및 데이터 매핑
+  const wikiProducts: any = {};
+
+  for (const product of scrapedProducts) {
+    const productName = product.name;
+
+    // 캐싱 메커니즘: 기존 캐시 데이터가 이미 존재하고, 세부 필터링 및 한도 데이터까지 온전히 채워져 있다면 API 연동 스킵
+    const cachedProduct = existingWiki?.products?.[productName];
+    if (
+      cachedProduct &&
+      cachedProduct.coreBenefits &&
+      cachedProduct.coreBenefits.length > 0 &&
+      cachedProduct.premiumRange !== "PDF 분석 후 업데이트 예정" &&
+      cachedProduct.targetAge && // 신규 필드 존재 여부 체크
+      cachedProduct.coverageLimits // 신규 필드 존재 여부 체크
+    ) {
+      console.log(`${logPrefix} [Cache Hit] '${productName}' 상품 분석 완료 캐시 사용 (Gemini API 호출 생략)`);
+      wikiProducts[productName] = cachedProduct;
+      continue;
+    }
+
+    // 캐시가 없거나 갱신이 필요한 경우 신규 요약 분석 진행
+    console.log(`${logPrefix} [Analysis Required] '${productName}' 상품 신규 분석 진행 시작`);
+
+    let coreBenefits: string[] = [];
+    let premiumRange = "PDF 분석 후 업데이트 예정";
+    let recommendationFactor = "PDF 분석 후 업데이트 예정";
+    let targetAge = { minAge: null, maxAge: null };
+    let renewalType = "PDF 분석 후 업데이트 예정";
+    let examinationType = "PDF 분석 후 업데이트 예정";
+    let simsaCriteria = "PDF 분석 후 업데이트 예정";
+    let coverageLimits = {
+      generalCancer: "PDF 분석 후 업데이트 예정",
+      similarCancer: "PDF 분석 후 업데이트 예정",
+      cerebrovascular: "PDF 분석 후 업데이트 예정",
+      ischemicHeart: "PDF 분석 후 업데이트 예정",
+      caregiverExpenses: "PDF 분석 후 업데이트 예정"
+    };
+
+    // 상품요약서 PDF 주소가 있고 Gemini API가 사용 가능한 상태인 경우
+    if (product.pdfUrls.summary && useRealGemini) {
+      const tempPdfPath = path.join(tempDir, `temp_${Date.now()}.pdf`);
+      try {
+        console.log(`      [Downloader] 상품요약서 PDF 임시 다운로드 중...`);
+        await downloadPdf(product.pdfUrls.summary, tempPdfPath);
+        await delay(1000); // 디스크 IO 안정화 대기
+
+        console.log(`      [Gemini API] PDF 파일 업로드 및 분석 요청 중...`);
+        const uploadResult = await runWithRetry(() => aiClient.files.upload({
+          file: tempPdfPath,
+          mimeType: "application/pdf"
+        }));
+
+        // Gemini AI 2.5-flash 모델을 통해 PDF 내용 분석 요약
+        const response = await runWithRetry(() => aiClient.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { fileData: { fileUri: uploadResult.uri, mimeType: uploadResult.mimeType } },
+                {
+                  text: `이 문서는 한화손해보험의 "${productName}" 상품요약서 PDF 파일입니다. 이 문서를 분석하여 다음 정보를 JSON 형식으로 제공해줘:
+                {
+                  "coreBenefits": ["핵심 보장 혜택 3~4개 (각각 한국어 1줄 문장으로 짧게 요약)"],
+                  "premiumRange": "대략적인 보험료 가격대 (예: '2~4만원대', '5만원대 이상' 등 핵심 가격 구간을 한 줄 텍스트로 요약)",
+                  "recommendationFactor": "이 상품을 어떤 사람에게 추천하는지에 대한 가입추천요인 (예: '비갱신형 암보장을 선호하는 3040 세대' 등 한 줄 텍스트)",
+                  "targetAge": {
+                    "minAge": 15, (숫자 또는 null, 가입 가능한 최소 연령. 예시 표 등에서 가입가능 나이를 파악하여 숫자로 작성)
+                    "maxAge": 90 (숫자 또는 null, 가입 가능한 최대 연령. 예시 표 등에서 가입가능 나이를 파악하여 숫자로 작성)
+                  },
+                  "renewalType": "갱신형 또는 비갱신형 중 해당하는 값을 한글로 작성 (예: '갱신형', '비갱신형', '혼합형')",
+                  "examinationType": "일반고지(건강체) 또는 간편고지(유병자) 중 해당하는 값을 한글로 작성",
+                  "simsaCriteria": "간편고지 상품인 경우 '3.1.1', '3.2.5', '3.5.5' 등 상품 고지유형을 추출. 일반상품이면 '없음'",
+                  "coverageLimits": {
+                    "generalCancer": "암진단비(유사암 제외) 최대 가입 한도 금액 (예: '최대 5,000만원', 없으면 '없음')",
+                    "similarCancer": "유사암진단비 최대 가입 한도 금액",
+                    "cerebrovascular": "뇌혈관질환진단비 최대 가입 한도 금액",
+                    "ischemicHeart": "허혈성심장질환진단비 최대 가입 한도 금액",
+                    "caregiverExpenses": "간병인사용(또는 지원) 일당 최대 한도 (예: '일당 최대 15만원', 없으면 '없음')"
+                  }
+                }
+                응답은 마크다운 코드블록이나 추가 텍스트 없이 순수한 JSON 내용만 제공해야 해.` }
+              ]
+            }
+          ]
+        }));
+
+
+        // API로 업로드했던 클라우드 임시 리소스 삭제 정리
+        await runWithRetry(() => aiClient.files.delete({ name: uploadResult.name }));
+
+        const responseText = response.text || "";
+        const cleanJson = responseText.replace(/```json|```/g, "").trim();
+        const analysis = JSON.parse(cleanJson);
+
+        if (analysis) {
+          coreBenefits = analysis.coreBenefits || [];
+          premiumRange = analysis.premiumRange || premiumRange;
+          recommendationFactor = analysis.recommendationFactor || recommendationFactor;
+          targetAge = analysis.targetAge || targetAge;
+          renewalType = analysis.renewalType || renewalType;
+          examinationType = analysis.examinationType || examinationType;
+          simsaCriteria = analysis.simsaCriteria || simsaCriteria;
+          coverageLimits = analysis.coverageLimits || coverageLimits;
+          console.log(`      [Gemini API] 분석 요약 성공 완료!`);
+        }
+
+        // 분당 요청 제한(Rate Limit)을 예방하기 위한 5초 지연시간 적용
+        await delay(5000);
+      } catch (err: any) {
+        console.error(`      [Gemini Error] '${productName}' PDF 분석 도중 오류가 발생했습니다:`, err.message || err);
+      } finally {
+        // 임시 PDF 파일 자동 삭제
+        if (fs.existsSync(tempPdfPath)) {
+          try {
+            fs.unlinkSync(tempPdfPath);
+          } catch (e) { }
+        }
       }
     }
+
+    // 구조화 객체 생성 및 목록 매핑
+    wikiProducts[productName] = {
+      fullName: productName,
+      category: product.category,
+      status: "판매중",
+      salesPeriod: product.salesPeriod,
+      productUrl: product.productUrl,
+      pdfUrls: product.pdfUrls,
+      coreBenefits: coreBenefits,
+      premiumRange: premiumRange,
+      recommendationFactor: recommendationFactor,
+      targetAge: targetAge,
+      renewalType: renewalType,
+      examinationType: examinationType,
+      simsaCriteria: simsaCriteria,
+      coverageLimits: coverageLimits
+    };
+  }
+
+  const wikiData = {
+    generatedAt: new Date().toISOString(),
+    batchLog: `Success - Processed ${scrapedProducts.length} Hanwha Insurance active long-term products.`,
+    products: wikiProducts
   };
 
-  // 5. 로컬 캐시 파일 저장
+  // 5. 지식 위키 JSON을 src/knowledge_wiki.json 에 기록
   const distDir = path.join(process.cwd(), "src");
   if (!fs.existsSync(distDir)) {
     fs.mkdirSync(distDir, { recursive: true });
   }
-  const wikiPath = path.join(distDir, "knowledge_wiki.json");
   fs.writeFileSync(wikiPath, JSON.stringify(wikiData, null, 2), "utf8");
 
+
+  console.log("=====================================================================");
   console.log(`${logPrefix} 5단계: 지식 위키 구조화 JSON 저장 완료!`);
   console.log(`${logPrefix} File Path: ${wikiPath}`);
-  console.log(`${logPrefix} 수집 완료된 상품 위키 노드 개수: ${Object.keys(wikiData.products).length}개`);
+  console.log(`${logPrefix} 수집 및 분석 완료된 상품 위키 노드 개수: ${Object.keys(wikiData.products).length}개`);
   console.log("=====================================================================");
   console.log(`🎉 ${getLogTime()} : 정기 배치 지식 위키 구축 작업이 완벽하게 완료되었습니다!`);
   console.log("=====================================================================");

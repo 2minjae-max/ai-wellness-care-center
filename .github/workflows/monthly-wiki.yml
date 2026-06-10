@@ -25,6 +25,12 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      # 리눅스(Ubuntu) 환경에서 크롤러(Puppeteer)가 원활하게 작동하도록 필수 그래픽/보안 시스템 패키지 설치
+      - name: Install Puppeteer Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgbm-dev libnss3 libatk-bridge2.0-0 libgtk-3-0 libasound2 libxss1
+
       - name: Run Knowledge Wiki Update Script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
