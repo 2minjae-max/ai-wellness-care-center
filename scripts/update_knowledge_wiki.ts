@@ -55,7 +55,7 @@ async function downloadPdf(url: string, destPath: string): Promise<void> {
  * API 호출 시 Rate Limit(429) 또는 일시적인 서버 불안정(503) 오류가 발생할 경우,
  * 일정 시간 대기한 후 자동으로 재시도하는 헬퍼 함수입니다.
  */
-async function runWithRetry<T>(fn: () => Promise<T>, retries = 3, initialDelay = 5000): Promise<T> {
+async function runWithRetry<T>(fn: () => Promise<T>, retries = 5, initialDelay = 5000): Promise<T> {
   try {
     return await fn();
   } catch (error: any) {
@@ -338,13 +338,15 @@ async function runBatch() {
         await downloadPdf(product.pdfUrls.summary, tempPdfPath);
         await delay(1000); // 디스크 IO 안정화 대기
 
-        console.log(`      [Gemini API] PDF 파일 업로드 및 분석 요청 중...`);
+        console.log(`      [Gemini API] PDF 파일 업로드 요청 중...`);
         const uploadResult = await runWithRetry(() => aiClient.files.upload({
           file: tempPdfPath,
           mimeType: "application/pdf"
         }));
+        await delay(5000); // 1. 업로드 성공 후 API 서버 부하 분산을 위한 5초 대기
 
         // Gemini AI 2.5-flash 모델을 통해 PDF 내용 분석 요약
+        console.log(`      [Gemini API] PDF 내용 분석 및 요약 요청 중...`);
         const response = await runWithRetry(() => aiClient.models.generateContent({
           model: "gemini-2.5-flash",
           contents: [
@@ -378,9 +380,10 @@ async function runBatch() {
             }
           ]
         }));
-
+        await delay(5000); // 2. 요약 성공 후 다음 동작 전 API 서버 부하 분산을 위한 5초 대기
 
         // API로 업로드했던 클라우드 임시 리소스 삭제 정리
+        console.log(`      [Gemini API] 임시 리소스 삭제 중...`);
         await runWithRetry(() => aiClient.files.delete({ name: uploadResult.name }));
 
         const responseText = response.text || "";
@@ -399,8 +402,8 @@ async function runBatch() {
           console.log(`      [Gemini API] 분석 요약 성공 완료!`);
         }
 
-        // 분당 요청 제한(Rate Limit)을 예방하기 위한 5초 지연시간 적용
-        await delay(5000);
+        // 분당 요청 제한(Rate Limit)을 완전히 우회하기 위한 상품당 15초 대기시간 적용
+        await delay(15000);
       } catch (err: any) {
         console.error(`      [Gemini Error] '${productName}' PDF 분석 도중 오류가 발생했습니다:`, err.message || err);
       } finally {
