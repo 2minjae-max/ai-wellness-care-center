@@ -19,6 +19,7 @@ import dotenv from "dotenv";
 import puppeteer from "puppeteer";
 import axios from "axios";
 import { GoogleGenAI } from "@google/genai";
+import { PDFDocument } from "pdf-lib";
 
 // .env 파일의 환경변수 로드
 dotenv.config();
@@ -49,6 +50,29 @@ async function downloadPdf(url: string, destPath: string): Promise<void> {
     writer.on("finish", resolve);
     writer.on("error", reject);
   });
+}
+
+/**
+ * [교육용 한글 주석]
+ * pdf-lib 라이브러리를 사용해 원본 PDF 파일에서 필요한 앞부분의 N페이지만 잘라내어 새 PDF로 저장합니다.
+ * 이 작업을 통해 무료 Gemini API의 단일 파일 처리 토큰 한도(1,000,000 TPM)를 초과하는 문제를
+ * 근본적으로 차단하고 API 전송 성능도 대폭 개선합니다.
+ */
+async function slicePdf(srcPath: string, destPath: string, maxPages = 8): Promise<void> {
+  const pdfBytes = fs.readFileSync(srcPath);
+  const srcDoc = await PDFDocument.load(pdfBytes);
+  const destDoc = await PDFDocument.create();
+
+  const pageCount = srcDoc.getPageCount();
+  const pagesToCopy = Math.min(pageCount, maxPages);
+
+  for (let i = 0; i < pagesToCopy; i++) {
+    const [copiedPage] = await destDoc.copyPages(srcDoc, [i]);
+    destDoc.addPage(copiedPage);
+  }
+
+  const slicedBytes = await destDoc.save();
+  fs.writeFileSync(destPath, slicedBytes);
 }
 
 /**
@@ -356,21 +380,29 @@ async function runBatch() {
     // 상품요약서 PDF 주소가 있고 Gemini API가 사용 가능한 상태인 경우
     if (product.pdfUrls.summary && useRealGemini) {
       const tempPdfPath = path.join(tempDir, `temp_${Date.now()}.pdf`);
+      const slicedPdfPath = path.join(tempDir, `sliced_${Date.now()}.pdf`);
       try {
         console.log(`      [Downloader] 상품요약서 PDF 임시 다운로드 중...`);
         await downloadPdf(product.pdfUrls.summary, tempPdfPath);
         await delay(1000); // 디스크 IO 안정화 대기
 
-        console.log(`      [Gemini API] PDF 파일 업로드 요청 중...`);
-        const uploadResult = await runWithRetry(() => aiClient.files.upload({
-          file: tempPdfPath,
+        // [교육용 한글 주석]
+        // 사용자 제안 반영: 무료 API의 토큰 초과(TPM) 에러를 원천 우회하기 위해
+        // pdf-lib를 활용하여 다운로드한 PDF의 앞쪽 8페이지만 잘라서 Gemini API에 전달합니다.
+        console.log(`      [Preprocessing] PDF 파일의 앞쪽 8페이지 분할(슬라이싱) 중...`);
+        await slicePdf(tempPdfPath, slicedPdfPath, 8);
+        await delay(1000); // 디스크 IO 안정화 대기
+
+        console.log(`      [Gemini API] 슬라이싱된 PDF 파일 업로드 요청 중...`);
+        const uploadResult = await runWithRetry<any>(() => aiClient.files.upload({
+          file: slicedPdfPath,
           mimeType: "application/pdf"
         }));
         await delay(10000); // 1. 업로드 성공 후 API 서버 부하 분산을 위한 10초 대기
 
         // Gemini AI 2.5-flash 모델을 통해 PDF 내용 분석 요약
         console.log(`      [Gemini API] PDF 내용 분석 및 요약 요청 중...`);
-        const response = await runWithRetry(() => aiClient.models.generateContent({
+        const response = await runWithRetry<any>(() => aiClient.models.generateContent({
           model: "gemini-2.5-flash",
           contents: [
             {
@@ -407,7 +439,7 @@ async function runBatch() {
 
         // API로 업로드했던 클라우드 임시 리소스 삭제 정리
         console.log(`      [Gemini API] 임시 리소스 삭제 중...`);
-        await runWithRetry(() => aiClient.files.delete({ name: uploadResult.name }));
+        await runWithRetry<any>(() => aiClient.files.delete({ name: uploadResult.name }));
 
         const responseText = response.text || "";
         const cleanJson = responseText.replace(/```json|```/g, "").trim();
@@ -453,10 +485,16 @@ async function runBatch() {
           };
         }
       } finally {
-        // 임시 PDF 파일 자동 삭제
+        // [임시 자원 완전 삭제]
+        // 디스크 용량 관리를 위해 사용이 완료된 임시 원본 PDF와 잘라낸 슬라이싱 PDF 파일을 모두 정리합니다.
         if (fs.existsSync(tempPdfPath)) {
           try {
             fs.unlinkSync(tempPdfPath);
+          } catch (e) { }
+        }
+        if (fs.existsSync(slicedPdfPath)) {
+          try {
+            fs.unlinkSync(slicedPdfPath);
           } catch (e) { }
         }
       }
