@@ -64,7 +64,8 @@ async function runWithRetry<T>(fn: () => Promise<T>, retries = 5, initialDelay =
     const isServiceUnavailable = error.status === 503 || error.message?.includes("503") || error.message?.includes("UNAVAILABLE");
 
     if (retries > 0 && (isRateLimit || isServiceUnavailable)) {
-      let waitTime = initialDelay * (4 - retries);
+      // retries가 5부터 1까지 줄어들므로 항상 양수가 보장되도록 (6 - retries) 수식을 적용합니다.
+      let waitTime = (6 - retries) * initialDelay;
 
       if (isRateLimit) {
         // 429 Rate Limit인 경우, 에러 메시지에서 권장 재시도 대기 시간을 파싱해옵니다.
@@ -80,6 +81,8 @@ async function runWithRetry<T>(fn: () => Promise<T>, retries = 5, initialDelay =
           console.warn(`      [Warning] Rate Limit 감지. 권장시간 파싱 실패로 기본 62초 대기합니다.`);
         }
       } else {
+        // 503 서버 과부하의 경우 혼잡이 해소되도록 최소 15초 이상 넉넉히 대기하도록 하한을 둡니다.
+        waitTime = Math.max(waitTime, 15000);
         console.warn(`      [Warning] API 일시적 오류(503 등) 감지. ${waitTime / 1000}초 대기합니다.`);
       }
 
@@ -118,10 +121,23 @@ async function crawlInsuranceProducts(): Promise<any[]> {
 
   try {
     console.log(`${logPrefix} 상품공시 페이지 접속 시도: ${targetPortal}`);
-    await page.goto(targetPortal, {
-      waitUntil: "networkidle2",
-      timeout: 60000
-    });
+    let gotoSuccess = false;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await page.goto(targetPortal, {
+          waitUntil: "networkidle2",
+          timeout: 120000 // 타임아웃 120초로 상향
+        });
+        gotoSuccess = true;
+        break;
+      } catch (gotoErr: any) {
+        console.warn(`${logPrefix} [Warning] ${attempt}회차 페이지 접속 시도 타임아웃/오류 발생. 5초 후 재시도합니다... (에러: ${gotoErr.message || gotoErr})`);
+        await delay(5000);
+      }
+    }
+    if (!gotoSuccess) {
+      throw new Error(`상품공시 페이지 접속 실패: 3회 재시도 모두 타임아웃되었습니다.`);
+    }
 
     // 페이지 초기화 및 안정적인 자바스크립트 바인딩 완료를 위해 3초 대기
     await delay(3000);
@@ -292,7 +308,11 @@ async function runBatch() {
   }
 
   // 4. 수집된 상품 기반으로 요약 분석 수행 및 데이터 매핑
-  const wikiProducts: any = {};
+  // 기존 캐시 데이터(existingWiki.products)를 얕은 복사하여 wikiProducts의 기본값으로 미리 설정합니다.
+  // 이렇게 해두면, 429 한계로 인해 중간에 분석이 중단되더라도 기존에 분석이 완료되어 저장되어 있던
+  // 타 상품들의 데이터가 유실(기본값인 'PDF 분석 후 업데이트 예정'으로 강제 덮어쓰기)되지 않고 온전히 유지됩니다.
+  const wikiProducts: any = existingWiki?.products ? { ...existingWiki.products } : {};
+  let hasApiError = false; // API 에러 발생 여부 체크 플래그
 
   for (const product of scrapedProducts) {
     const productName = product.name;
@@ -308,27 +328,30 @@ async function runBatch() {
       cachedProduct.coverageLimits // 신규 필드 존재 여부 체크
     ) {
       console.log(`${logPrefix} [Cache Hit] '${productName}' 상품 분석 완료 캐시 사용 (Gemini API 호출 생략)`);
-      wikiProducts[productName] = cachedProduct;
+      // 이미 wikiProducts에 복사되어 있으므로 분석 과정을 바로 스킵(continue)합니다.
       continue;
     }
 
     // 캐시가 없거나 갱신이 필요한 경우 신규 요약 분석 진행
     console.log(`${logPrefix} [Analysis Required] '${productName}' 상품 신규 분석 진행 시작`);
 
-    let coreBenefits: string[] = [];
-    let premiumRange = "PDF 분석 후 업데이트 예정";
-    let recommendationFactor = "PDF 분석 후 업데이트 예정";
-    let targetAge = { minAge: null, maxAge: null };
-    let renewalType = "PDF 분석 후 업데이트 예정";
-    let examinationType = "PDF 분석 후 업데이트 예정";
-    let simsaCriteria = "PDF 분석 후 업데이트 예정";
-    let coverageLimits = {
+    // 기존 데이터 복구 우선 적용: 혹시 기존에 불완전하게 저장된 임시 캐시값이 있었다면 이를 재사용하고 없으면 기본 텍스트를 대입합니다.
+    let coreBenefits: string[] = cachedProduct?.coreBenefits || [];
+    let premiumRange = cachedProduct?.premiumRange || "PDF 분석 후 업데이트 예정";
+    let recommendationFactor = cachedProduct?.recommendationFactor || "PDF 분석 후 업데이트 예정";
+    let targetAge = cachedProduct?.targetAge || { minAge: null, maxAge: null };
+    let renewalType = cachedProduct?.renewalType || "PDF 분석 후 업데이트 예정";
+    let examinationType = cachedProduct?.examinationType || "PDF 분석 후 업데이트 예정";
+    let simsaCriteria = cachedProduct?.simsaCriteria || "PDF 분석 후 업데이트 예정";
+    let coverageLimits = cachedProduct?.coverageLimits || {
       generalCancer: "PDF 분석 후 업데이트 예정",
       similarCancer: "PDF 분석 후 업데이트 예정",
       cerebrovascular: "PDF 분석 후 업데이트 예정",
       ischemicHeart: "PDF 분석 후 업데이트 예정",
       caregiverExpenses: "PDF 분석 후 업데이트 예정"
     };
+
+    let apiSuccess = true;
 
     // 상품요약서 PDF 주소가 있고 Gemini API가 사용 가능한 상태인 경우
     if (product.pdfUrls.summary && useRealGemini) {
@@ -343,7 +366,7 @@ async function runBatch() {
           file: tempPdfPath,
           mimeType: "application/pdf"
         }));
-        await delay(5000); // 1. 업로드 성공 후 API 서버 부하 분산을 위한 5초 대기
+        await delay(10000); // 1. 업로드 성공 후 API 서버 부하 분산을 위한 10초 대기
 
         // Gemini AI 2.5-flash 모델을 통해 PDF 내용 분석 요약
         console.log(`      [Gemini API] PDF 내용 분석 및 요약 요청 중...`);
@@ -380,7 +403,7 @@ async function runBatch() {
             }
           ]
         }));
-        await delay(5000); // 2. 요약 성공 후 다음 동작 전 API 서버 부하 분산을 위한 5초 대기
+        await delay(10000); // 2. 요약 성공 후 다음 동작 전 API 서버 부하 분산을 위한 10초 대기
 
         // API로 업로드했던 클라우드 임시 리소스 삭제 정리
         console.log(`      [Gemini API] 임시 리소스 삭제 중...`);
@@ -402,10 +425,12 @@ async function runBatch() {
           console.log(`      [Gemini API] 분석 요약 성공 완료!`);
         }
 
-        // 분당 요청 제한(Rate Limit)을 완전히 우회하기 위한 상품당 15초 대기시간 적용
-        await delay(15000);
+        // 분당 요청 제한(Rate Limit)을 완전히 우회하기 위한 상품당 30초 대기시간 적용
+        await delay(30000);
       } catch (err: any) {
         console.error(`      [Gemini Error] '${productName}' PDF 분석 도중 오류가 발생했습니다:`, err.message || err);
+        apiSuccess = false;
+        hasApiError = true;
       } finally {
         // 임시 PDF 파일 자동 삭제
         if (fs.existsSync(tempPdfPath)) {
@@ -414,6 +439,19 @@ async function runBatch() {
           } catch (e) { }
         }
       }
+    } else {
+      apiSuccess = false;
+    }
+
+    // [교육용 한글 주석]
+    // 429 한도로 인해 분석이 끊겼고 API 오류(hasApiError)가 참인 경우,
+    // 더 이상의 분석을 무의미하게 진행하지 않고 루프를 즉시 중단(break)합니다.
+    // 이렇게 루프를 중단하면 이때까지 성공한 정보만 로컬 JSON에 정상 반영하고
+    // 스크립트를 정상 종료(0) 처리할 수 있어 GitHub Actions의 커밋&푸시 단계로 이어지게 됩니다.
+    if (!apiSuccess && hasApiError) {
+      console.warn(`\n[Warning] Gemini API 할당량 제한(429) 또는 오류 감지로 인해 루프를 중단합니다.`);
+      console.warn(`          현재까지 수집/요약 완료된 데이터만 저장한 후 빌드를 정상 종료(Success) 처리합니다.`);
+      break;
     }
 
     // 구조화 객체 생성 및 목록 매핑
