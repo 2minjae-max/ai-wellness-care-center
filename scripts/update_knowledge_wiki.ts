@@ -119,13 +119,54 @@ async function runWithRetry<T>(fn: () => Promise<T>, retries = 5, initialDelay =
 }
 
 /**
- * Puppeteer를 사용하여 동적 상품공시실 페이지에서 장기보험 3종 카테고리의 상품 정보를 수집합니다.
+ * [교육용 한글 주석]
+ * 통합형 3단계 지식 구축 배치 프로세스 실행 함수
+ * 
+ * 1단계 (캐시 로드 및 브라우저 기동)
+ * 2단계 (순차적 동적 크롤링 ➔ 즉시 슬라이싱 ➔ 즉시 Gemini 요약 분석 ➔ JSON 실시간 파일 저장)
+ * 3단계 (임시 PDF 로컬 자원 정리 및 브라우저 자원 반환)
  */
-async function crawlInsuranceProducts(): Promise<any[]> {
-  const targetPortal = "https://www.hwgeneralins.com/notice/ir/product-ing01.do";
-  console.log(`${logPrefix} 1단계: 한화손보 공식 상품공시실 크롤링 시작...`);
+async function runBatch() {
+  console.log("=====================================================================");
+  console.log(`🚀 ${getLogTime()} : 한화손보 공시실 월간 정기 지식 갱신 배치 시동`);
+  console.log("=====================================================================");
 
-  // 환경 변수 CRAWL_HEADLESS=false 로 설정 시 브라우저 동작 과정을 눈으로 확인할 수 있습니다.
+  // 1. 기존 지식 위키 JSON 캐시 데이터 로드 시도
+  const wikiPath = path.join(process.cwd(), "src", "knowledge_wiki.json");
+  let existingWiki: any = null;
+  if (fs.existsSync(wikiPath)) {
+    try {
+      existingWiki = JSON.parse(fs.readFileSync(wikiPath, "utf8"));
+      console.log(`${logPrefix} 기존 지식 위키 캐시 로드 성공. (등록 상품 수: ${Object.keys(existingWiki.products || {}).length}개)`);
+    } catch (e) {
+      console.log(`${logPrefix} 기존 지식 위키 파일 분석 실패 또는 미존재. 신규 구축을 준비합니다.`);
+    }
+  }
+
+  // 기존 캐시를 기반으로 wikiProducts 기본 세팅 (데이터 유실 방지)
+  const wikiProducts: any = existingWiki?.products ? { ...existingWiki.products } : {};
+
+  // 2. 구글 제미나이(Google GenAI) API 클라이언트 감지 및 초기화
+  const apiKey = process.env.GEMINI_API_KEY;
+  let useRealGemini = false;
+  let aiClient: any = null;
+
+  if (apiKey && apiKey !== "MY_GEMINI_API_KEY" && apiKey.trim() !== "") {
+    useRealGemini = true;
+    aiClient = new GoogleGenAI({ apiKey });
+    console.log(`${logPrefix} Google GenAI API 클라이언트 활성화 완료. PDF 자동 파싱 세션을 준행합니다.`);
+  } else {
+    console.log(`${logPrefix} [Caution] GEMINI_API_KEY 미설정 상태입니다. 신규 상품 분석 요약은 건너뜁니다.`);
+  }
+
+  // 임시 다운로드 폴더 생성 보장
+  const tempDir = path.join(process.cwd(), "scratch");
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+  }
+
+  // 3. Puppeteer 브라우저 기동 (1단계)
+  const targetPortal = "https://www.hwgeneralins.com/notice/ir/product-ing01.do";
   const headless = process.env.CRAWL_HEADLESS !== "false";
   console.log(`${logPrefix} 브라우저 모드: ${headless ? "Headless (창 비노출)" : "Non-Headless (창 노출)"}`);
 
@@ -134,14 +175,15 @@ async function crawlInsuranceProducts(): Promise<any[]> {
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
-      "--window-size=1280,1500" // 화면의 모든 탭이 한눈에 들어오도록 창 크기 넉넉히 설정
+      "--window-size=1280,1500"
     ]
   });
 
   const page = await browser.newPage();
   await page.setViewport({ width: 1280, height: 1500 });
 
-  const products: any[] = [];
+  let processedCount = 0;
+  let hasFatalApiError = false;
 
   try {
     console.log(`${logPrefix} 상품공시 페이지 접속 시도: ${targetPortal}`);
@@ -150,7 +192,7 @@ async function crawlInsuranceProducts(): Promise<any[]> {
       try {
         await page.goto(targetPortal, {
           waitUntil: "networkidle2",
-          timeout: 120000 // 타임아웃 120초로 상향
+          timeout: 120000
         });
         gotoSuccess = true;
         break;
@@ -163,10 +205,8 @@ async function crawlInsuranceProducts(): Promise<any[]> {
       throw new Error(`상품공시 페이지 접속 실패: 3회 재시도 모두 타임아웃되었습니다.`);
     }
 
-    // 페이지 초기화 및 안정적인 자바스크립트 바인딩 완료를 위해 3초 대기
     await delay(3000);
 
-    // 수집 대상이 되는 장기보험 하위 3대 카테고리 정의
     const categories = ["상해/질병", "장기간병"];
 
     for (const category of categories) {
@@ -174,22 +214,19 @@ async function crawlInsuranceProducts(): Promise<any[]> {
       console.log(`${logPrefix} [Category] '${category}' 카테고리 탐색 및 제어 시작`);
       console.log(`${logPrefix} --------------------------------------------------`);
 
-      // 1단계: 01 상품군(#uiFormField1) 영역에서 해당 카테고리 버튼 선택
       const categorySelector = `#uiFormField1 a[title*="${category}"]`;
       const categoryButton = await page.$(categorySelector);
 
       if (!categoryButton) {
-        console.log(`${logPrefix} [Error] '${category}' 카테고리 버튼을 찾을 수 없습니다. 건너뜁니다.`);
+        console.warn(`${logPrefix} [Error] '${category}' 카테고리 버튼을 찾을 수 없습니다. 건너뜁니다.`);
         continue;
       }
 
-      // 화면에 맞춤 정렬 후 브라우저 자바스크립트 엔진으로 확실하게 클릭 트리거
       await page.evaluate((el) => el.scrollIntoView({ block: "center" }), categoryButton);
       await page.evaluate((el) => (el as HTMLElement).click(), categoryButton);
       console.log(`${logPrefix} [Click] '${category}' 카테고리 클릭 완료`);
-      await delay(2000); // 동적 상품 리스트 로딩을 위한 충분한 비동기 대기
+      await delay(2000);
 
-      // 2단계: 02 상품명(#uiFormField2) 영역에 로드된 모든 상품 목록 파악
       const productLinkSelector = "#uiFormField2 a";
       const productElements = await page.$$(productLinkSelector);
 
@@ -201,40 +238,53 @@ async function crawlInsuranceProducts(): Promise<any[]> {
 
       console.log(`${logPrefix} [Products] '${category}' 하위 상품 목록(${productNames.length}개) 발견`);
 
-      // 각 상품을 순서대로 하나씩 클릭하여 판매기간 및 PDF 다운로드 링크를 수집합니다.
       for (let i = 0; i < productNames.length; i++) {
         const productName = productNames[i];
-        console.log(`   [${i + 1}/${productNames.length}] 상품 상세 수집 중: "${productName}"`);
+        processedCount++;
 
-        // DOM이 새로 갱신될 수 있으므로 매번 상품명을 기준으로 셀렉터를 새로 조회합니다.
+        console.log(`\n   [${processedCount}번째 상품] "${productName}" 처리 중...`);
+
+        // 캐싱 여부 검사: 이미 요약 분석까지 완벽하게 끝난 데이터가 캐시에 존재하는지 확인
+        const cachedProduct = existingWiki?.products?.[productName];
+        if (
+          cachedProduct &&
+          cachedProduct.coreBenefits &&
+          cachedProduct.coreBenefits.length > 0 &&
+          cachedProduct.premiumRange !== "PDF 분석 후 업데이트 예정" &&
+          cachedProduct.premiumRange !== "분석 실패 (무료 한도 초과)" && // 이전 분석 실패 마킹된 것도 있다면 재분석 기회 부여를 위해 스킵하지 않음
+          cachedProduct.targetAge &&
+          cachedProduct.coverageLimits
+        ) {
+          console.log(`      [Cache Hit] 이미 요약된 캐시 데이터가 존재합니다. 클릭 단계를 건너뜁니다.`);
+          // wikiProducts에는 이미 복제되어 있으므로 바로 다음 상품으로 패스(continue)
+          continue;
+        }
+
+        // 캐시가 없거나 불완전한 신규 분석 대상인 경우 화면을 직접 조작 및 Gemini API 연동 수행
+        console.log(`      [Analysis Required] 신규 분석이 필요합니다. 공시실 상세 정보 조회를 시작합니다.`);
+
         const targetProductSelector = `#uiFormField2 a[title*="${productName}"]`;
         const targetProductButton = await page.$(targetProductSelector);
 
         if (!targetProductButton) {
-          console.log(`      [Error] 상품 버튼을 찾을 수 없습니다: ${productName}`);
+          console.warn(`      [Error] 상품 버튼을 찾을 수 없습니다: ${productName}`);
           continue;
         }
 
-        // JS 레벨의 클릭 처리를 진행하여 스크롤이나 상단 헤더 차단과 상관없이 정상 트리거 보증
         await page.evaluate((el) => el.scrollIntoView({ block: "center" }), targetProductButton);
         await page.evaluate((el) => (el as HTMLElement).click(), targetProductButton);
+        await delay(2500); // 렌더링 완료 대기
 
-        // 상품을 클릭하면 03 판매기간의 현재 기간(~현재)이 디폴트 선택되고 04 확인 영역이 자동으로 그려집니다.
-        // 비동기 렌더링이 완료되도록 넉넉하게 2.5초 대기합니다.
-        await delay(2500);
-
-        // 3단계: 03 판매기간(#uiFormField3) 영역에서 이미 'selected'가 들어간 현재 판매 기간 텍스트 정보 추출
         const activePeriodText = await page.evaluate(() => {
           const selectedPeriod = document.querySelector("#uiFormField3 a.selected");
           return selectedPeriod?.textContent?.trim() || "";
         });
 
         if (!activePeriodText) {
-          console.log(`      [Skip] 현재 활성화된 판매 기간 정보를 찾을 수 없습니다. (Step 03 미활성화)`);
+          console.warn(`      [Skip] 현재 활성화된 판매 기간 정보를 찾을 수 없습니다.`);
           continue;
         }
 
-        // 4단계: 04 확인(#uiFormField4) 영역에서 PDF 3종 링크 정보 추출
         const pdfUrls = await page.evaluate(() => {
           const urls = { summary: "", method: "", terms: "" };
           const host = "https://www.hwgeneralins.com";
@@ -260,296 +310,191 @@ async function crawlInsuranceProducts(): Promise<any[]> {
         });
 
         console.log(`      -> 판매기간: ${activePeriodText}`);
-        console.log(`      -> 상품요약: ${pdfUrls.summary || "없음"}`);
-        console.log(`      -> 사업방법: ${pdfUrls.method || "없음"}`);
-        console.log(`      -> 약관확인: ${pdfUrls.terms || "없음"}`);
+        console.log(`      -> 요약서 URL: ${pdfUrls.summary || "없음"}`);
 
-        products.push({
-          name: productName,
+        let coreBenefits: string[] = cachedProduct?.coreBenefits || [];
+        let premiumRange = cachedProduct?.premiumRange || "PDF 분석 후 업데이트 예정";
+        let recommendationFactor = cachedProduct?.recommendationFactor || "PDF 분석 후 업데이트 예정";
+        let targetAge = cachedProduct?.targetAge || { minAge: null, maxAge: null };
+        let renewalType = cachedProduct?.renewalType || "PDF 분석 후 업데이트 예정";
+        let examinationType = cachedProduct?.examinationType || "PDF 분석 후 업데이트 예정";
+        let simsaCriteria = cachedProduct?.simsaCriteria || "PDF 분석 후 업데이트 예정";
+        let coverageLimits = cachedProduct?.coverageLimits || {
+          generalCancer: "PDF 분석 후 업데이트 예정",
+          similarCancer: "PDF 분석 후 업데이트 예정",
+          cerebrovascular: "PDF 분석 후 업데이트 예정",
+          ischemicHeart: "PDF 분석 후 업데이트 예정",
+          caregiverExpenses: "PDF 분석 후 업데이트 예정"
+        };
+
+        let apiSuccess = true;
+
+        if (pdfUrls.summary && useRealGemini) {
+          const tempPdfPath = path.join(tempDir, `temp_${Date.now()}.pdf`);
+          const slicedPdfPath = path.join(tempDir, `sliced_${Date.now()}.pdf`);
+          try {
+            console.log(`      [Downloader] 상품요약서 PDF 임시 다운로드 중...`);
+            await downloadPdf(pdfUrls.summary, tempPdfPath);
+            await delay(1000);
+
+            console.log(`      [Preprocessing] PDF 파일의 앞쪽 8페이지 분할(슬라이싱) 중...`);
+            await slicePdf(tempPdfPath, slicedPdfPath, 8);
+            await delay(1000);
+
+            console.log(`      [Gemini API] 슬라이싱된 PDF 파일 업로드 요청 중...`);
+            const uploadResult = await runWithRetry<any>(() => aiClient.files.upload({
+              file: slicedPdfPath,
+              mimeType: "application/pdf"
+            }));
+            await delay(10000);
+
+            console.log(`      [Gemini API] PDF 내용 분석 및 요약 요청 중...`);
+            const response = await runWithRetry<any>(() => aiClient.models.generateContent({
+              model: "gemini-1.5-flash",
+              contents: [
+                {
+                  role: "user",
+                  parts: [
+                    { fileData: { fileUri: uploadResult.uri, mimeType: uploadResult.mimeType } },
+                    {
+                      text: `이 문서는 한화손해보험의 "${productName}" 상품요약서 PDF 파일입니다. 이 문서를 분석하여 다음 정보를 JSON 형식으로 제공해줘:
+                    {
+                      "coreBenefits": ["핵심 보장 혜택 3~4개 (각각 한국어 1줄 문장으로 짧게 요약)"],
+                      "premiumRange": "대략적인 보험료 가격대 (예: '2~4만원대', '5만원대 이상' 등 핵심 가격 구간을 한 줄 텍스트로 요약)",
+                      "recommendationFactor": "이 상품을 어떤 사람에게 추천하는지에 대한 가입추천요인 (예: '비갱신형 암보장을 선호하는 3040 세대' 등 한 줄 텍스트)",
+                      "targetAge": {
+                        "minAge": 15,
+                        "maxAge": 90
+                      },
+                      "renewalType": "갱신형 또는 비갱신형 중 해당하는 값을 한글로 작성 (예: '갱신형', '비갱신형', '혼합형')",
+                      "examinationType": "일반고지(건강체) 또는 간편고지(유병자) 중 해당하는 값을 한글로 작성",
+                      "simsaCriteria": "간편고지 상품인 경우 '3.1.1', '3.2.5', '3.5.5' 등 상품 고지유형을 추출. 일반상품이면 '없음'",
+                      "coverageLimits": {
+                        "generalCancer": "암진단비(유사암 제외) 최대 가입 한도 금액 (예: '최대 5,000만원', 없으면 '없음')",
+                        "similarCancer": "유사암진단비 최대 가입 한도 금액",
+                        "cerebrovascular": "뇌혈관질환진단비 최대 가입 한도 금액",
+                        "ischemicHeart": "허혈성심장질환진단비 최대 가입 한도 금액",
+                        "caregiverExpenses": "간병인사용(또는 지원) 일당 최대 한도 (예: '일당 최대 15만원', 없으면 '없음')"
+                      }
+                    }
+                    응답은 마크다운 코드블록이나 추가 텍스트 없이 순수한 JSON 내용만 제공해야 해.`
+                    }
+                  ]
+                }
+              ]
+            }));
+            await delay(10000);
+
+            console.log(`      [Gemini API] 임시 리소스 삭제 중...`);
+            await runWithRetry<any>(() => aiClient.files.delete({ name: uploadResult.name }));
+
+            const responseText = response.text || "";
+            const cleanJson = responseText.replace(/```json|```/g, "").trim();
+            const analysis = JSON.parse(cleanJson);
+
+            if (analysis) {
+              coreBenefits = analysis.coreBenefits || [];
+              premiumRange = analysis.premiumRange || premiumRange;
+              recommendationFactor = analysis.recommendationFactor || recommendationFactor;
+              targetAge = analysis.targetAge || targetAge;
+              renewalType = analysis.renewalType || renewalType;
+              examinationType = analysis.examinationType || examinationType;
+              simsaCriteria = analysis.simsaCriteria || simsaCriteria;
+              coverageLimits = analysis.coverageLimits || coverageLimits;
+              console.log(`      [Gemini API] 분석 요약 성공 완료!`);
+            }
+
+            await delay(30000);
+          } catch (err: any) {
+            console.error(`      [Gemini Error] '${productName}' PDF 분석 도중 오류가 발생했습니다:`, err.message || err);
+            apiSuccess = false;
+            hasFatalApiError = true;
+
+            // 병목 방지 실패 마킹
+            coreBenefits = ["API 한도 초과 또는 일시적 오류로 인해 요약이 누락되었습니다."];
+            premiumRange = "분석 실패 (무료 한도 초과)";
+            recommendationFactor = "이 요약서 PDF 파일은 무료 요금제 토큰 제한(TPM)을 초과하여 요약을 생략합니다.";
+            targetAge = { minAge: null, maxAge: null };
+            renewalType = "확인 불가";
+            examinationType = "확인 불가";
+            simsaCriteria = "확인 불가";
+            coverageLimits = {
+              generalCancer: "확인 불가",
+              similarCancer: "확인 불가",
+              cerebrovascular: "확인 불가",
+              ischemicHeart: "확인 불가",
+              caregiverExpenses: "확인 불가"
+            };
+          } finally {
+            if (fs.existsSync(tempPdfPath)) {
+              try { fs.unlinkSync(tempPdfPath); } catch (e) { }
+            }
+            if (fs.existsSync(slicedPdfPath)) {
+              try { fs.unlinkSync(slicedPdfPath); } catch (e) { }
+            }
+          }
+        } else {
+          apiSuccess = false;
+        }
+
+        // 구조화 객체 생성 및 목록 매핑
+        wikiProducts[productName] = {
+          fullName: productName,
           category: category,
+          status: "판매중",
           salesPeriod: activePeriodText,
+          productUrl: targetPortal,
           pdfUrls: pdfUrls,
-          productUrl: targetPortal
-        });
+          coreBenefits: coreBenefits,
+          premiumRange: premiumRange,
+          recommendationFactor: recommendationFactor,
+          targetAge: targetAge,
+          renewalType: renewalType,
+          examinationType: examinationType,
+          simsaCriteria: simsaCriteria,
+          coverageLimits: coverageLimits
+        };
+
+        // [실시간 저장 보장]
+        // 429 등으로 빌드가 조기 중단되더라도 데이터 유실이 없도록 매 요약 완료 시점마다 JSON 파일을 갱신 저장합니다.
+        const wikiData = {
+          generatedAt: new Date().toISOString(),
+          batchLog: `Success - Sliced and processed up to ${processedCount} Hanwha Insurance active products.`,
+          products: wikiProducts
+        };
+        const distDir = path.join(process.cwd(), "src");
+        if (!fs.existsSync(distDir)) {
+          fs.mkdirSync(distDir, { recursive: true });
+        }
+        fs.writeFileSync(wikiPath, JSON.stringify(wikiData, null, 2), "utf8");
+        console.log(`      [Save Completed] '${productName}' 요약 결과 지식 위키 JSON 실시간 저장 완료.`);
+
+        // API 한도 초과 오류가 감지된 경우, 더 이상 공시실 제어를 진행하지 않고 즉시 루프를 탈출합니다.
+        if (!apiSuccess && hasFatalApiError) {
+          console.warn(`\n[Warning] Gemini API 할당량 제한(429) 감지로 인해 전체 프로세스를 여기에서 중단합니다.`);
+          console.warn(`          현재까지 요약 성공한 데이터를 기반으로 배치를 정상 성공(Success)으로 마무리합니다.`);
+          break;
+        }
+      }
+
+      // 만약 이전 카테고리 루프 도중 한도 초과로 break가 선언되었다면 외부 카테고리 루프도 빠져나갑니다.
+      if (hasFatalApiError) {
+        break;
       }
     }
-
-    console.log(`\n${logPrefix} [Crawl End] 총 ${products.length}개의 상품 데이터 최종 수집 완료`);
 
   } catch (error) {
-    console.error(`${logPrefix} [Fatal Crawl Error] 크롤링 도중 심각한 오류가 발생했습니다:`, error);
+    console.error(`${logPrefix} [Fatal Batch Error] 배치 처리 도중 심각한 오류가 발생했습니다:`, error);
   } finally {
-    // 브라우저 리소스 정리
+    // 3단계 (자원 완전 반환)
     await browser.close();
+    console.log(`${logPrefix} Puppeteer 브라우저 세션을 안전하게 닫고 자원을 해제했습니다.`);
   }
-
-  return products;
-}
-
-// 메인 배치 프로세스 실행 함수
-async function runBatch() {
-  console.log("=====================================================================");
-  console.log(`🚀 ${getLogTime()} : 한화손보 공시실 월간 정기 지식 갱신 배치 시동`);
-  console.log("=====================================================================");
-
-  // 1. 기존 지식 위키 JSON 캐시 데이터 로드 시도
-  const wikiPath = path.join(process.cwd(), "src", "knowledge_wiki.json");
-  let existingWiki: any = null;
-  if (fs.existsSync(wikiPath)) {
-    try {
-      existingWiki = JSON.parse(fs.readFileSync(wikiPath, "utf8"));
-      console.log(`${logPrefix} 기존 지식 위키 로드 성공. (등록 상품 수: ${Object.keys(existingWiki.products || {}).length}개)`);
-    } catch (e) {
-      console.log(`${logPrefix} 기존 지식 위키 파일 분석 실패 또는 미존재. 신규 구축을 준비합니다.`);
-    }
-  }
-
-  // 2. 동적 Puppeteer 크롤링 작동
-  const scrapedProducts = await crawlInsuranceProducts();
-
-  if (scrapedProducts.length === 0) {
-    console.log(`${logPrefix} [Warn] 수집된 상품이 없어 지식 위키 저장을 진행하지 않습니다.`);
-    return;
-  }
-
-  // 3. 구글 제미나이(Google GenAI) API 클라이언트 감지 및 초기화
-  const apiKey = process.env.GEMINI_API_KEY;
-  let useRealGemini = false;
-  let aiClient: any = null;
-
-  if (apiKey && apiKey !== "MY_GEMINI_API_KEY" && apiKey.trim() !== "") {
-    useRealGemini = true;
-    aiClient = new GoogleGenAI({ apiKey });
-    console.log(`${logPrefix} Google GenAI API 클라이언트 활성화 완료. PDF 자동 파싱 세션을 준행합니다.`);
-  } else {
-    console.log(`${logPrefix} [Caution] GEMINI_API_KEY 미설정 상태입니다. 신규 상품 분석 요약은 건너뜁니다.`);
-  }
-
-  // 임시 다운로드 폴더 생성 보장
-  const tempDir = path.join(process.cwd(), "scratch");
-  if (!fs.existsSync(tempDir)) {
-    fs.mkdirSync(tempDir, { recursive: true });
-  }
-
-  // 4. 수집된 상품 기반으로 요약 분석 수행 및 데이터 매핑
-  // 기존 캐시 데이터(existingWiki.products)를 얕은 복사하여 wikiProducts의 기본값으로 미리 설정합니다.
-  // 이렇게 해두면, 429 한계로 인해 중간에 분석이 중단되더라도 기존에 분석이 완료되어 저장되어 있던
-  // 타 상품들의 데이터가 유실(기본값인 'PDF 분석 후 업데이트 예정'으로 강제 덮어쓰기)되지 않고 온전히 유지됩니다.
-  const wikiProducts: any = existingWiki?.products ? { ...existingWiki.products } : {};
-  let hasApiError = false; // API 에러 발생 여부 체크 플래그
-
-  for (const product of scrapedProducts) {
-    const productName = product.name;
-
-    // 캐싱 메커니즘: 기존 캐시 데이터가 이미 존재하고, 세부 필터링 및 한도 데이터까지 온전히 채워져 있다면 API 연동 스킵
-    const cachedProduct = existingWiki?.products?.[productName];
-    if (
-      cachedProduct &&
-      cachedProduct.coreBenefits &&
-      cachedProduct.coreBenefits.length > 0 &&
-      cachedProduct.premiumRange !== "PDF 분석 후 업데이트 예정" &&
-      cachedProduct.targetAge && // 신규 필드 존재 여부 체크
-      cachedProduct.coverageLimits // 신규 필드 존재 여부 체크
-    ) {
-      console.log(`${logPrefix} [Cache Hit] '${productName}' 상품 분석 완료 캐시 사용 (Gemini API 호출 생략)`);
-      // 이미 wikiProducts에 복사되어 있으므로 분석 과정을 바로 스킵(continue)합니다.
-      continue;
-    }
-
-    // 캐시가 없거나 갱신이 필요한 경우 신규 요약 분석 진행
-    console.log(`${logPrefix} [Analysis Required] '${productName}' 상품 신규 분석 진행 시작`);
-
-    // 기존 데이터 복구 우선 적용: 혹시 기존에 불완전하게 저장된 임시 캐시값이 있었다면 이를 재사용하고 없으면 기본 텍스트를 대입합니다.
-    let coreBenefits: string[] = cachedProduct?.coreBenefits || [];
-    let premiumRange = cachedProduct?.premiumRange || "PDF 분석 후 업데이트 예정";
-    let recommendationFactor = cachedProduct?.recommendationFactor || "PDF 분석 후 업데이트 예정";
-    let targetAge = cachedProduct?.targetAge || { minAge: null, maxAge: null };
-    let renewalType = cachedProduct?.renewalType || "PDF 분석 후 업데이트 예정";
-    let examinationType = cachedProduct?.examinationType || "PDF 분석 후 업데이트 예정";
-    let simsaCriteria = cachedProduct?.simsaCriteria || "PDF 분석 후 업데이트 예정";
-    let coverageLimits = cachedProduct?.coverageLimits || {
-      generalCancer: "PDF 분석 후 업데이트 예정",
-      similarCancer: "PDF 분석 후 업데이트 예정",
-      cerebrovascular: "PDF 분석 후 업데이트 예정",
-      ischemicHeart: "PDF 분석 후 업데이트 예정",
-      caregiverExpenses: "PDF 분석 후 업데이트 예정"
-    };
-
-    let apiSuccess = true;
-
-    // 상품요약서 PDF 주소가 있고 Gemini API가 사용 가능한 상태인 경우
-    if (product.pdfUrls.summary && useRealGemini) {
-      const tempPdfPath = path.join(tempDir, `temp_${Date.now()}.pdf`);
-      const slicedPdfPath = path.join(tempDir, `sliced_${Date.now()}.pdf`);
-      try {
-        console.log(`      [Downloader] 상품요약서 PDF 임시 다운로드 중...`);
-        await downloadPdf(product.pdfUrls.summary, tempPdfPath);
-        await delay(1000); // 디스크 IO 안정화 대기
-
-        // [교육용 한글 주석]
-        // 사용자 제안 반영: 무료 API의 토큰 초과(TPM) 에러를 원천 우회하기 위해
-        // pdf-lib를 활용하여 다운로드한 PDF의 앞쪽 8페이지만 잘라서 Gemini API에 전달합니다.
-        console.log(`      [Preprocessing] PDF 파일의 앞쪽 8페이지 분할(슬라이싱) 중...`);
-        await slicePdf(tempPdfPath, slicedPdfPath, 8);
-        await delay(1000); // 디스크 IO 안정화 대기
-
-        console.log(`      [Gemini API] 슬라이싱된 PDF 파일 업로드 요청 중...`);
-        const uploadResult = await runWithRetry<any>(() => aiClient.files.upload({
-          file: slicedPdfPath,
-          mimeType: "application/pdf"
-        }));
-        await delay(10000); // 1. 업로드 성공 후 API 서버 부하 분산을 위한 10초 대기
-
-        // Gemini AI 2.5-flash 모델을 통해 PDF 내용 분석 요약
-        console.log(`      [Gemini API] PDF 내용 분석 및 요약 요청 중...`);
-        const response = await runWithRetry<any>(() => aiClient.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: [
-            {
-              role: "user",
-              parts: [
-                { fileData: { fileUri: uploadResult.uri, mimeType: uploadResult.mimeType } },
-                {
-                  text: `이 문서는 한화손해보험의 "${productName}" 상품요약서 PDF 파일입니다. 이 문서를 분석하여 다음 정보를 JSON 형식으로 제공해줘:
-                {
-                  "coreBenefits": ["핵심 보장 혜택 3~4개 (각각 한국어 1줄 문장으로 짧게 요약)"],
-                  "premiumRange": "대략적인 보험료 가격대 (예: '2~4만원대', '5만원대 이상' 등 핵심 가격 구간을 한 줄 텍스트로 요약)",
-                  "recommendationFactor": "이 상품을 어떤 사람에게 추천하는지에 대한 가입추천요인 (예: '비갱신형 암보장을 선호하는 3040 세대' 등 한 줄 텍스트)",
-                  "targetAge": {
-                    "minAge": 15, (숫자 또는 null, 가입 가능한 최소 연령. 예시 표 등에서 가입가능 나이를 파악하여 숫자로 작성)
-                    "maxAge": 90 (숫자 또는 null, 가입 가능한 최대 연령. 예시 표 등에서 가입가능 나이를 파악하여 숫자로 작성)
-                  },
-                  "renewalType": "갱신형 또는 비갱신형 중 해당하는 값을 한글로 작성 (예: '갱신형', '비갱신형', '혼합형')",
-                  "examinationType": "일반고지(건강체) 또는 간편고지(유병자) 중 해당하는 값을 한글로 작성",
-                  "simsaCriteria": "간편고지 상품인 경우 '3.1.1', '3.2.5', '3.5.5' 등 상품 고지유형을 추출. 일반상품이면 '없음'",
-                  "coverageLimits": {
-                    "generalCancer": "암진단비(유사암 제외) 최대 가입 한도 금액 (예: '최대 5,000만원', 없으면 '없음')",
-                    "similarCancer": "유사암진단비 최대 가입 한도 금액",
-                    "cerebrovascular": "뇌혈관질환진단비 최대 가입 한도 금액",
-                    "ischemicHeart": "허혈성심장질환진단비 최대 가입 한도 금액",
-                    "caregiverExpenses": "간병인사용(또는 지원) 일당 최대 한도 (예: '일당 최대 15만원', 없으면 '없음')"
-                  }
-                }
-                응답은 마크다운 코드블록이나 추가 텍스트 없이 순수한 JSON 내용만 제공해야 해.` }
-              ]
-            }
-          ]
-        }));
-        await delay(10000); // 2. 요약 성공 후 다음 동작 전 API 서버 부하 분산을 위한 10초 대기
-
-        // API로 업로드했던 클라우드 임시 리소스 삭제 정리
-        console.log(`      [Gemini API] 임시 리소스 삭제 중...`);
-        await runWithRetry<any>(() => aiClient.files.delete({ name: uploadResult.name }));
-
-        const responseText = response.text || "";
-        const cleanJson = responseText.replace(/```json|```/g, "").trim();
-        const analysis = JSON.parse(cleanJson);
-
-        if (analysis) {
-          coreBenefits = analysis.coreBenefits || [];
-          premiumRange = analysis.premiumRange || premiumRange;
-          recommendationFactor = analysis.recommendationFactor || recommendationFactor;
-          targetAge = analysis.targetAge || targetAge;
-          renewalType = analysis.renewalType || renewalType;
-          examinationType = analysis.examinationType || examinationType;
-          simsaCriteria = analysis.simsaCriteria || simsaCriteria;
-          coverageLimits = analysis.coverageLimits || coverageLimits;
-          console.log(`      [Gemini API] 분석 요약 성공 완료!`);
-        }
-
-        // 분당 요청 제한(Rate Limit)을 완전히 우회하기 위한 상품당 30초 대기시간 적용
-        await delay(30000);
-      } catch (err: any) {
-        console.error(`      [Gemini Error] '${productName}' PDF 분석 도중 오류가 발생했습니다:`, err.message || err);
-        apiSuccess = false;
-        hasApiError = true;
-
-        // [교육용 한글 주석]
-        // 만약 기존에 분석 완료된 캐시 데이터조차 없는 아예 처음 분석하는 상품인데 오류가 발생했다면,
-        // 다음 배치 실행 시에도 이 상품 단계에서 또다시 429 병목에 막혀 빌드가 더 이상 전진하지 못합니다.
-        // 이를 방지하기 위해 "분석 실패(무료 한도 초과)" 상태로 객체를 채워 저장하여 다음 번에는 캐시 히트로 스킵되게 합니다.
-        if (!cachedProduct) {
-          coreBenefits = ["API 한도 초과 또는 일시적 오류로 인해 요약이 누락되었습니다."];
-          premiumRange = "분석 실패 (무료 한도 초과)";
-          recommendationFactor = "이 요약서 PDF 파일은 무료 요금제 토큰 제한(TPM)을 초과하여 요약을 생략합니다.";
-          targetAge = { minAge: null, maxAge: null };
-          renewalType = "확인 불가";
-          examinationType = "확인 불가";
-          simsaCriteria = "확인 불가";
-          coverageLimits = {
-            generalCancer: "확인 불가",
-            similarCancer: "확인 불가",
-            cerebrovascular: "확인 불가",
-            ischemicHeart: "확인 불가",
-            caregiverExpenses: "확인 불가"
-          };
-        }
-      } finally {
-        // [임시 자원 완전 삭제]
-        // 디스크 용량 관리를 위해 사용이 완료된 임시 원본 PDF와 잘라낸 슬라이싱 PDF 파일을 모두 정리합니다.
-        if (fs.existsSync(tempPdfPath)) {
-          try {
-            fs.unlinkSync(tempPdfPath);
-          } catch (e) { }
-        }
-        if (fs.existsSync(slicedPdfPath)) {
-          try {
-            fs.unlinkSync(slicedPdfPath);
-          } catch (e) { }
-        }
-      }
-    } else {
-      apiSuccess = false;
-    }
-
-    // [교육용 한글 주석]
-    // 429 한도로 인해 분석이 끊겼고 API 오류(hasApiError)가 참인 경우,
-    // 더 이상의 분석을 무의미하게 진행하지 않고 루프를 즉시 중단(break)합니다.
-    // 이렇게 루프를 중단하면 이때까지 성공한 정보만 로컬 JSON에 정상 반영하고
-    // 스크립트를 정상 종료(0) 처리할 수 있어 GitHub Actions의 커밋&푸시 단계로 이어지게 됩니다.
-    if (!apiSuccess && hasApiError) {
-      console.warn(`\n[Warning] Gemini API 할당량 제한(429) 또는 오류 감지로 인해 루프를 중단합니다.`);
-      console.warn(`          현재까지 수집/요약 완료된 데이터만 저장한 후 빌드를 정상 종료(Success) 처리합니다.`);
-      break;
-    }
-
-    // 구조화 객체 생성 및 목록 매핑
-    wikiProducts[productName] = {
-      fullName: productName,
-      category: product.category,
-      status: "판매중",
-      salesPeriod: product.salesPeriod,
-      productUrl: product.productUrl,
-      pdfUrls: product.pdfUrls,
-      coreBenefits: coreBenefits,
-      premiumRange: premiumRange,
-      recommendationFactor: recommendationFactor,
-      targetAge: targetAge,
-      renewalType: renewalType,
-      examinationType: examinationType,
-      simsaCriteria: simsaCriteria,
-      coverageLimits: coverageLimits
-    };
-  }
-
-  const wikiData = {
-    generatedAt: new Date().toISOString(),
-    batchLog: `Success - Processed ${scrapedProducts.length} Hanwha Insurance active long-term products.`,
-    products: wikiProducts
-  };
-
-  // 5. 지식 위키 JSON을 src/knowledge_wiki.json 에 기록
-  const distDir = path.join(process.cwd(), "src");
-  if (!fs.existsSync(distDir)) {
-    fs.mkdirSync(distDir, { recursive: true });
-  }
-  fs.writeFileSync(wikiPath, JSON.stringify(wikiData, null, 2), "utf8");
-
 
   console.log("=====================================================================");
-  console.log(`${logPrefix} 5단계: 지식 위키 구조화 JSON 저장 완료!`);
+  console.log(`${logPrefix} 지식 위키 구조화 JSON 저장 절차 최종 완료!`);
   console.log(`${logPrefix} File Path: ${wikiPath}`);
-  console.log(`${logPrefix} 수집 및 분석 완료된 상품 위키 노드 개수: ${Object.keys(wikiData.products).length}개`);
+  console.log(`${logPrefix} 수집 및 분석 완료된 최종 상품 노드 개수: ${Object.keys(wikiProducts).length}개`);
   console.log("=====================================================================");
   console.log(`🎉 ${getLogTime()} : 정기 배치 지식 위키 구축 작업이 완벽하게 완료되었습니다!`);
   console.log("=====================================================================");
