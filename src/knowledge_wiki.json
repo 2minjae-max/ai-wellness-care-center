@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-06-11T00:48:02.533Z",
-  "batchLog": "Success - Processed 38 Hanwha Insurance active long-term products.",
+  "generatedAt": "2026-06-11T01:00:48.970Z",
+  "batchLog": "Success - Sliced and processed up to 2 Hanwha Insurance active products.",
   "products": {
     "한화 100세 암치료보장보험 무배당2604": {
       "fullName": "한화 100세 암치료보장보험 무배당2604",
@@ -47,22 +47,24 @@
         "method": "https://www.hwgeneralins.com/upload/hmpag_upload/product/311_yeon(2604)_02.pdf",
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/311_yeon(2604)_03_1.pdf"
       },
-      "coreBenefits": [],
-      "premiumRange": "PDF 분석 후 업데이트 예정",
-      "recommendationFactor": "PDF 분석 후 업데이트 예정",
+      "coreBenefits": [
+        "API 한도 초과 또는 일시적 오류로 인해 요약이 누락되었습니다."
+      ],
+      "premiumRange": "분석 실패 (무료 한도 초과)",
+      "recommendationFactor": "이 요약서 PDF 파일은 무료 요금제 토큰 제한(TPM)을 초과하여 요약을 생략합니다.",
       "targetAge": {
         "minAge": null,
         "maxAge": null
       },
-      "renewalType": "PDF 분석 후 업데이트 예정",
-      "examinationType": "PDF 분석 후 업데이트 예정",
-      "simsaCriteria": "PDF 분석 후 업데이트 예정",
+      "renewalType": "확인 불가",
+      "examinationType": "확인 불가",
+      "simsaCriteria": "확인 불가",
       "coverageLimits": {
-        "generalCancer": "PDF 분석 후 업데이트 예정",
-        "similarCancer": "PDF 분석 후 업데이트 예정",
-        "cerebrovascular": "PDF 분석 후 업데이트 예정",
-        "ischemicHeart": "PDF 분석 후 업데이트 예정",
-        "caregiverExpenses": "PDF 분석 후 업데이트 예정"
+        "generalCancer": "확인 불가",
+        "similarCancer": "확인 불가",
+        "cerebrovascular": "확인 불가",
+        "ischemicHeart": "확인 불가",
+        "caregiverExpenses": "확인 불가"
       }
     },
     "한화 311 간편건강보험(연만기 갱신형) 무배당2604(일반고지형)": {
