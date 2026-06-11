@@ -431,6 +431,27 @@ async function runBatch() {
         console.error(`      [Gemini Error] '${productName}' PDF 분석 도중 오류가 발생했습니다:`, err.message || err);
         apiSuccess = false;
         hasApiError = true;
+
+        // [교육용 한글 주석]
+        // 만약 기존에 분석 완료된 캐시 데이터조차 없는 아예 처음 분석하는 상품인데 오류가 발생했다면,
+        // 다음 배치 실행 시에도 이 상품 단계에서 또다시 429 병목에 막혀 빌드가 더 이상 전진하지 못합니다.
+        // 이를 방지하기 위해 "분석 실패(무료 한도 초과)" 상태로 객체를 채워 저장하여 다음 번에는 캐시 히트로 스킵되게 합니다.
+        if (!cachedProduct) {
+          coreBenefits = ["API 한도 초과 또는 일시적 오류로 인해 요약이 누락되었습니다."];
+          premiumRange = "분석 실패 (무료 한도 초과)";
+          recommendationFactor = "이 요약서 PDF 파일은 무료 요금제 토큰 제한(TPM)을 초과하여 요약을 생략합니다.";
+          targetAge = { minAge: null, maxAge: null };
+          renewalType = "확인 불가";
+          examinationType = "확인 불가";
+          simsaCriteria = "확인 불가";
+          coverageLimits = {
+            generalCancer: "확인 불가",
+            similarCancer: "확인 불가",
+            cerebrovascular: "확인 불가",
+            ischemicHeart: "확인 불가",
+            caregiverExpenses: "확인 불가"
+          };
+        }
       } finally {
         // 임시 PDF 파일 자동 삭제
         if (fs.existsSync(tempPdfPath)) {
