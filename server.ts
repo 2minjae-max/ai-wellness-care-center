@@ -2106,6 +2106,12 @@ ${wikiContext}
 
     console.log(`${logPrefix} [Gemini API Request] Model: gemini-3.1-flash-lite, Purpose: Health Analysis`);
     console.log(`${logPrefix} [Gemini API Request] Prompt length: ${prompt.length} chars`);
+    console.log(`${logPrefix} [Gemini API Request] Parameters Payload: \n`, JSON.stringify({
+      model: "gemini-3.1-flash-lite",
+      systemInstruction: "You are an expert personalized preventive health advisor and professional insurance underwriter. Output MUST exactly follow the provided responseSchema JSON representation. Keep sentences reassuring, clinical, clear and active in Korean.",
+      responseMimeType: "application/json",
+      hasResponseSchema: true
+    }, null, 2));
 
     const response = await ai.models.generateContent({
       model: "gemini-3.1-flash-lite",
@@ -2239,10 +2245,12 @@ ${wikiContext}
 
     console.log(`${logPrefix} [Gemini API Response] Status: Success`);
     console.log(`${logPrefix} [Gemini API Response] Response length: ${response.text?.length || 0} chars`);
-    console.log(`${logPrefix} [Gemini API Response] Response content: ${response.text?.substring(0, 500)}...`);
     console.log(`${logPrefix} [Gemini API Response] Usage metadata:`, JSON.stringify(response.usageMetadata));
 
     const parsedResult = JSON.parse(response.text || "{}");
+    
+    // [NEW] AI가 도출한 맞춤형 보험 추천 사유 및 설계 근거 전문 로그 출력
+    console.log(`${logPrefix} [Gemini API Response] Recommended Insurance Detail: \n`, JSON.stringify(parsedResult.recommendedInsurance, null, 2));
 
     // [NEW] 위키 기반 동적 URL 주입
     if (parsedResult.recommendedInsurance && parsedResult.recommendedInsurance.productName && wiki && wiki.products) {

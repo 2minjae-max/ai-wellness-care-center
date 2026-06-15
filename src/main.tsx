@@ -2079,7 +2079,7 @@ function renderServerConsultingTab() {
     productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01988002";
     guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/woman_cm(2604)_01.pdf";
   } else if (pName.includes("3N5") || pName.includes("LA01358001") || pName.includes("더간편")) {
-    productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01358001";
+    // 3N5 상품의 카탈로그 페이지가 존재하지 않으므로 위키(서버)에서 내려준 공시실 링크를 유지하여 버튼을 숨깁니다.
     guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5yeon(2604)_01.pdf";
   } else if (pName.includes("한아름종합보험")) {
     productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01381001";
@@ -2734,7 +2734,7 @@ function renderConsultingTab() {
     if (isSimplifiedTarget) {
       productName = "한화 간편가입 3N5 건강보험";
       productDescription = "고혈압, 당뇨 등의 정기 약물을 장기 복용 중인 만성 유병자도 3가지 핵심 질문(3개월 내 검사, N년 내 입원/수술, 5년 내 중증진단) 통과 시 서류 간편 고지로 무심사 가입 및 핵심 3대 만성 질환을 든든하게 보장받을 수 있는 대표 간편 유병자형 상품입니다.";
-      productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01358001";
+      productUrl = ""; // 공식 상품 페이지 없음 (버튼 숨김 처리용)
       guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5yeon(2604)_01.pdf";
     } else {
       productName = "한화 더건강한 한아름종합보험 무배당[NEW]";
