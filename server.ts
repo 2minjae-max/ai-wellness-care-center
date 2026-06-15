@@ -2243,6 +2243,18 @@ ${wikiContext}
     console.log(`${logPrefix} [Gemini API Response] Usage metadata:`, JSON.stringify(response.usageMetadata));
 
     const parsedResult = JSON.parse(response.text || "{}");
+
+    // [NEW] 위키 기반 동적 URL 주입
+    if (parsedResult.recommendedInsurance && parsedResult.recommendedInsurance.productName && wiki && wiki.products) {
+      const pName = parsedResult.recommendedInsurance.productName;
+      const matchedKey = Object.keys(wiki.products).find(k => k === pName || pName.includes(k) || k.includes(pName));
+      if (matchedKey) {
+        const pInfo = wiki.products[matchedKey];
+        parsedResult.recommendedInsurance.productUrl = pInfo.productUrl || "";
+        parsedResult.recommendedInsurance.guidePdfUrl = pInfo.pdfUrls?.summary || pInfo.pdfUrls?.method || pInfo.pdfUrls?.terms || "";
+      }
+    }
+
     const costInfo = calculateGeminiCost(response.usageMetadata, "gemini-3.1-flash-lite");
     
     console.log(`${logPrefix} [Gemini API Cost] Cost: ${costInfo.costKrw} KRW, Tokens: ${costInfo.totalTokens}`);
@@ -3067,6 +3079,8 @@ function evaluateClinicalRuleBasedAnalysis(nhisData: any, uploadedPDF: any, fami
     recommendedInsurance.hasPremiumWaiver = pInfo.hasPremiumWaiver ?? false;
     recommendedInsurance.premiumWaiverCriteria = pInfo.premiumWaiverCriteria || [];
     recommendedInsurance.underwritingNotes = pInfo.underwritingNotes || [];
+    recommendedInsurance.productUrl = pInfo.productUrl || "";
+    recommendedInsurance.guidePdfUrl = pInfo.pdfUrls?.summary || pInfo.pdfUrls?.method || pInfo.pdfUrls?.terms || "";
   } else {
     recommendedInsurance.hasPremiumWaiver = false;
     recommendedInsurance.premiumWaiverCriteria = ["상세 조건 약관 확인 필요"];

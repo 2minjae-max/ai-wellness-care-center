@@ -2065,11 +2065,13 @@ function renderServerConsultingTab() {
   const isFemale = (gender === "F");
   const userAge = calculateAge(birthDate);
 
-  // 상품 URL 매핑
-  let productUrl = "https://www.hwgeneralins.com/";
-  let guidePdfUrl = "https://www.hwgeneralins.com/";
+  // 상품 URL 매핑 (서버에서 wiki 기반으로 내려준 값을 최우선 적용)
+  let productUrl = ins.productUrl || "";
+  let guidePdfUrl = ins.guidePdfUrl || "";
 
   const pName = ins.productName || "";
+  
+  // 4개의 주요 상품은 실제 카탈로그 URL과 PDF 주소가 하드코딩된 것을 유지하거나 덮어씀
   if (pName.includes("여성 간편") || pName.includes("LA01988003")) {
     productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01988003";
     guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/woman_simple(2604)_01.pdf";
@@ -2078,8 +2080,8 @@ function renderServerConsultingTab() {
     guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/woman_cm(2604)_01.pdf";
   } else if (pName.includes("3N5") || pName.includes("LA01358001") || pName.includes("더간편")) {
     productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01358001";
-    guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/simple_3n5(2604)_01.pdf";
-  } else {
+    guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5yeon(2604)_01.pdf";
+  } else if (pName.includes("한아름종합보험")) {
     productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01381001";
     guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan(2604)_01.pdf";
   }
@@ -2277,10 +2279,12 @@ function renderServerConsultingTab() {
             </div>
             
             <!-- 🔗 상품 보러가기 / 설명서 다운로드 버튼 -->
-            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 relative z-10">
+            <div class="grid ${productUrl && productUrl.includes('product-info.do') ? 'grid-cols-2' : 'grid-cols-1'} gap-3 pt-3 border-t border-slate-100 relative z-10">
+              ${productUrl && productUrl.includes('product-info.do') ? `
               <a href="${productUrl}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center py-2.5 px-1.5 rounded-xl border border-[#f37321] bg-white text-[#f37321] hover:bg-[#fff5ee] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline whitespace-nowrap">
                 공식 상품 정보
               </a>
+              ` : ''}
               <a href="${guidePdfUrl}" target="_blank" download class="flex items-center justify-center py-2.5 px-1.5 rounded-xl bg-[#f37321] text-white hover:bg-[#dd6216] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline whitespace-nowrap">
                 설명서 PDF 받기
               </a>
@@ -2347,8 +2351,8 @@ function renderServerConsultingTab() {
           </button>
         </div>
 
-        <!-- 🛡️ 내 보험 정보와 비교 분석 섹션 -->
-        <div class="mt-8 pt-8 border-t border-slate-200 space-y-4">
+        <!-- 🛡️ 내 보험 정보와 비교 분석 섹션 (숨김 처리됨) -->
+        <div class="hidden mt-8 pt-8 border-t border-slate-200 space-y-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 text-left">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2 text-slate-800">
@@ -2731,7 +2735,7 @@ function renderConsultingTab() {
       productName = "한화 간편가입 3N5 건강보험";
       productDescription = "고혈압, 당뇨 등의 정기 약물을 장기 복용 중인 만성 유병자도 3가지 핵심 질문(3개월 내 검사, N년 내 입원/수술, 5년 내 중증진단) 통과 시 서류 간편 고지로 무심사 가입 및 핵심 3대 만성 질환을 든든하게 보장받을 수 있는 대표 간편 유병자형 상품입니다.";
       productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01358001";
-      guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/simple_3n5(2604)_01.pdf";
+      guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5yeon(2604)_01.pdf";
     } else {
       productName = "한화 더건강한 한아름종합보험 무배당[NEW]";
       productDescription = "3대 만성 질환(암, 뇌혈관, 허혈성 심장질환)과 수술비를 폭넓게 보장하며 3N5 무사고 할인 특약을 통해 가입 장벽과 보험료를 혁신적으로 낮춘 대표 종합 건강보험입니다.";
