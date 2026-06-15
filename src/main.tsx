@@ -2632,54 +2632,191 @@ function renderServerConsultingTab() {
     if (!input.files || input.files.length === 0) {
       return;
     }
+    
     const file = input.files[0];
+    const span = $("upload-zone")?.querySelector("span");
+    if (span) span.innerText = file.name;
     
-    const uploadZone = $("upload-zone");
-    if (!uploadZone) return;
-    const originalZoneHtml = uploadZone.innerHTML;
+    // Show AI loading overlay
+    const overlay = $("ai-analysis-overlay");
+    const bar = $("ai-loading-bar");
+    const percentText = $("ai-loading-percent");
+    const stepText = $("ai-loading-step");
     
-    uploadZone.innerHTML = `
-      <div class="flex flex-col items-center justify-center gap-3">
-        <svg class="animate-spin h-8 w-8 text-[#f37321]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <span class="text-xs text-slate-500 font-bold">인공지능이 설계서를 읽고 분석하는 중...</span>
-      </div>
-    `;
+    if (overlay) overlay.classList.remove("hidden");
+    if (bar) bar.style.width = "0%";
+    if (percentText) percentText.innerText = "0%";
+    if (stepText) stepText.innerText = "설계서 파일에서 데이터를 추출하고 있습니다...";
+
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      if (progress < 92) {
+        progress += Math.floor(Math.random() * 4) + 2; // 2%~5% increment
+        if (progress > 92) progress = 92;
+        if (bar) bar.style.width = `${progress}%`;
+        if (percentText) percentText.innerText = `${progress}%`;
+        
+        if (progress < 25) {
+          if (stepText) stepText.innerText = "설계서 파일에서 데이터 및 보장 내역을 해독하고 있습니다...";
+        } else if (progress < 50) {
+          if (stepText) stepText.innerText = "한화손보 맞춤 건강 지표와의 보장 매핑을 수행하고 있습니다...";
+        } else if (progress < 75) {
+          if (stepText) stepText.innerText = "과다 보장 및 부족한 담보 영역의 재설계 타당성을 시뮬레이션하고 있습니다...";
+        } else {
+          if (stepText) stepText.innerText = "초정밀 인공지능 분석 리포트를 조립 및 조율하는 중입니다...";
+        }
+      }
+    }, 150);
+
+    const resultDiv = $("analysis-result");
+    if (resultDiv) {
+      resultDiv.classList.remove("hidden");
+      resultDiv.innerHTML = `<div class="text-slate-500 font-bold text-xs sm:text-sm animate-pulse">상세한 보장 차이점을 비교 분석 중입니다. 잠시만 기다려주세요...</div>`;
+    }
 
     const formData = new FormData();
-    formData.append("pdfFile", file);
+    formData.append("file", file);
+    formData.append("productName", ins.productName || "");
 
     try {
-      const res = await fetch("/api/analysis/insurance-plan", {
-        method: "POST",
-        body: formData
-      });
+        const response = await fetch("/api/health/compare-plan", {
+            method: "POST",
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorMsg = "서버 에러가 발생했습니다.";
+            try {
+                const errData = JSON.parse(errorText);
+                errorMsg = errData.error || errData.message || errorMsg;
+            } catch (e) {
+                errorMsg = errorText || errorMsg;
+            }
+            throw new Error(errorMsg);
+        }
 
-      if (!res.ok) {
-        throw new Error("서버 에러가 발생했습니다.");
-      }
+        const data = await response.json();
+        if (data.error) {
+            throw new Error(data.error);
+        }
 
-      const data = await res.json();
-      
-      isComparisonCompleted = true;
-      comparisonResultHtml = data.htmlReport;
-      
-      const resContainer = $("analysis-result");
-      if (resContainer) {
-        resContainer.innerHTML = comparisonResultHtml;
-        resContainer.classList.remove("hidden");
-      }
-      
-      $("btn-consulting-consult-submit")?.classList.remove("hidden");
-      
-      logAccessEvent("insurance_plan_upload_success", { fileName: file.name });
+        const comparison = data.comparison;
+        if (!comparison || !Array.isArray(comparison)) {
+            throw new Error("비교 분석 데이터를 올바르게 로드하지 못했습니다.");
+        }
+        
+        if (resultDiv) {
+            const cardsHtml = comparison.map((item: any) => {
+                let statusClass = "";
+                if (item.status === "적정" || item.status === "우수") {
+                    statusClass = "text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-bold";
+                } else if (item.status === "과다") {
+                    statusClass = "text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-bold";
+                } else {
+                    statusClass = "text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded font-bold";
+                }
+                return `
+                    <div class="bg-slate-50 border border-slate-200/50 rounded-xl p-3.5 space-y-2.5 text-left shadow-3xs">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                            <span class="font-extrabold text-slate-800 text-xs sm:text-sm">${item.category || item.item || ""}</span>
+                            <span class="${statusClass} text-[10px]">${item.status || ""}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-white rounded-lg p-2 border border-slate-100">
+                                <span class="text-[9px] text-slate-400 block mb-0.5 font-bold">기존 보장</span>
+                                <span class="font-bold text-slate-600">${item.existing || item.old || ""}</span>
+                            </div>
+                            <div class="bg-orange-50/30 rounded-lg p-2 border border-orange-100/30">
+                                <span class="text-[9px] text-orange-400 block mb-0.5 font-bold">한화 추천</span>
+                                <span class="font-black text-[#f37321]">${item.recommended || item.new || ""}</span>
+                            </div>
+                        </div>
+                        <div class="text-[11px] text-slate-600 leading-relaxed pt-1 break-keep">
+                            <span class="font-bold text-slate-700">★ 분석 소견:</span> ${item.opinion || item.reason || ""}
+                        </div>
+                    </div>
+                `;
+            }).join("");
+
+            const tableHtml = `
+                <!-- 모바일용 카드 리스트 (모바일 전용, 횡스크롤 방지) -->
+                <div class="block sm:hidden space-y-3">
+                    ${cardsHtml}
+                </div>
+
+                <!-- 태블릿/데스크톱용 테이블 뷰 (sm 이상 해상도에서 노출) -->
+                <div class="hidden sm:block overflow-x-auto w-full">
+                    <table class="w-full text-xs sm:text-sm text-left border-collapse min-w-[450px]">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-505 font-bold text-[11px] sm:text-xs">
+                                <th class="py-3 pr-2 w-[18%] min-w-[70px]">보장항목</th>
+                                <th class="py-3 pr-2 w-[18%] min-w-[70px] whitespace-nowrap">기존</th>
+                                <th class="py-3 pr-2 w-[18%] min-w-[70px] whitespace-nowrap">AI추천</th>
+                                <th class="py-3 pr-2 w-[18%] min-w-[70px] whitespace-nowrap">적합여부</th>
+                                <th class="py-3 w-[28%] min-w-[120px]">상세 의견</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-700 font-medium">
+                            ${comparison.map((item: any) => {
+                                let statusClass = "";
+                                if (item.status === "적정" || item.status === "우수") {
+                                    statusClass = "text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-bold";
+                                } else if (item.status === "과다") {
+                                    statusClass = "text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-bold";
+                                } else {
+                                    statusClass = "text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded font-bold";
+                                }
+                                return `
+                                    <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50/50">
+                                        <td class="py-3 pr-2 font-bold text-slate-900">${item.category || item.item || ""}</td>
+                                        <td class="py-3 pr-2 text-slate-500 whitespace-nowrap">${item.existing || item.old || ""}</td>
+                                        <td class="py-3 pr-2 text-[#f37321] font-bold whitespace-nowrap">${item.recommended || item.new || ""}</td>
+                                        <td class="py-3 pr-2"><span class="${statusClass}">${item.status || ""}</span></td>
+                                        <td class="py-3 text-slate-600 leading-relaxed break-keep">${item.opinion || item.reason || ""}</td>
+                                    </tr>
+                                `;
+                            }).join("")}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            resultDiv.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-[#f37321]"></span>
+                        <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm">보장 분석 비교 결과</h4>
+                    </div>
+                    ${tableHtml}
+                    <div class="bg-[#fffcf7] border border-[#f37321]/20 rounded-xl p-3.5 text-[11px] sm:text-xs leading-relaxed font-semibold text-slate-700 break-keep">
+                        <span class="text-[#f37321] font-black">★ AI 융합 분석 리포트 요약:</span> ${data.summary || '기존 설계서 분석 요약 정보가 존재하지 않습니다.'}
+                    </div>
+                </div>
+            `;
+            
+            isComparisonCompleted = true;
+            comparisonResultHtml = resultDiv.innerHTML;
+            
+            // 상담 신청 버튼 노출
+            $("btn-consulting-consult-submit")?.classList.remove("hidden");
+        }
+
+        // Completion animation of loading overlay
+        clearInterval(progressInterval);
+        if (bar) bar.style.width = "100%";
+        if (percentText) percentText.innerText = "100%";
+        if (stepText) stepText.innerText = "분석 완료!";
+        await new Promise(resolve => setTimeout(resolve, 500));
+        if (overlay) overlay.classList.add("hidden");
+
     } catch (err: any) {
-      console.error(err);
-      alert("설계서 분석에 실패했습니다. 올바른 문서나 이미지 파일인지 확인해 주세요. (" + err.message + ")");
-    } finally {
-      uploadZone.innerHTML = originalZoneHtml;
+        console.error(err);
+        clearInterval(progressInterval);
+        if (overlay) overlay.classList.add("hidden");
+        if (resultDiv) {
+            resultDiv.innerHTML = `<div class="text-rose-500 font-bold text-xs sm:text-sm">분석 중 에러가 발생했습니다: ${err.message || 'Unknown error'}</div>`;
+        }
     }
   });
 }
