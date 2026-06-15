@@ -2056,11 +2056,640 @@ function switchTab(tabName: "report" | "trends" | "action" | "chat" | "consultin
   }
 }
 
+// [SERVER DETAILED RENDER PIPELINE]
+function renderServerConsultingTab() {
+  const container = $("section-consulting");
+  if (!container) return;
+
+  const ins = analysisResult.recommendedInsurance;
+  const isFemale = (gender === "F");
+  const userAge = calculateAge(birthDate);
+
+  // 상품 URL 매핑
+  let productUrl = "https://www.hwgeneralins.com/";
+  let guidePdfUrl = "https://www.hwgeneralins.com/";
+
+  const pName = ins.productName || "";
+  if (pName.includes("여성 간편") || pName.includes("LA01988003")) {
+    productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01988003";
+    guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/woman_simple(2604)_01.pdf";
+  } else if (pName.includes("여성 건강보험") || pName.includes("LA01988002")) {
+    productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01988002";
+    guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/woman_cm(2604)_01.pdf";
+  } else if (pName.includes("3N5") || pName.includes("LA01358001") || pName.includes("더간편")) {
+    productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01358001";
+    guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/simple_3n5(2604)_01.pdf";
+  } else {
+    productUrl = "https://www.hwgeneralins.com/product/catalog/product-info.do?insGdcd=LA01381001";
+    guidePdfUrl = "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan(2604)_01.pdf";
+  }
+
+  // 1. 담보 테이블 빌드
+  const designPlan = ins.designPlan || [];
+  const coveragesHtml = designPlan.map((cov: any) => {
+    const formattedPremium = cov.premium.toLocaleString();
+    return (
+      '<tr class="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50 transition-colors">' +
+        '<td class="py-3.5 px-3 align-middle">' +
+          '<div class="font-bold text-slate-800 text-xs sm:text-sm leading-snug">' + cov.coverageName + '</div>' +
+          '<div class="text-[9.5px] sm:text-[10px] text-slate-450 mt-1 font-medium leading-relaxed break-keep">' + cov.opinion + '</div>' +
+        '</td>' +
+        '<td class="py-3.5 px-2 align-middle text-right font-bold text-slate-700 text-xs sm:text-sm whitespace-nowrap">' +
+          cov.recommendedLimit +
+        '</td>' +
+        '<td class="py-3.5 px-3 align-middle text-right font-black text-[#f37321] text-xs sm:text-sm whitespace-nowrap">' +
+          (cov.premium > 0 ? formattedPremium + " 원" : "0 원") +
+        '</td>' +
+      '</tr>'
+    );
+  }).join("");
+
+  const formattedTotal = ins.totalPremium.toLocaleString();
+
+  // 2. 납입면제 조건 카드
+  let waiverHtml = "";
+  if (ins.hasPremiumWaiver && ins.premiumWaiverCriteria && ins.premiumWaiverCriteria.length > 0) {
+    const criteriaList = ins.premiumWaiverCriteria.map((c: string) => '<li class="text-xs font-semibold list-disc list-inside mt-1">' + c + '</li>').join("");
+    waiverHtml = (
+      '<div class="bg-amber-50/40 border border-amber-200/60 rounded-2xl p-5 text-left space-y-2.5">' +
+        '<h4 class="font-extrabold text-amber-800 text-sm flex items-center gap-1.5">' +
+          '<svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />' +
+          '</svg>' +
+          '한화손보 지식 위키: 납입면제 혜택 안내 (보험료 면제)' +
+        '</h4>' +
+        '<p class="text-[11px] text-amber-700 leading-relaxed font-medium">' +
+          '가입 후 피보험자에게 아래 사유가 발생할 경우, 차회 이후의 보장보험료 납입이 전면 면제됩니다.' +
+        '</p>' +
+        '<ul class="text-amber-900/90 pl-1 space-y-0.5">' +
+          criteriaList +
+        '</ul>' +
+      '</div>'
+    );
+  }
+
+  // 3. 인수 심사 팁 카드
+  let underwritingHtml = "";
+  if (ins.underwritingNotes && ins.underwritingNotes.length > 0) {
+    const notesList = ins.underwritingNotes.map((n: string) => '<li class="text-xs font-semibold list-disc list-inside mt-1">' + n + '</li>').join("");
+    underwritingHtml = (
+      '<div class="bg-emerald-50/40 border border-emerald-200/60 rounded-2xl p-5 text-left space-y-2.5">' +
+        '<h4 class="font-extrabold text-emerald-800 text-sm flex items-center gap-1.5">' +
+          '<svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />' +
+          '</svg>' +
+          '한화손보 지식 위키: 인수 심사 가이드 및 가입 팁' +
+        '</h4>' +
+        '<p class="text-[11px] text-emerald-700 leading-relaxed font-medium">' +
+          '고객님의 건강검진 수치 및 약물 처방에 기반한 한화손보 상품공시실 인수 기준 팁입니다.' +
+        '</p>' +
+        '<ul class="text-emerald-900/90 pl-1 space-y-0.5">' +
+          notesList +
+        '</ul>' +
+      '</div>'
+    );
+  }
+
+  const totalExistingPremium = existingInsurances.reduce((acc, cur) => acc + cur.premium, 0);
+
+  const existCancerVal = Math.round((existingCoverages["cov-cancer"] || 0) / 10000);
+  const existBrainVal = Math.round((existingCoverages["cov-brain"] || 0) / 10000);
+  const existHeartVal = Math.round((existingCoverages["cov-heart"] || 0) / 10000);
+  const existMetabolicVal = Math.round((existingCoverages["cov-metabolic"] || 0) / 10000);
+  const existSurgeryVal = Math.round((existingCoverages["cov-surgery"] || 0) / 10000);
+
+  const parseLimitToNumber = (limitStr: string, defaultVal: number): number => {
+    const cleaned = limitStr.replace(/,/g, "");
+    const match = cleaned.match(/최대\s*(\d+)만원/i) || cleaned.match(/(\d+)만원/i);
+    if (match && match[1]) {
+      return parseInt(match[1]);
+    }
+    return defaultVal;
+  };
+
+  const getLimitVal = (covId: string) => {
+    const matchCov = designPlan.find((c: any) => c.coverageId === covId);
+    if (matchCov) {
+      return parseLimitToNumber(matchCov.recommendedLimit, 0);
+    }
+    return 0;
+  };
+
+  const recCancerVal = getLimitVal("cov-cancer");
+  const recBrainVal = getLimitVal("cov-brain");
+  const recHeartVal = getLimitVal("cov-heart");
+  const recMetabolicVal = getLimitVal("cov-metabolic");
+  const recSurgeryVal = getLimitVal("cov-surgery");
+
+  const compareItems = [
+    { name: "암 진단비", rec: recCancerVal, exist: existCancerVal, desc: isFemale ? "여성특화 암 진단비" : "일반암 진단비" },
+    { name: "뇌혈관 진단비", rec: recBrainVal, exist: existBrainVal, desc: "뇌혈관질환 진단비" },
+    { name: "심장질환 진단비", rec: recHeartVal, exist: existHeartVal, desc: "허혈성심장질환 진단비" },
+    { name: "대사성 만성질환", rec: recMetabolicVal, exist: existMetabolicVal, desc: "당뇨/고혈압 등 특별보완" },
+    { name: "수술비 보장", rec: recSurgeryVal, exist: existSurgeryVal, desc: "일반 질병 및 다빈도 수술비" }
+  ];
+
+  const compareRowsHtml = compareItems.map(item => {
+    const gap = item.rec - item.exist;
+    const isDeficient = gap > 0;
+    const absGap = Math.abs(gap);
+    const formattedGap = gap === 0 ? "0원" : (isDeficient ? "-" + absGap.toLocaleString() + "만원" : "+" + absGap.toLocaleString() + "만원");
+    const gapClass = gap === 0 ? "text-slate-500 font-semibold" : (isDeficient ? "text-rose-600 font-black" : "text-emerald-600 font-black");
+    const gapText = gap === 0 ? "충분" : (isDeficient ? "부족" : "초과");
+
+    return (
+      '<tr class="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50 transition-colors">' +
+        '<td class="py-3.5 px-3 align-middle">' +
+          '<div class="font-bold text-slate-800 text-xs sm:text-sm leading-snug">' + item.name + '</div>' +
+          '<div class="text-[9.5px] sm:text-[10px] text-slate-450 mt-0.5 leading-none font-medium">' + item.desc + '</div>' +
+        '</td>' +
+        '<td class="py-3.5 px-2 align-middle text-right font-semibold text-slate-700 font-mono whitespace-nowrap">' + item.rec.toLocaleString() + '만원</td>' +
+        '<td class="py-3.5 px-2 align-middle text-right font-semibold text-slate-700 font-mono whitespace-nowrap">' + item.exist.toLocaleString() + '만원</td>' +
+        '<td class="py-3.5 px-3 align-middle text-right ' + gapClass + ' font-mono whitespace-nowrap">' +
+          '<span class="text-[9.5px] font-sans mr-1 whitespace-nowrap">' + gapText + '</span><span class="whitespace-nowrap">' + formattedGap + '</span>' +
+        '</td>' +
+      '</tr>'
+    );
+  }).join("");
+
+  const existingInsurancesHtml = existingInsurances.map(ins => {
+    const statusText = ins.status || "유지";
+    const insPremium = ins.premium.toLocaleString();
+    return (
+      '<div class="bg-slate-50/70 border border-slate-150 p-3.5 rounded-xl flex items-center justify-between text-left transition-all hover:bg-slate-50">' +
+        '<div class="space-y-1">' +
+          '<div class="flex items-center gap-1.5">' +
+            '<span class="text-[9.5px] px-1.5 py-0.5 rounded-md bg-[#e3e6fc] text-indigo-700 font-extrabold">' + statusText + '</span>' +
+            '<span class="text-[10px] text-slate-400 font-bold">' + ins.company + '</span>' +
+          '</div>' +
+          '<div class="text-xs font-bold text-slate-800 truncate max-w-[180px]">' + ins.productName + '</div>' +
+        '</div>' +
+        '<div class="text-right">' +
+          '<div class="text-xs font-black text-slate-900">' + insPremium + '원</div>' +
+          '<div class="text-[9px] text-slate-400 font-medium leading-none">월 보험료</div>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join("");
+
+  const discRate = ins.discountRate || 0;
+  const discAmount = ins.discountAmount || 0;
+  const isSimplifiedTarget = ins.isSimplifiedTarget || false;
+
+  let discountBadgeHtml = "";
+  if (discRate > 0) {
+    discountBadgeHtml = '<p class="text-[10px] text-emerald-600 font-extrabold mt-1">✓ 건강등급 우량체 특별 할인 완료 (-' + discAmount.toLocaleString() + '원)</p>';
+  }
+  let simpleBadgeHtml = "";
+  if (isSimplifiedTarget) {
+    simpleBadgeHtml = '<p class="text-[10px] text-[#f37321] font-extrabold mt-1">✓ 만성질환 보장 우대 유병자형 간편인수 적용</p>';
+  }
+
+  container.innerHTML = `
+    <div class="bg-white p-5 sm:p-8 shadow-xs space-y-6 animate-fade-in text-left">
+        <!-- Header -->
+        <div class="border-b border-slate-150 pb-4">
+          <span class="text-xs font-black text-[#f37321] tracking-wider uppercase">Hanwha General Insurance Custom Consulting (Server Optimized)</span>
+          <h3 class="font-black text-slate-900 text-xl sm:text-2xl mt-1 flex items-center gap-1.5">
+            <svg class="w-6 h-6 text-[#f37321] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            AI 초정밀 계리 맞춤형 설계서
+          </h3>
+          <p class="text-slate-500 text-xs sm:text-sm mt-2 leading-relaxed">
+            고객님의 최근 건강검진 지표(<span class="font-bold text-slate-800">${analysisResult?.overallScore || 84}점</span>), 나이(<strong>만 ${userAge}세</strong>) 및 가족력 정보를 서버 엔진과 연계 분석했습니다. <strong class="text-slate-800 font-extrabold">한화손해보험 상품공시실 지식 위키</strong>를 토대로 가입 한도 및 최적 상품을 정밀 매칭한 포트폴리오를 제공합니다.
+          </p>
+        </div>
+
+        <!-- Product Box -->
+        <div class="bg-[#fffdfb] p-5 rounded-2xl border border-[#f37321]/20 space-y-4.5 relative overflow-hidden">
+            <div class="absolute -right-6 -bottom-6 text-[#f37321] opacity-5">
+              <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.622c5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016L12 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622z"/>
+              </svg>
+            </div>
+            <div class="space-y-2">
+                <div class="flex flex-col gap-1 items-start">
+                    <span class="text-[10px] px-2 py-0.5 rounded-md bg-[#f37321] text-white font-black">${isSimplifiedTarget ? "AI 유병자 간편 맞춤설계" : "AI 추천 최적상품 (공시실 위키 연동)"}</span>
+                    <h4 class="font-black text-slate-900 text-sm sm:text-base">${ins.productName}</h4>
+                </div>
+                <p class="text-slate-600 text-xs sm:text-sm leading-relaxed break-keep">${ins.productDescription}</p>
+            </div>
+            
+            <!-- 🔗 상품 보러가기 / 설명서 다운로드 버튼 -->
+            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 relative z-10">
+              <a href="${productUrl}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center py-2.5 px-1.5 rounded-xl border border-[#f37321] bg-white text-[#f37321] hover:bg-[#fff5ee] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline whitespace-nowrap">
+                공식 상품 정보
+              </a>
+              <a href="${guidePdfUrl}" target="_blank" download class="flex items-center justify-center py-2.5 px-1.5 rounded-xl bg-[#f37321] text-white hover:bg-[#dd6216] font-black text-xs transition-all tracking-tight cursor-pointer text-center no-underline whitespace-nowrap">
+                설명서 PDF 받기
+              </a>
+            </div>
+        </div>
+
+        <!-- Recommended Coverages -->
+        <div class="space-y-3.5">
+            <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm md:text-base break-keep">
+              가족력 및 검진 기반 보장 공백(Gap) 대조 분석
+            </h4>
+
+            <div class="border border-slate-200 bg-white rounded-2xl shadow-xs overflow-hidden">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-[10.5px]">
+                    <th class="py-3 px-3 font-black w-[58%]">담보명 및 분석 근거</th>
+                    <th class="py-3 px-2 text-right font-black w-[24%] whitespace-nowrap">추천 가입금액</th>
+                    <th class="py-3 px-3 text-right font-black w-[18%] whitespace-nowrap">추천 월보험료</th>
+                  </tr>
+                </thead>
+                <tbody class="text-xs text-slate-700">
+                  ${coveragesHtml}
+                </tbody>
+              </table>
+            </div>
+        </div>
+
+        <!-- 💡 가족력 및 검진 기반 융합 사유 카드 -->
+        <div class="bg-gradient-to-br from-indigo-50/20 to-[#f5f7ff]/40 border border-indigo-200/50 rounded-2xl p-5 space-y-3 text-left">
+          <h4 class="font-extrabold text-indigo-700 text-sm flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            가족력 및 검진 지표 융합 분석 사유
+          </h4>
+          <div class="space-y-2.5 text-slate-700 text-xs sm:text-xs font-semibold leading-relaxed break-keep">
+            ${ins.reason}
+          </div>
+        </div>
+
+        <!-- 💰 한화 지식위키 기반 추가 특화 카드들 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          ${waiverHtml}
+          ${underwritingHtml}
+        </div>
+
+        <!-- Monthly Premium -->
+        <div class="bg-gradient-to-r from-slate-50 to-[#fff8f2] p-5 sm:p-6 rounded-2xl border border-dashed border-[#f37321]/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="space-y-0.5 text-center sm:text-left">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calculated Monthly Premium</span>
+            <h5 class="text-xs sm:text-sm font-black text-slate-750 block sm:inline">격차 보강용 신규 추천 월 보험료</h5>
+            <p class="text-2xl sm:text-3.5xl font-black text-[#f37321] tracking-tight mt-1">
+              <span id="consulting-display-bold-total" class="font-extrabold text-3xl sm:text-4xl text-[#f37321]">${formattedTotal}</span> 원
+            </p>
+            ${discountBadgeHtml}
+            ${simpleBadgeHtml}
+          </div>
+          <button type="button" id="btn-open-premium-basis" class="w-full sm:w-auto bg-[#353968] hover:bg-[#24274d] text-white rounded-xl py-3 px-4 font-bold text-xs tracking-wide flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            산출 및 가입 적정성 근거 보기
+          </button>
+        </div>
+
+        <!-- 🛡️ 내 보험 정보와 비교 분석 섹션 -->
+        <div class="mt-8 pt-8 border-t border-slate-200 space-y-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 text-left">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-slate-800">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        <h3 class="font-extrabold text-base sm:text-lg text-slate-900">내 보험 정보와 비교 분석</h3>
+                    </div>
+                    ${existingInsurances.length > 0 ? (
+                      '<button type="button" id="btn-sync-my-insurance-retry" class="flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors bg-transparent border-0 cursor-pointer">' +
+                          '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">' +
+                              '<path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17" />' +
+                          '</svg>' +
+                          '다시 불러오기' +
+                      '</button>'
+                    ) : ""}
+                </div>
+
+                ${existingInsurances.length === 0 ? (
+                  '<div class="bg-slate-50/70 border border-slate-150 rounded-2xl p-6 text-center space-y-4 flex flex-col items-center justify-center">' +
+                      '<div class="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">' +
+                          '<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">' +
+                              '<path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />' +
+                          '</svg>' +
+                      '</div>' +
+                      '<div class="space-y-1 max-w-md mx-auto">' +
+                          '<h4 class="text-xs sm:text-sm font-bold text-slate-800 break-keep">나의 실제 가입 보험 정보를<br class="xs:inline hidden"/> 가져와 비교해 보세요</h4>' +
+                          '<p class="text-xs text-slate-500 leading-relaxed break-keep">한국신용정보원(보험다모아) 인증을 통해 현재 가입 중인 보험 상품 및 담보별 한도를 자동으로 가져와 AI 추천 설계서와 1:1로 비교해 드립니다.</p>' +
+                      '</div>' +
+                      '<button type="button" id="btn-sync-my-insurance" class="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-[#353968] hover:from-indigo-700 hover:to-[#24274d] text-white rounded-xl py-3 px-6 font-extrabold text-xs tracking-wide flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm">' +
+                          '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">' +
+                              '<path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />' +
+                          '</svg>' +
+                          '내 보험 정보 불러오기 (보험다모아)' +
+                      '</button>' +
+                  '</div>'
+                ) : (
+                  '<p class="text-slate-500 text-xs sm:text-sm leading-relaxed">' +
+                      '고객님이 보유하신 기가입 보험 계약 내역을 토대로 분석된 <strong>가입 담보 한도</strong>와 AI가 처방한 <strong>추천 담보 한도</strong>의 세부 격차를 비교 분석한 내용입니다.' +
+                  '</p>' +
+                  '<div class="border border-slate-200 bg-white rounded-2xl shadow-xs overflow-hidden">' +
+                      '<table class="w-full text-left border-collapse">' +
+                          '<thead>' +
+                              '<tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-[10.5px]">' +
+                                  '<th class="py-3 px-3 font-black w-[34%]">분석 담보 영역</th>' +
+                                  '<th class="py-3 px-2 text-right font-black w-[22%] whitespace-nowrap">AI 추천한도</th>' +
+                                  '<th class="py-3 px-2 text-right font-black w-[22%] whitespace-nowrap">내가 가입한도</th>' +
+                                  '<th class="py-3 px-3 text-right font-black w-[22%] whitespace-nowrap">과부족 격차</th>' +
+                              '</tr>' +
+                          '</thead>' +
+                          '<tbody class="text-xs text-slate-700">' +
+                              compareRowsHtml +
+                          '</tbody>' +
+                      '</table>' +
+                  '</div>' +
+                  '<div class="space-y-2.5 pt-2">' +
+                      '<h4 class="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">' +
+                          '<svg class="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">' +
+                              '<path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 01-2-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />' +
+                          '</svg>' +
+                          '동기화된 나의 가입 보험 계약 (' + existingInsurances.length + '건)' +
+                      '</h4>' +
+                      '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">' +
+                          existingInsurancesHtml +
+                      '</div>' +
+                      '<div class="bg-indigo-50/40 border border-indigo-100 rounded-xl p-3.5 mt-2 flex items-center justify-between">' +
+                          '<span class="text-xs font-bold text-slate-700">기가입 보험 월 보험료 합산</span>' +
+                          '<span class="text-sm font-black text-indigo-700">' + totalExistingPremium.toLocaleString() + '원 / 월</span>' +
+                      '</div>' +
+                  '</div>'
+                )}
+            </div>
+        </div>
+
+        <!-- 📂 다른 설계서와 비교 분석 섹션 -->
+        <div class="mt-8 pt-8 border-t border-slate-200 space-y-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center gap-2 text-slate-800">
+                    <svg class="w-5 h-5 text-[#f37321]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                       <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2" />
+                    </svg>
+                    <h3 class="font-extrabold text-base sm:text-lg text-slate-900">다른 설계서와 비교 분석</h3>
+                </div>
+                <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">기존에 설계받은 보험 설계서를 업로드하거나 사진을 찍어 올려주시면, 현재 추천 상품과 비교하여 보장 차이점을 분석해 드립니다.</p>
+                <input type="file" id="existing-plan-file" class="hidden" accept="image/*,application/pdf" />
+                <div id="upload-zone" class="border-2 border-dashed border-slate-200 hover:border-[#f37321] bg-slate-50/70 hover:bg-[#fff5ee] rounded-2xl p-8 text-center cursor-pointer transition-all space-y-2.5 flex flex-col items-center justify-center">
+                   <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-3xs border border-slate-100 text-[#f37321]">
+                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                     </svg>
+                   </div>
+                   <div class="space-y-1">
+                     <span class="text-xs sm:text-sm font-bold text-slate-700 block">설계서 파일 선택 / 사진 촬영</span>
+                     <span class="text-[10px] text-slate-400 block font-medium">보험 증권이나 가입 설계서 이미지를 업로드해 주세요.</span>
+                   </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 비교분석 결과 테이블 영역 -->
+        <div id="analysis-result" class="${isComparisonCompleted ? '' : 'hidden'} w-full bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 mt-4 shadow-sm text-left">
+            ${isComparisonCompleted ? comparisonResultHtml : ""}
+        </div>
+
+        <!-- 💬 상담 신청하기 버튼 -->
+        <button id="btn-consulting-consult-submit" class="${isComparisonCompleted ? '' : 'hidden'} w-full bg-[#f37321] hover:bg-[#dd6216] text-white font-extrabold text-sm sm:text-base px-6 py-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer mt-4">
+            <svg class="w-5 h-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+            </svg>
+            상담 신청하기
+        </button>
+    </div>
+  `;
+
+  // Attach event listeners
+  const submitBtn = $("btn-consulting-consult-submit") as HTMLButtonElement | null;
+  if (submitBtn) {
+    submitBtn.addEventListener("click", async () => {
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerText = "상담 접수 중...";
+
+      const sortedRecs = [...nhisRecords].sort((a, b) => b.year - a.year);
+      const latestRec = sortedRecs[0] || {};
+      const heightVal = latestRec.weight && latestRec.bmi ? Math.round(Math.sqrt(latestRec.weight / latestRec.bmi) * 100) : null;
+      const weightVal = latestRec.weight || null;
+
+      const payload = {
+        userName,
+        birthDate,
+        gender,
+        height: heightVal,
+        weight: weightVal,
+        healthRecords: nhisRecords,
+        existingInsurances,
+        recommendedProduct: ins.productName,
+        details: {
+          overallScore: analysisResult?.overallScore || null,
+          consultationRequestedAt: new Date().toISOString()
+        }
+      };
+
+      try {
+        const res = await fetch("/api/consultation/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          throw new Error("서버 응답 오류");
+        }
+
+        $("consultation-success-modal")?.classList.remove("hidden");
+      } catch (err: any) {
+        console.error("상담 접수 예외:", err);
+        alert("상담 접수 중 오류가 발생했습니다. 다시 시도해 주세요. (" + err.message + ")");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    });
+  }
+
+  const syncMyInsuBtn = $("btn-sync-my-insurance");
+  if (syncMyInsuBtn) {
+    syncMyInsuBtn.addEventListener("click", () => {
+      if (!userName.trim() || !birthDate.trim()) {
+        alert("기본 인적사항(이름, 생년월일)이 있어야 기존 보험을 조회할 수 있습니다. 1단계로 이동하여 인풋값을 체크해 주세요.");
+        return;
+      }
+      step3Auth.openSyncModal("insurance");
+    });
+  }
+
+  const syncMyInsuRetryBtn = $("btn-sync-my-insurance-retry");
+  if (syncMyInsuRetryBtn) {
+    syncMyInsuRetryBtn.addEventListener("click", () => {
+      if (!userName.trim() || !birthDate.trim()) {
+        alert("기본 인적사항(이름, 생년월일)이 있어야 기존 보험을 조회할 수 있습니다. 1단계로 이동하여 인풋값을 체크해 주세요.");
+        return;
+      }
+      step3Auth.openSyncModal("insurance");
+    });
+  }
+
+  const btnOpenBasis = $("btn-open-premium-basis");
+  const modalBasis = $("premium-basis-modal");
+
+  if (btnOpenBasis && modalBasis) {
+    btnOpenBasis.addEventListener("click", () => {
+      const detailsContainer = $("modal-premium-basis-details");
+      if (detailsContainer) {
+        detailsContainer.innerHTML = designPlan.map((cov: any) => {
+          const formattedAmountStr = cov.recommendedLimit;
+          const formattedPremium = cov.premium.toLocaleString();
+          return (
+            '<div class="bg-slate-50 border border-slate-100 rounded-xl p-3 space-y-1 text-left shadow-3xs">' +
+              '<div class="flex justify-between items-center gap-1.5">' +
+                '<span class="font-extrabold text-slate-800 text-xs flex-1 min-w-0 break-keep">' + cov.coverageName + '</span>' +
+                '<span class="text-[10px] text-[#f37321] font-black shrink-0 ml-auto" style="white-space: nowrap; word-break: keep-all;">' +
+                  formattedAmountStr + (cov.premium > 0 ? " (월 " + formattedPremium + "원)" : "") +
+                '</span>' +
+              '</div>' +
+              '<p class="text-[10px] text-slate-500 leading-relaxed font-semibold break-keep">' + cov.opinion + '</p>' +
+            '</div>'
+          );
+        }).join("");
+      }
+
+      const introText = $("modal-premium-basis-intro");
+      if (introText) {
+        const latestRec = [...nhisRecords].sort((a, b) => b.year - a.year)[0] || {};
+        const sysBp = latestRec.systolicBP ?? 120;
+        const glucose = latestRec.fastingGlucose ?? 95;
+        introText.innerHTML = "고객님의 최근 5개년 누적 검진 지표와 패밀리 유전 병력을 매칭하여 산출된 예방 특약 비중입니다. (공복혈당: " + glucose + " mg/dL, 수축기혈압: " + sysBp + " mmHg)";
+      }
+
+      const discountBadge = $("modal-discount-badge");
+      if (discountBadge) {
+        if (isSimplifiedTarget) {
+          discountBadge.innerText = "간편가입 (할인 제외)";
+          discountBadge.className = "bg-slate-400 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-3xs";
+        } else {
+          discountBadge.innerText = discRate > 0 ? Math.round(discRate * 100) + "% 할인 적용" : "할인 미적용";
+          discountBadge.className = "bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-3xs";
+        }
+      }
+
+      const rowSuper = $("row-super-health");
+      const rowGood = $("row-good-health");
+      const rowFair = $("row-fair-health");
+      if (rowSuper) rowSuper.style.backgroundColor = "transparent";
+      if (rowGood) rowGood.style.backgroundColor = "transparent";
+      if (rowFair) rowFair.style.backgroundColor = "transparent";
+
+      if (!isSimplifiedTarget) {
+        if (discRate === 0.20 && rowSuper) rowSuper.style.backgroundColor = "#ecfdf5";
+        else if (discRate === 0.10 && rowGood) rowGood.style.backgroundColor = "#ecfdf5";
+        else if (discRate === 0.05 && rowFair) rowFair.style.backgroundColor = "#ecfdf5";
+      }
+
+      const estimatedMonthlyIncome = 3000000 + Math.max(0, (userAge - 25)) * 100000;
+      const ratio = (ins.totalPremium / estimatedMonthlyIncome) * 100;
+      const ratioText = $("adequacy-ratio-text");
+      const ratioBar = $("adequacy-ratio-bar");
+
+      if (ratioText) {
+        ratioText.innerText = "월 " + ratio.toFixed(1) + "% (" + (ratio <= 3 ? "매우 안전" : ratio <= 6 ? "안전" : "적정") + ")";
+      }
+      if (ratioBar) {
+        ratioBar.style.width = Math.min(100, (ratio / 8) * 100) + "%";
+        if (ratio <= 6) {
+          ratioBar.className = "h-full bg-emerald-500 rounded-full";
+        } else if (ratio <= 8) {
+          ratioBar.className = "h-full bg-amber-500 rounded-full";
+        } else {
+          ratioBar.className = "h-full bg-rose-500 rounded-full";
+        }
+      }
+
+      const linkOfficial = $("modal-link-official-site") as HTMLAnchorElement | null;
+      const linkPdf = $("modal-link-pdf-guide") as HTMLAnchorElement | null;
+      if (linkOfficial) linkOfficial.href = productUrl;
+      if (linkPdf) linkPdf.href = guidePdfUrl;
+
+      modalBasis.classList.remove("hidden");
+    });
+  }
+
+  $("upload-zone")?.addEventListener("click", () => {
+    $("existing-plan-file")?.click();
+  });
+
+  $("existing-plan-file")?.addEventListener("change", async (e) => {
+    const input = e.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) {
+      return;
+    }
+    const file = input.files[0];
+    
+    const uploadZone = $("upload-zone");
+    if (!uploadZone) return;
+    const originalZoneHtml = uploadZone.innerHTML;
+    
+    uploadZone.innerHTML = `
+      <div class="flex flex-col items-center justify-center gap-3">
+        <svg class="animate-spin h-8 w-8 text-[#f37321]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="text-xs text-slate-500 font-bold">인공지능이 설계서를 읽고 분석하는 중...</span>
+      </div>
+    `;
+
+    const formData = new FormData();
+    formData.append("pdfFile", file);
+
+    try {
+      const res = await fetch("/api/analysis/insurance-plan", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!res.ok) {
+        throw new Error("서버 에러가 발생했습니다.");
+      }
+
+      const data = await res.json();
+      
+      isComparisonCompleted = true;
+      comparisonResultHtml = data.htmlReport;
+      
+      const resContainer = $("analysis-result");
+      if (resContainer) {
+        resContainer.innerHTML = comparisonResultHtml;
+        resContainer.classList.remove("hidden");
+      }
+      
+      $("btn-consulting-consult-submit")?.classList.remove("hidden");
+      
+      logAccessEvent("insurance_plan_upload_success", { fileName: file.name });
+    } catch (err: any) {
+      console.error(err);
+      alert("설계서 분석에 실패했습니다. 올바른 문서나 이미지 파일인지 확인해 주세요. (" + err.message + ")");
+    } finally {
+      uploadZone.innerHTML = originalZoneHtml;
+    }
+  });
+}
+
 let selectedConsultingIds: string[] = ["cov-cancer", "cov-brain", "cov-heart", "cov-metabolic"];
 
 function renderConsultingTab() {
   const container = $("section-consulting");
   if (!container) return;                
+
+  if (analysisResult && analysisResult.recommendedInsurance) {
+    renderServerConsultingTab();
+    return;
+  }
   
   // 1. 고객의 최신 건강 검진 데이터와 가족력 정보 로드
   const sortedRecs = [...nhisRecords].sort((a, b) => b.year - a.year);

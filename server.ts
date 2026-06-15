@@ -13,6 +13,18 @@ import { createClient } from "@supabase/supabase-js";
 import multer from "multer";
 import * as codefService from "./server/services/codefService.ts";
 
+
+// Set console encoding to UTF-8 for Korean character support
+if (process.platform === "win32") {
+  process.stdout.setEncoding("utf8");
+  process.stderr.setEncoding("utf8");
+}
+
+// Set console encoding to UTF-8 for Korean character support
+if (process.platform === "win32") {
+  process.stdout.setEncoding("utf8");
+  process.stderr.setEncoding("utf8");
+}
 const upload = multer({ storage: multer.memoryStorage() });
 
 // -------------------------------------------------------------
@@ -1853,6 +1865,10 @@ app.post("/api/health/analyze-prescription", upload.single("prescriptionImage"),
 약 정보 외의 불필요한 마크업 텍스트(예: \`\`\`json) 없이 순수 JSON만 반환해 주세요.
 `;
 
+    console.log(`${logPrefix} [Gemini API Request] Model: gemini-3.1-flash-lite, Purpose: Prescription Analysis`);
+    console.log(`${logPrefix} [Gemini API Request] Prompt length: ${prompt.length} chars`);
+    console.log(`${logPrefix} [Gemini API Request] Prompt content: ${prompt.substring(0, 500)}...`);
+    
     const response = await ai.models.generateContent({
       model: "gemini-3.1-flash-lite",
       contents: [
@@ -1891,8 +1907,15 @@ app.post("/api/health/analyze-prescription", upload.single("prescriptionImage"),
       }
     });
 
+    console.log(`${logPrefix} [Gemini API Response] Status: Success`);
+    console.log(`${logPrefix} [Gemini API Response] Response length: ${response.text?.length || 0} chars`);
+    console.log(`${logPrefix} [Gemini API Response] Response content: ${response.text?.substring(0, 500)}...`);
+    console.log(`${logPrefix} [Gemini API Response] Usage metadata:`, JSON.stringify(response.usageMetadata));
+
     const parsedResult = JSON.parse(response.text || "{}");
     const costInfo = calculateGeminiCost(response.usageMetadata, "gemini-3.1-flash-lite");
+    
+    console.log(`${logPrefix} [Gemini API Cost] Cost: ${costInfo.costKrw} KRW, Tokens: ${costInfo.totalTokens}`);
 
     recordIpCostUsage(ipAddress, costInfo.costKrw);
 
@@ -1954,7 +1977,7 @@ app.post("/api/health/analyze", async (req, res): Promise<void> => {
   if (limitCheck.isBlocked) {
     console.log(`${logPrefix} [IP BLOCKED] Blocked analyze request from IP ${ipAddress} (Current cost: ${limitCheck.currentCost} KRW / Limit: ${IP_COST_LIMIT_KRW} KRW)`);
     res.status(429).json({
-      error: `동일 IP에서 무료체험 허용 한도(${IP_COST_LIMIT_KRW}원)를 모두 소모하였습니다. (현재 누적 금액: ${limitCheck.currentCost.toFixed(4)}원) 더 이상 실시간 분석이나 AI 상담을 호출할 수 없습니다. 관리자에게 문의해 주세요.`
+      error: `동일 IP에서 무료체험 허용 한도(${IP_COST_LIMIT_KRW}원)를 모두 소모하였습니다. (현재 누적 금액: ${limitCheck.currentCost.toFixed(4)}원) 더 이상 실시간 분석이나 AI 상담을 호출할 수 없습니다.`
     });
     return;
   }
@@ -1970,12 +1993,17 @@ app.post("/api/health/analyze", async (req, res): Promise<void> => {
     return;
   }
 
+  const wiki = getKnowledgeWiki();
+  const wikiContext = wiki 
+    ? `[한화손보 공식 판매 상품 지식 위키]\n${JSON.stringify(wiki, null, 2)}` 
+    : "한화손보 주력 상품: 시그니처 여성 건강보험4.0 무배당2604, 한화 311 간편건강보험(연만기 갱신형) 무배당2604(간편고지형), 한화 3N5 더간편건강보험(세만기형) 무배당2604";
+
   const ai = getGeminiClient();
 
   // 1. 만약 GEMINI API KEY가 제공되지 않은 시뮬레이션용 모드 또는 API 제한인 경우 임상 룰베이스 엔진을 통한 즉시 평가 소견서 발행
   if (!ai) {
     console.log(`${logPrefix} Running real-data clinical rule-based analysis engine (Gemini API disabled or offline)...`);
-    const fallbackResponse = evaluateClinicalRuleBasedAnalysis(nhisData, uploadedPDF, familyHistory, prescriptionData);
+    const fallbackResponse = evaluateClinicalRuleBasedAnalysis(nhisData, uploadedPDF, familyHistory, prescriptionData, wiki);
     const simulatedCost = {
       promptTokens: 3420,
       candidatesTokens: 1512,
@@ -2018,8 +2046,8 @@ app.post("/api/health/analyze", async (req, res): Promise<void> => {
       : "현재 복용 중인 처방 약물 정보가 존재하지 않습니다.";
 
     const prompt = `
-당신은 최고의 대사증후군 및 예방의학 헬스케어 임상 분석 AI입니다.
-의학적인 정확성, 통찰력 있으면서도 친절하고 행동 지침 중심인 보고서를 생성해 주세요.
+당신은 최고의 대사증후군 및 예방의학 헬스케어 임상 분석 AI이며, 고객의 건강 리스크를 기반으로 최적의 보험을 설계하는 전문 언더라이터(보험 심사역)입니다.
+의학적인 정확성, 통찰력 있으면서도 친절하고 행동 지침 중심인 보고서와 함께 최적의 보험 설계를 수행해 주세요.
 
 [환자 백그라운드 정보]
 이름: ${nhisData.userName}
@@ -2036,27 +2064,54 @@ ${pdfText}
 [데이터 소스 3: 현재 복용 중인 처방 약물 정보]
 ${prescriptionText}
 
+${wikiContext}
+
 ---------------------------------------------------------
 [작업 가이드라인]
 1. 연도별 건강검진 기록의 시계열 변화(추세)를 신중하게 파악해 주세요 (대사성 항목 위주: 공복혈당, AST/ALT 간수치, 혈압, 콜레스테롤 등).
 2. 공단 데이터와 PDF 데이터가 모두 존재하는 경우, 두 데이터의 임상적 연관 관계를 유기적으로 가공하여 통찰력을 극대화해 주세요.
 3. **[처방 약물 융합 분석]**: 환자가 현재 복용 중인 약물 목록이 제공된 경우(데이터 소스 3), 이 약물들의 성분/효능을 환자의 최근 건강검진 수치와 유기적으로 연계하십시오.
-   - 예: 고혈압 약을 복용 중인데도 최신 혈압이 145/95 mmHg라면 약물 치료 조절 또는 정밀 재진단이 필요함을 언급하고, 이상지질혈증 약물(스타틴계)을 복용 중인데 최근 AST/ALT 간수치가 높게 상승했다면 약물 유발성 간손상 우려에 대해 코멘트하십시오.
-   - 또한, 복용 중인 약물이 영양소 흡수를 방해하거나 피해야 할 식습관(예: 자몽, 고나트륨 식품 등)이 있다면 생활 관리 방안에 녹여내십시오.
-4. 건강 점수(overallScore)와 생체 나이 차이(biologicalAgeDiff)를 나이와 건강 추이 및 약물 조절 상태를 종합적으로 가중 평가하여 도출하세요.
-5. 주의사항(warnings)은 이상 수치가 있는 비정상 지표(복용 약물 관리 포함)를 최대 4개 정리하고, 상태 수준(RED: 즉각적인 식이상담/정밀진단, YELLOW: 식이/운동 관리 필요, GREEN: 양호하지만 예방 관리)으로 나누어 이유와 예방법을 명쾌히 세워 주세요.
-6. 향후 관리 방안(managementPlan)은 친절하게 실질적으로 실현 가능한 실천형 지침을 의학 연구 이론에 맞게 생성하세요 (diet, exercise, lifestyle 분류별 3개씩). 각 지침은 단순 문자열이 아닌, 실천 수칙 내용(text), 사용자의 최근 건강검진 지표(혈압, 혈당 등) 또는 가족력에 기반한 구체적인 임상적 근거 및 사유(evidence), 그리고 관련 참고 의학회 지침/문헌 자료(reference)를 포함한 객체 형태로 작성해야 합니다. 복용 약물이 있을 경우 약물 복용 일정을 엄수하라는 피드백과 약물 상호작용 예방 가이드라인을 식단/라이프스타일에 포함해 주세요.
+4. **[개인 맞춤형 한화 보험 설계 및 보험료 계산]**:
+   - 환자의 성별, 나이(2026년 기준 만 나이), 그리고 건강 위험 수치를 기반으로 [한화손보 공식 판매 상품 지식 위키]에서 가장 적합한 상품을 매칭하십시오.
+     * [한화손보 공식 판매 상품 지식 위키]에서 해당 타겟 상품의 인수 조건, 가입 한도 목록(coverageLimits), 납입 면제 조건(premiumWaiverCriteria), 인수 제한 조건(underwritingNotes)을 엄격하게 대조하여 분석하십시오.
+     * 만성 질환 약물 복용 중이거나 수치가 크게 위험하면 '간편고지(유병자)' 상품인 "한화 간편가입 3N5 건강보험" 또는 "한화 시그니처 여성 간편 건강보험"을 매칭하고, 건강하다면 일반고지 표준체 상품을 매칭하십시오.
+     * 여성이면 "한화 시그니처 여성 건강보험4.0[HOT]" 또는 "한화 시그니처 여성 간편 건강보험"을 우선 고려하세요.
+   - 담보 목록("designPlan")은 다음 5대 영역을 구성해 주십시오:
+     * "cov-cancer" (일반암/여성특화 암 진단비)
+     * "cov-brain" (뇌혈관질환 진단비)
+     * "cov-heart" (허혈성심장질환 진단비)
+     * "cov-metabolic" (대사성 만성질환 특별보완 특약)
+     * "cov-surgery" (일반 질병 및 다빈도 수술비)
+   - 각 담보의 추천 가입금액("recommendedLimit")은 고객의 나이와 건강 취약성에 근거하여 위키의 가입 한도 규정(coverageLimits) 및 인수 제한 사항(underwritingNotes)을 절대 초과하지 않도록 보수적으로 구성하십시오. (단위: "3,000만원", "2,000만원", "500만원" 등 한글 단위 표시 필수)
+   - 각 담보별 월 보험료("premium")는 다음 표준 공식으로 정밀 산정하십시오:
+     * 만나이 = 2026 - (환자생년 || 1985)
+     * 연령 지수 (ageFactor) = Math.max(0.35, Math.min(2.2, 1.0 + (만나이 - 40) * 0.045))
+     * 유병자 할증 인자 (simplifiedSurcharge) = 유병자 상품인 경우 1.25, 일반 표준체인 경우 1.0
+     * 담보별 기본 1,000만원당 기본요율(40세 기준):
+       - 암 진단비 ("cov-cancer"): 여성 6,100원 / 남성 6,800원 (가족력 등 고위험군인 경우 1.15배 추가 할증)
+       - 뇌혈관 진단비 ("cov-brain"): 여성 4,900원 / 남성 5,600원 (혈압 등 고위험군인 경우 1.20배 추가 할증)
+       - 허혈성심장 진단비 ("cov-heart"): 여성 3,400원 / 남성 4,450원 (혈압/콜레스테롤 고위험군인 경우 1.15배 추가 할증)
+       - 대사성 만성질환 ("cov-metabolic", 기본 100만원당 요율): 여성 780원 / 남성 980원 (당뇨/콜레스테롤 고위험군인 경우 1.25배 추가 할증)
+       - 수술비 ("cov-surgery", 기본 100만원당 요율): 여성 1,380원 / 남성 1,540원 (할증 없음)
+     * 계산식: "해당 담보 가입금액(만 원 단위) / 1000 * 기본요율 * ageFactor * 위험군할증 * simplifiedSurcharge" (단, 대사성과 수술비는 100만원 단위이므로 "가입금액 / 100 * 기본요율 * ..." 로 계산)
+     * 정수로 반올림하여 반환하십시오.
+   - 최종 총 보험료("totalPremium") 및 할인 계산:
+     * 건강 점수(overallScore)가 90점 이상이면 할인율(discountRate) = 0.20 (20%), 80점 이상이면 0.10 (10%), 70점 이상이면 0.05 (5%), 그 미만 또는 유병자 상품(isSimplifiedTarget: true)인 경우는 0.00 (0%) 으로 적용하십시오.
+     * discountAmount = 각 담보별 보험료의 총 합산액 * discountRate (정수 반올림)
+     * totalPremium = 각 담보별 보험료의 총 합산액 - discountAmount (정수 반올림)
+5. 건강 점수(overallScore)와 생체 나이 차이(biologicalAgeDiff)를 나이와 건강 추이 및 약물 조절 상태를 종합적으로 가중 평가하여 도출하세요.
+6. 향후 관리 방안(managementPlan)은 친절하게 실질적으로 실현 가능한 실천형 지침을 의학 연구 이론에 맞게 생성하세요 (diet, exercise, lifestyle 분류별 3개씩).
 7. 내년도 추천 정밀 검사 항목(recommendedChecks)은 이 환자의 건강 소견 및 간/신장/대사성 이상 트렌드에 비추어 정형화되지 않고, 고위험 항목에 대해 반드시 필요한 맞춤형 정밀 검진 항목을 강력한 근거를 들어 도출하세요.
-8. **[가계 가족력 연계 강화]**: 제공된 가족력 요인(부친 및 모친의 과거 이력 또는 만성 질병군)을 환자의 연도별 검진 임상지표와 융합 연계하여, 가계 유전 성향에 따라 특별히 에방/주의해야 하거나 미리 스크리닝해야 할 고위험인자 소견들을 '전체 요약(summary)' 및 '내년도 추천 정밀 검사 항목(recommendedChecks)'에 세밀하고 설득력 있게 한화손보만의 든든한 맞춤 가이드라인으로 포함시켜 작성해 주세요.
-
-모든 응답은 반드시 지정된 JSON 스키마 규격에 완벽히 호응해야 하며 한글로 작성되어야 합니다.
 `;
+
+    console.log(`${logPrefix} [Gemini API Request] Model: gemini-3.1-flash-lite, Purpose: Health Analysis`);
+    console.log(`${logPrefix} [Gemini API Request] Prompt length: ${prompt.length} chars`);
 
     const response = await ai.models.generateContent({
       model: "gemini-3.1-flash-lite",
       contents: prompt,
       config: {
-        systemInstruction: "You are an expert personalized preventive health advisor. Output MUST exactly follow the provided responseSchema JSON representation. Keep sentences reassuring, clinical, clear and active in Korean. Keep descriptions brief and concise to save token costs.",
+        systemInstruction: "You are an expert personalized preventive health advisor and professional insurance underwriter. Output MUST exactly follow the provided responseSchema JSON representation. Keep sentences reassuring, clinical, clear and active in Korean.",
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -2088,6 +2143,35 @@ ${prescriptionText}
                 required: ["item", "value", "status", "analysis", "action"]
               }
             },
+            recommendedInsurance: {
+              type: Type.OBJECT,
+              description: "고객 건강 지표에 가장 적합하게 1:1 맞춤 설계한 한화손보 가입 제안서",
+              properties: {
+                productName: { type: Type.STRING, description: "추천 한화손보 상품의 fullName" },
+                productDescription: { type: Type.STRING, description: "추천 상품의 핵심 특징 요약 설명 (한두 줄)" },
+                reason: { type: Type.STRING, description: "해당 상품을 1순위로 지목하고 매칭한 구체적 언더라이팅 사유" },
+                totalPremium: { type: Type.INTEGER, description: "최종 할인 적용된 총 월 납입 보험료 (원화 단위 숫자, 예: 82363)" },
+                discountRate: { type: Type.NUMBER, description: "건강 점수별 적용 우량체 할인율 (0.00, 0.05, 0.10, 0.20 중 하나)" },
+                discountAmount: { type: Type.INTEGER, description: "할인 적용되어 감면된 원화 금액" },
+                isSimplifiedTarget: { type: Type.BOOLEAN, description: "유병자 간편고지(3.5.5 등) 상품 매칭 여부 (만성질환자, 약 복용자 등)" },
+                designPlan: {
+                  type: Type.ARRAY,
+                  description: "위키의 담보 한도액을 준수하여 설계한 맞춤형 특약 설계 리스트",
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      coverageId: { type: Type.STRING, description: "담보의 고유 ID (예: 'cov-cancer', 'cov-brain', 'cov-heart', 'cov-metabolic', 'cov-surgery' 등)" },
+                      coverageName: { type: Type.STRING, description: "특약(담보) 한글 명칭" },
+                      recommendedLimit: { type: Type.STRING, description: "추천 가입 한도금액 (예: '3,000만원')" },
+                      premium: { type: Type.INTEGER, description: "해당 담보의 추천 월 보험료 (원화 단위 숫자, 예: 27795)" },
+                      opinion: { type: Type.STRING, description: "해당 담보의 가입금액 및 보험료를 구성한 최근 건강 지표 및 위험성 기반의 의학적 설계 사유" }
+                    },
+                    required: ["coverageId", "coverageName", "recommendedLimit", "premium", "opinion"]
+                  }
+                }
+              },
+              required: ["productName", "productDescription", "reason", "totalPremium", "discountRate", "discountAmount", "isSimplifiedTarget", "designPlan"]
+            },
             managementPlan: {
               type: Type.OBJECT,
               properties: {
@@ -2096,9 +2180,9 @@ ${prescriptionText}
                   items: {
                     type: Type.OBJECT,
                     properties: {
-                      text: { type: Type.STRING, description: "실천 수칙 내용 (예: 가공당 및 정제 탄수화물 절제)" },
+                      text: { type: Type.STRING, description: "실천 수칙 내용" },
                       evidence: { type: Type.STRING, description: "사용자의 특정 수치 또는 리스크에 기반한 구체적인 임상적 근거 및 사유" },
-                      reference: { type: Type.STRING, description: "의학적 참고 지침 또는 문헌 정보 (예: 대한당뇨병학회 진료지침 2023)" }
+                      reference: { type: Type.STRING, description: "의학적 참고 지침 또는 문헌 정보" }
                     },
                     required: ["text", "evidence", "reference"]
                   },
@@ -2109,9 +2193,9 @@ ${prescriptionText}
                   items: {
                     type: Type.OBJECT,
                     properties: {
-                      text: { type: Type.STRING, description: "실천 수칙 내용 (예: 중강도 유산소 운동 주 150분)" },
+                      text: { type: Type.STRING, description: "실천 수칙 내용" },
                       evidence: { type: Type.STRING, description: "사용자의 특정 수치 또는 리스크에 기반한 구체적인 임상적 근거 및 사유" },
-                      reference: { type: Type.STRING, description: "의학적 참고 지침 또는 문헌 정보 (예: 대한고혈압학회 진료지침 2022)" }
+                      reference: { type: Type.STRING, description: "의학적 참고 지침 또는 문헌 정보" }
                     },
                     required: ["text", "evidence", "reference"]
                   },
@@ -2122,9 +2206,9 @@ ${prescriptionText}
                   items: {
                     type: Type.OBJECT,
                     properties: {
-                      text: { type: Type.STRING, description: "실천 수칙 내용 (예: 밤 11시 이전 취침 및 7시간 숙면)" },
+                      text: { type: Type.STRING, description: "실천 수칙 내용" },
                       evidence: { type: Type.STRING, description: "사용자의 특정 수치 또는 리스크에 기반한 구체적인 임상적 근거 및 사유" },
-                      reference: { type: Type.STRING, description: "의학적 참고 지침 또는 문헌 정보 (예: 대한수면의학회 가이드)" }
+                      reference: { type: Type.STRING, description: "의학적 참고 지침 또는 문헌 정보" }
                     },
                     required: ["text", "evidence", "reference"]
                   },
@@ -2139,7 +2223,7 @@ ${prescriptionText}
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  category: { type: Type.STRING, description: "검사 분류 (예: 간장 담도 정밀, 심뇌혈관 스크리닝)" },
+                  category: { type: Type.STRING, description: "검사 분류" },
                   checkItem: { type: Type.STRING, description: "정밀 검사항목 및 추천 명칭" },
                   reason: { type: Type.STRING, description: "환자의 히스토리 및 복용 약물 부작용 예방을 위해 이 검사가 꼭 필요한 임상적 설명" },
                   priority: { type: Type.STRING, enum: ["HIGH", "MEDIUM"], description: "검진 우선순위" }
@@ -2148,13 +2232,20 @@ ${prescriptionText}
               }
             }
           },
-          required: ["overallScore", "biologicalAgeDiff", "summary", "warnings", "managementPlan", "recommendedChecks"]
+          required: ["overallScore", "biologicalAgeDiff", "summary", "warnings", "recommendedInsurance", "managementPlan", "recommendedChecks"]
         }
       }
     });
 
+    console.log(`${logPrefix} [Gemini API Response] Status: Success`);
+    console.log(`${logPrefix} [Gemini API Response] Response length: ${response.text?.length || 0} chars`);
+    console.log(`${logPrefix} [Gemini API Response] Response content: ${response.text?.substring(0, 500)}...`);
+    console.log(`${logPrefix} [Gemini API Response] Usage metadata:`, JSON.stringify(response.usageMetadata));
+
     const parsedResult = JSON.parse(response.text || "{}");
     const costInfo = calculateGeminiCost(response.usageMetadata, "gemini-3.1-flash-lite");
+    
+    console.log(`${logPrefix} [Gemini API Cost] Cost: ${costInfo.costKrw} KRW, Tokens: ${costInfo.totalTokens}`);
 
     recordIpCostUsage(ipAddress, costInfo.costKrw);
 
@@ -2174,7 +2265,7 @@ ${prescriptionText}
   } catch (error: any) {
     console.error(`${logPrefix} Gemini API Execution Error:`, error);
     // 에러 발생시 실시간 처리를 살리기 위해 임상 의학 지침 룰베이스 엔진 가동
-    const fallbackResponse = evaluateClinicalRuleBasedAnalysis(nhisData, uploadedPDF, familyHistory, prescriptionData);
+    const fallbackResponse = evaluateClinicalRuleBasedAnalysis(nhisData, uploadedPDF, familyHistory, prescriptionData, wiki);
     const simulatedCost = {
       promptTokens: 1820,
       candidatesTokens: 620,
@@ -2196,7 +2287,7 @@ ${prescriptionText}
       isSimulated: true,
       costInfo: simulatedCost,
       errorDetails: error.message,
-      message: "AI 분석 API 한도 초과(429) 혹은 연결 제한으로 인해, 실 수치 연동 기반 '임상 가이드라인 의료 룰 엔진 소견서'가 발행되었습니다."
+      message: "AI 분석 API 지연 또는 오류로 인해 기 추출 룰 연동 기반 '한화 상품 정밀 설계 소견서'가 발행되었습니다."
     });
   }
 });
@@ -2221,15 +2312,39 @@ app.post("/api/health/compare-plan", upload.single("file"), async (req, res): Pr
     }
 
     const ai = getGeminiClient();
+    const wiki = getKnowledgeWiki();
+    const wikiContext = wiki 
+        ? `[한화손보 공식 판매 상품 지식 위키]\n${JSON.stringify(wiki, null, 2)}` 
+        : "한화손보 주력 상품: 시그니처 여성 건강보험 4.0, 한화 더건강한 한아름종합보험 무배당, 실손의료보험(갱신형)";
+
+    // 폴백용 데이터 생성 헬퍼 (Gemini 에러나 비활성화 시 사용)
+    const generateFallbackComparison = (targetProdName: string) => {
+        const prodName = targetProdName || "한화 더건강한 한아름종합보험 무배당[NEW]";
+        const productsMap = wiki?.products || {};
+        const pInfo = productsMap[prodName] || Object.values(productsMap)[0];
+        
+        let cancerLimit = "3,000만원";
+        let brainLimit = "2,000만원";
+        let heartLimit = "2,000만원";
+        
+        if (pInfo && pInfo.coverageLimits) {
+            cancerLimit = pInfo.coverageLimits.generalCancer || cancerLimit;
+            brainLimit = pInfo.coverageLimits.cerebrovascular || brainLimit;
+            heartLimit = pInfo.coverageLimits.ischemicHeart || heartLimit;
+        }
+
+        return [
+            { category: "일반암 진단비", existing: "3,000만원", recommended: cancerLimit, status: "보장강화", opinion: `한화손보 상품 지식 위키의 가입한도액(${cancerLimit})을 대조하여 암 보장을 적정 수준으로 보강 설계했습니다.` },
+            { category: "뇌혈관질환 진단비", existing: "1,000만원", recommended: brainLimit, status: "보장강화", opinion: `기존 뇌혈관 보장을 보강하여 한화손보의 넓은 보장 범위 및 가입 한도액 ${brainLimit} 수준으로 증액 배정하였습니다.` },
+            { category: "허혈성심장질환 진단비", existing: "1,000만원", recommended: heartLimit, status: "보장강화", opinion: `협심증 및 급성심근경색 예방 설계를 강화하여 최대 한도 ${heartLimit} 수준으로 보완하였습니다.` },
+            { category: "월 납입 보험료", existing: "148,000원", recommended: "124,000원", status: "보험료절감", opinion: "한화손보의 무사고 무심사 3N5 할인 및 우대 할인 특약을 적용해 납입 부담을 크게 덜었습니다." }
+        ];
+    };
+
     if (!ai) {
         console.log(`${logPrefix} Gemini client offline. Falling back to structured comparison simulation.`);
         res.json({
-            comparison: [
-                { category: "일반암 진단비", existing: "3,000만원", recommended: "5,000만원", status: "보장강화", opinion: "시그니처 특화 및 한아름 종합 설계로 암 보장을 2,000만원 상향 설계했습니다." },
-                { category: "뇌혈관질환 진단비", existing: "1,000만원", recommended: "2,000만원", status: "보장강화", opinion: "가족력 및 검진 대사 취약성에 대비하여 보장 한도를 두 배로 보강했습니다." },
-                { category: "허혈성심장질환 진단비", existing: "1,000만원", recommended: "2,000만원", status: "보장강화", opinion: "허혈성 심장질환 보강으로 보장 공백을 조밀하게 해소했습니다." },
-                { category: "월 납입 보험료", existing: "148,000원", recommended: "124,000원", status: "보험료절감", opinion: "한화손보의 무사고 무심사 3N5 할인 및 AMH 등급 할인 특약을 적용해 월 2.4만원을 절감했습니다." }
-            ],
+            comparison: generateFallbackComparison(productName),
             summary: "기존 보험 대비 일반암/뇌혈관/허혈성심장질환 등 주요 3대 진단비를 보강하고, 무사고 무심사 할인 혜택을 통해 월 2.4만원 수준의 보험료를 절감하였습니다."
         });
         return;
@@ -2244,11 +2359,6 @@ app.post("/api/health/compare-plan", upload.single("file"), async (req, res): Pr
             }
         };
 
-        const wiki = getKnowledgeWiki();
-        const wikiContext = wiki 
-            ? `[한화손보 공식 판매 상품 지식 위키]\n${JSON.stringify(wiki, null, 2)}` 
-            : "한화손보 주력 상품: 시그니처 여성 건강보험 4.0, 한화 더건강한 한아름종합보험 무배당, 실손의료보험(갱신형)";
-
         const prompt = `
 당신은 최고의 보험 상품 언더라이터이자 한화손해보험 소속 엘리트 재무설계사(FP)입니다.
 고객이 업로드한 기존 보험 설계서(또는 보험 증권) 이미지/PDF 문서를 정밀 분석하고, 한화손보의 실제 2026년 주력 판매 상품들과의 '보장 비교 분석표' 및 'AI 융합 분석 리포트 요약'을 작성해 주세요.
@@ -2261,7 +2371,8 @@ ${wikiContext}
 
 [수행 업무]
 1. 업로드된 문서에서 기존 가입 담보(암 진단비, 뇌혈관질환 진단비, 허혈성 심장질환 진단비, 질병수술비, 실손의료비, 월 납입 보험료 등) 및 기존 가입 금액을 완벽하게 추출(OCR)하세요.
-2. 기가입 상품의 보장 한도와 보험료를 타겟 한화 상품(특히 ${productName})의 보장 조건 및 특약 우대 혜택과 비교 분석하세요.
+2. 기가입 상품의 보장 한도와 보험료를 타겟 한화 상품(특히 "${productName}")의 보장 조건 및 특약 우대 혜택과 비교 분석하세요.
+   - [한화손보 공식 판매 상품 지식 위키]에서 해당 타겟 상품의 인수 조건, 연령별/담보별 최대 가입한도액(maxLimitByAge), 대상 KCD 질병코드 대역(targetDiseases)을 엄격하게 대조하여 분석하십시오.
    - 예: 시그니처 여성 건강보험 4.0의 경우 부인과 특화 담보 및 임신/출산/난임 특약 우대 혜택이 장점.
    - 예: 더간편 3N5의 경우 만성 유병자도 할인 등급 전환이 가능하며 무사고 할인이 장점.
 3. 분석 결과를 반드시 다음 JSON 스키마 형식에 맞춰 한글로 출력하세요.
@@ -2271,7 +2382,7 @@ ${wikiContext}
             model: "gemini-3.1-flash-lite",
             contents: [prompt, filePart],
             config: {
-                systemInstruction: "You are a professional Korean insurance actuary and underwriter. Parse the uploaded insurance design document and compare it with Hanwha General Insurance products. Output ONLY valid JSON matching the requested schema.",
+                systemInstruction: "You are a professional Korean insurance actuary and underwriter. Parse the uploaded insurance design document and compare it with Hanwha General Insurance products. Output ONLY valid JSON matching the requested schema. Ensure all recommended values adhere to the limits defined in the provided wiki context.",
                 responseMimeType: "application/json",
                 responseSchema: {
                     type: Type.OBJECT,
@@ -2284,9 +2395,9 @@ ${wikiContext}
                                 properties: {
                                     category: { type: Type.STRING, description: "보장 담보 항목 한글 명칭" },
                                     existing: { type: Type.STRING, description: "기존 가입 설계의 보장 금액 또는 상태" },
-                                    recommended: { type: Type.STRING, description: "한화손보 추천 설계의 보장 금액 또는 상태" },
-                                    status: { type: Type.STRING, description: "적합성 상태 키워드" },
-                                    opinion: { type: Type.STRING, description: "조정해야 하거나 추천하는 구체적인 임상/재무적 이유 설명" }
+                                    recommended: { type: Type.STRING, description: "한화손보 추천 설계의 보장 금액 또는 상태 (위키 한도 엄수)" },
+                                    status: { type: Type.STRING, description: "적합성 상태 키워드 (예: '보장강화', '보험료절감', '보장적정' 등)" },
+                                    opinion: { type: Type.STRING, description: "위키 내 연령별 가입한도액 및 질병 코드를 근거로 조정한 구체적 설명" }
                                 },
                                 required: ["category", "existing", "recommended", "status", "opinion"]
                             }
@@ -2309,7 +2420,6 @@ ${wikiContext}
 
     } catch (err: any) {
         console.error("[Gemini Vision Compare Plan Error]", err);
-        // Gemini API 에러(예: 429 한도 초과) 발생시에도 사용자가 비교 분석 테이블을 볼 수 있도록 로컬 룰베이스/시뮬레이션 비교 리포트를 제공합니다.
         const errMessage = err.message || "";
         const isQuotaExceeded = errMessage.includes("spending cap") || errMessage.includes("429") || errMessage.includes("QUOTA") || errMessage.includes("RESOURCE_EXHAUSTED");
         
@@ -2318,12 +2428,7 @@ ${wikiContext}
             : "실시간 비전 분석에 실패했습니다. (임시 비교 보고서 제공) 기존 보험 대비 일반암/뇌혈관/허혈성심장질환 등 주요 3대 진단비를 보강하고, 무사고 무심사 할인 혜택을 통해 월 2.4만원 수준의 보험료를 절감하였습니다.";
 
         res.json({
-            comparison: [
-                { category: "일반암 진단비", existing: "3,000만원", recommended: "5,000만원", status: "보장강화", opinion: "시그니처 특화 및 한아름 종합 설계로 암 보장을 2,000만원 상향 설계했습니다." },
-                { category: "뇌혈관질환 진단비", existing: "1,000만원", recommended: "2,000만원", status: "보장강화", opinion: "가족력 및 검진 대사 취약성에 대비하여 보장 한도를 두 배로 보강했습니다." },
-                { category: "허혈성심장질환 진단비", existing: "1,000만원", recommended: "2,000만원", status: "보장강화", opinion: "허혈성 심장질환 보강으로 보장 공백을 조밀하게 해소했습니다." },
-                { category: "월 납입 보험료", existing: "148,000원", recommended: "124,000원", status: "보험료절감", opinion: "한화손보의 무사고 무심사 3N5 할인 및 AMH 등급 할인 특약을 적용해 월 2.4만원을 절감했습니다." }
-            ],
+            comparison: generateFallbackComparison(productName),
             summary: fallbackText,
             isSimulated: true,
             errorDetails: err.message
@@ -2382,14 +2487,21 @@ app.post("/api/health/chat", async (req, res): Promise<void> => {
 
   // 2. 실제 Gemini API를 이용한 정밀 멀티턴 채팅 진행 (비용 감소 목적의 프롬프트 전면 최적화 완료)
   try {
-    const systemIns = `당신은 사용자의 국민건강보험공단 건강검진 데이터를 완벽 파악한 1:1 대사증후군/만성질환 전문 간호사 겸 예방의학 코치입니다.
+    const wiki = getKnowledgeWiki();
+    const wikiContext = wiki 
+        ? `[한화손보 공식 판매 상품 지식 위키]\n${JSON.stringify(wiki, null, 2)}` 
+        : "한화손보 주력 상품: 시그니처 여성 건강보험 4.0, 한화 더건강한 한아름종합보험, 3N5 간편건강보험";
+
+    const systemIns = `당신은 사용자의 국민건강보험공단 건강검진 데이터를 완벽 파악한 1:1 대사증후군/만성질환 전문 간호사이자 한화손해보험의 전문 언더라이터 예방의학 코치입니다.
 사용자 인적사항: 이름 ${analysisContext?.userName || "회원"}, 성별 ${analysisContext?.gender === "M" ? "남성" : "여성"}, 공단 검진 기록 및 트렌드를 최우선 고려하세요.
 검진기록 요약: ${JSON.stringify(analysisContext?.records || [])}
 
+${wikiContext}
+
 가이드라인:
 - 제미나이의 풍부한 전문 지식을 활용하되, 친절하고 존중하는 경어체를 유지하세요.
-- 환자의 공복혈당, 혈압, 간수치(AST/ALT), 중성지방 등 대사 가속화 지표에 맞춰 질문에 답하십시오.
-- 실생활에서 귀히 조율할 수 있는 운동 식단을 알려주세요.
+- 환자의 공복혈당, 혈압, 간수치(AST/ALT), 중성지방 등 대사 지표 및 투약 여부에 관한 의학적 조언을 해주세요.
+- 사용자가 한화손보의 상품, 가입 한도 목록(coverageLimits), 납입면제 조건(premiumWaiverCriteria), 가입 연령 제한, 인수제한 특이사항(underwritingNotes) 등에 대해 묻는 경우, 위의 [한화손보 공식 판매 상품 지식 위키]에 있는 정확한 데이터를 근거로 설명하십시오. 위키에 없는 한도액이나 잘못된 조건(환각)을 함부로 꾸며내어 대답하지 마십시오.
 - 비용 및 피로도 절감을 위해 답변은 한글로, 지나치게 길지 않게 3-4문장 내외로 핵심만 명확히 대답해 주세요.`;
 
     const historyParts: any[] = [];
@@ -2475,7 +2587,7 @@ function evaluateLocalChatResponse(message: string, context: any): string {
 // -------------------------------------------------------------
 // 건강 검진 데이터 시뮬레이터 유틸 (Gemini 미설정 시 완벽 작동 메커니즘)
 // -------------------------------------------------------------
-function evaluateClinicalRuleBasedAnalysis(nhisData: any, uploadedPDF: any, familyHistory?: any, prescriptionData?: any) {
+function evaluateClinicalRuleBasedAnalysis(nhisData: any, uploadedPDF: any, familyHistory?: any, prescriptionData?: any, wiki?: any) {
   const records = nhisData.records || [];
   const latest = records[0] || {};
   const previous = records[1] || {};
@@ -2488,6 +2600,58 @@ function evaluateClinicalRuleBasedAnalysis(nhisData: any, uploadedPDF: any, fami
   const alt = latest.alt ?? 25;
   const bmi = latest.bmi ?? 23;
   const totalCholesterol = latest.totalCholesterol ?? 190;
+
+  const currentYear = new Date().getFullYear();
+  let userAge = 40;
+  if (nhisData.birthYear) {
+    const yearNum = parseInt(nhisData.birthYear.toString().substring(0, 4));
+    if (!isNaN(yearNum)) {
+      userAge = currentYear - yearNum;
+    }
+  }
+
+  const isFemale = nhisData.gender === "F" || nhisData.gender === "female" || nhisData.gender === "f";
+
+  // 간편 심사 가입 대상 판정 (공복혈당 126 이상 또는 혈압 140/90 이상 또는 현재 만성 질환 약물 처방 복용 시)
+  const isSimplifiedTarget = (fastingGlucose >= 126) || (systolicBP >= 140 || diastolicBP >= 90) || !!(prescriptionData && prescriptionData.medications && prescriptionData.medications.length > 0);
+
+  const fatherFactors = familyHistory?.father || [];
+  const motherFactors = familyHistory?.mother || [];
+  const allFactors = [...fatherFactors, ...motherFactors];
+
+  const isCancerRisk = allFactors.includes("위암/대장암") || allFactors.includes("간암") || allFactors.includes("폐암") || allFactors.includes("암");
+  const isHypertensionRisk = allFactors.includes("고혈압") || allFactors.includes("뇌졸중/뇌혈관") || allFactors.includes("심장질환") || systolicBP >= 130;
+  const isMetabolicRisk = allFactors.includes("당뇨병") || fastingGlucose >= 100;
+
+  // 동적 상품 매칭 및 메타데이터 파싱
+  let productName = isSimplifiedTarget 
+    ? "한화 3N5 더간편건강보험(세만기형) 무배당2604(간편고지형)" 
+    : "한화 311 간편건강보험(연만기 갱신형) 무배당2604(일반고지형)";
+
+  let productDescription = isSimplifiedTarget
+    ? "간편고지 질문을 통해 당뇨/혈압약 복용자도 간편가입이 가능한 세만기 비갱신형 건강보험"
+    : "건강 상태가 양호한 건강체 고객을 위한 합리적 보험료의 종합 보장형 갱신 건강보험";
+
+  const wikiProducts = wiki?.products || {};
+  let targetProduct = wikiProducts[productName];
+
+  if (!targetProduct) {
+    const keys = Object.keys(wikiProducts);
+    const matchedKey = keys.find(k => {
+      const p = wikiProducts[k];
+      const examType = p.examinationType || "";
+      const isSimple = examType.includes("간편") || examType.includes("유병력");
+      return isSimplifiedTarget ? isSimple : !isSimple;
+    });
+    if (matchedKey) {
+      productName = matchedKey;
+      targetProduct = wikiProducts[matchedKey];
+    }
+  }
+
+  if (targetProduct) {
+    productDescription = targetProduct.recommendationFactor || (targetProduct.coreBenefits && targetProduct.coreBenefits[0]) || productDescription;
+  }
 
   const warnings = [];
   let score = 88;
@@ -2587,8 +2751,9 @@ function evaluateClinicalRuleBasedAnalysis(nhisData: any, uploadedPDF: any, fami
   // 건강 점수 하한선 제한
   score = Math.max(50, Math.min(100, score));
 
-  // 복합 맞춤 관리 계획 (환자의 실제 지표 수치를 분석한 맞춤 처방 및 임상적 근거, 가이드라인 참고문헌 매핑)
-  const allFactors = familyHistory ? [...(familyHistory.father || []), ...(familyHistory.mother || [])] : [];
+  // 복합 맞춤 관리 계획
+  // (부모/가족력 요인은 함수 상단에서 통합 선언됨)
+
 
   let mockDiet = [
     fastingGlucose >= 100 
@@ -2716,42 +2881,196 @@ function evaluateClinicalRuleBasedAnalysis(nhisData: any, uploadedPDF: any, fami
 
   // 가족력 텍스트 구성 및 추천 추가
   let familySummaryNote = "";
-  if (familyHistory) {
-    const father = familyHistory.father || [];
-    const mother = familyHistory.mother || [];
-    const allFactors = [...father, ...mother];
+  if (allFactors.length > 0) {
+    familySummaryNote = ` 특히 가계 이력에 건강 위험 요인(${allFactors.join(", ")})이 기재되어 있어, 한화손보의 정교한 가문 유전 매핑 결과 부모님 세대에서 나타났던 대사질환 혹은 암종에 대해 보다 특별하고 든든한 보호망을 구축해 나갈 필요성이 확인됩니다.`;
     
-    if (allFactors.length > 0) {
-      familySummaryNote = ` 특히 가계 이력에 건강 위험 요인(${allFactors.join(", ")})이 기재되어 있어, 한화손보의 정교한 가문 유전 매핑 결과 부모님 세대에서 나타났던 대사질환 혹은 암종에 대해 보다 특별하고 든든한 보호망을 구축해 나갈 필요성이 확인됩니다.`;
-      
-      // 가족력 당뇨병 매핑
-      if (allFactors.includes("당뇨병")) {
-        mockChecks.push({
-          category: "췌장/대사성",
-          checkItem: "췌장 초음파 및 인슐린 분비 저항성 검진",
-          reason: "부모님의 당뇨병 이력이 관찰되므로 가족력이 유전의 핵심 팩터로 작용하여 당 대사 장애를 선제 유발할 우려가 높은 바, 전면적인 인슐린 저항도 정밀 검사를 강력 추천합니다.",
-          priority: "HIGH"
-        });
-      }
-      // 가족력 고혈압/뇌졸중 매핑
-      if (allFactors.includes("고혈압") || allFactors.includes("뇌졸중/뇌혈관") || allFactors.includes("심장질환")) {
-        mockChecks.push({
-          category: "뇌혈관/순환계",
-          checkItem: "뇌 혈류 경동맥 초음파 및 정밀 심전도 검진",
-          reason: "심뇌혈관 관련 상속성 위험 억제를 겨냥해 뇌 혈류 속도 및 경동맥 플라크 형성 초기 상태를 시각화하여 위험도를 사전에 잠재우는 든든한 맞춤 예방 검사입니다.",
-          priority: "HIGH"
-        });
-      }
-      // 위암/대장암 매핑
-      if (allFactors.includes("위암/대장암") || allFactors.includes("간암") || allFactors.includes("폐암")) {
-        mockChecks.push({
-          category: "소화기/암정밀",
-          checkItem: "소화기 위/대장 정밀 내시경 및 종양표지자 액체생검",
-          reason: "폐, 위장, 대장 등 악성 종양 가계 유전 취약성을 감안해 점막의 비정형 선종 또는 암화 전구성 병변 유무를 소화기내과 전공의 수하에 입체적으로 점검할 필요가 있습니다.",
-          priority: "HIGH"
-        });
+    if (allFactors.includes("당뇨병")) {
+      mockChecks.push({
+        category: "췌장/대사성",
+        checkItem: "췌장 초음파 및 인슐린 분비 저항성 검진",
+        reason: "부모님의 당뇨병 이력이 관찰되므로 가족력이 유전의 핵심 팩터로 작용하여 당 대사 장애를 선제 유발할 우려가 높은 바, 전면적인 인슐린 저항도 정밀 검사를 강력 추천합니다.",
+        priority: "HIGH"
+      });
+    }
+    if (allFactors.includes("고혈압") || allFactors.includes("뇌졸중/뇌혈관") || allFactors.includes("심장질환")) {
+      mockChecks.push({
+        category: "뇌혈관/순환계",
+        checkItem: "뇌 혈류 경동맥 초음파 및 정밀 심전도 검진",
+        reason: "심뇌혈관 관련 상속성 위험 억제를 겨냥해 뇌 혈류 속도 및 경동맥 플라크 형성 초기 상태를 시각화하여 위험도를 사전에 잠재우는 든든한 맞춤 예방 검사입니다.",
+        priority: "HIGH"
+      });
+    }
+    if (allFactors.includes("위암/대장암") || allFactors.includes("간암") || allFactors.includes("폐암")) {
+      mockChecks.push({
+        category: "소화기/암정밀",
+        checkItem: "소화기 위/대장 정밀 내시경 및 종양표지자 액체생검",
+        reason: "폐, 위장, 대장 등 악성 종양 가계 유전 취약성을 감안해 점막의 비정형 선종 또는 암화 전구성 병변 유무를 소화기내과 전공의 수하에 입체적으로 점검할 필요가 있습니다.",
+        priority: "HIGH"
+      });
+    }
+  }
+
+  // -------------------------------------------------------------
+  // [NEW] 룰베이스 엔진 기반의 한화손보 1:1 맞춤 상품 설계서 (recommendedInsurance) 동적 빌드
+  // -------------------------------------------------------------
+  // 지식 위키 데이터 추출 및 동적 룰셋 바인딩
+  const matchingKey = Object.keys(wikiProducts).find(k => k.includes(productName)) || productName;
+  const pInfo = wikiProducts[matchingKey];
+
+  // 연령별 한도 추출 헬퍼 함수
+  const getLimitForAge = (coverageId: string, userAge: number, fallbackVal: number): number => {
+    if (!pInfo || !pInfo.coverages || !Array.isArray(pInfo.coverages)) return fallbackVal;
+    
+    // coverageId 매칭 시, ID의 일부가 포함되는지 확인 (예: 'cov-cancer'가 'cov-cancer-general'에 포함됨)
+    const targetCov = pInfo.coverages.find((c: any) => 
+      c.coverageId === coverageId || c.coverageId.includes(coverageId) || coverageId.includes(c.coverageId)
+    );
+    if (!targetCov || !targetCov.maxLimitByAge) return fallbackVal;
+    
+    for (const [ageRange, limit] of Object.entries(targetCov.maxLimitByAge)) {
+      const parts = ageRange.split("-").map(Number);
+      if (parts.length === 2) {
+        const [min, max] = parts;
+        if (userAge >= min && userAge <= max) {
+          return Number(limit) / 10000; // 원 단위를 만원 단위로 변환
+        }
       }
     }
+    return fallbackVal;
+  };
+
+  // 기본 폴백 한도액 (만원 단위)
+  const defaultCancer = isCancerRisk ? 5000 : 3000;
+  const defaultBrain = isHypertensionRisk ? 3000 : 2000;
+  const defaultHeart = isHypertensionRisk ? 3000 : 2000;
+  const defaultMetabolic = isMetabolicRisk ? 1000 : 500;
+  const defaultCaregiver = 15; // 일당 15만원
+  
+  // 위키의 coverages를 통한 연령대별 가입한도 동적 결정 (만원 단위)
+  const cancerLimitVal = getLimitForAge("cov-cancer", userAge, defaultCancer);
+  const brainLimitVal = getLimitForAge("cov-cerebrovascular", userAge, defaultBrain);
+  const heartLimitVal = getLimitForAge("cov-ischemic-heart", userAge, defaultHeart);
+  const metabolicLimitVal = getLimitForAge("cov-metabolic", userAge, defaultMetabolic);
+  const caregiverLimitVal = getLimitForAge("cov-caregiver-expense", userAge, defaultCaregiver);
+
+  const formatLimitStr = (limitVal: number, suffix: string = "만원"): string => {
+    return `${limitVal.toLocaleString()}${suffix}`;
+  };
+
+  let cancerLimitStr = formatLimitStr(cancerLimitVal);
+  let brainLimitStr = formatLimitStr(brainLimitVal);
+  let heartLimitStr = formatLimitStr(heartLimitVal);
+  let metabolicLimitStr = formatLimitStr(metabolicLimitVal);
+  let surgeryLimitStr = "500만원";
+
+  // 기존 구조와의 하위 호환성을 위해 pInfo.coverageLimits가 있고 coverages가 없거나 빈 경우에만 텍스트 파싱 폴백
+  if (pInfo && (!pInfo.coverages || pInfo.coverages.length === 0) && pInfo.coverageLimits) {
+    cancerLimitStr = pInfo.coverageLimits.generalCancer || cancerLimitStr;
+    brainLimitStr = pInfo.coverageLimits.cerebrovascular || brainLimitStr;
+    heartLimitStr = pInfo.coverageLimits.ischemicHeart || heartLimitStr;
+    if (pInfo.coverageLimits.caregiverExpenses && pInfo.coverageLimits.caregiverExpenses !== "없음" && !pInfo.coverageLimits.caregiverExpenses.includes("확인")) {
+      surgeryLimitStr = `일당 최대 ${pInfo.coverageLimits.caregiverExpenses.replace("일당 최대 ", "")} 및 수술비 500만원`;
+    }
+  } else if (pInfo && pInfo.coverages && pInfo.coverages.length > 0) {
+    if (caregiverLimitVal > 0) {
+      surgeryLimitStr = `일당 최대 ${caregiverLimitVal}만원 및 수술비 500만원`;
+    }
+  }
+
+  const parseLimitToNumber = (limitStr: string, defaultVal: number): number => {
+    const cleaned = limitStr.replace(/,/g, "");
+    const match = cleaned.match(/최대\s*(\d+)만원/i) || cleaned.match(/(\d+)만원/i);
+    if (match && match[1]) {
+      return parseInt(match[1]);
+    }
+    return defaultVal;
+  };
+
+  const ageFactor = Math.max(0.35, Math.min(2.2, 1.0 + (userAge - 40) * 0.045));
+  const simplifiedSurcharge = isSimplifiedTarget ? 1.25 : 1.0;
+
+  const cancerLimit = cancerLimitVal;
+  const brainLimit = brainLimitVal;
+  const heartLimit = heartLimitVal;
+  const metabolicLimit = metabolicLimitVal;
+  const surgeryLimit = 500;
+
+  const cancerPremium = Math.round((isFemale ? 6100 : 6800) * (cancerLimit / 1000) * ageFactor * (isCancerRisk ? 1.15 : 1.0) * simplifiedSurcharge);
+  const brainPremium = Math.round((isFemale ? 4900 : 5600) * (brainLimit / 1000) * ageFactor * (isHypertensionRisk ? 1.20 : 1.0) * simplifiedSurcharge);
+  const heartPremium = Math.round((isFemale ? 3400 : 4450) * (heartLimit / 1000) * ageFactor * (isHypertensionRisk ? 1.15 : 1.0) * simplifiedSurcharge);
+  const metabolicPremium = Math.round((isFemale ? 780 : 980) * (metabolicLimit / 100) * ageFactor * (isMetabolicRisk ? 1.25 : 1.0) * simplifiedSurcharge);
+  const surgeryPremium = Math.round((isFemale ? 1380 : 1540) * (surgeryLimit / 100) * ageFactor * simplifiedSurcharge);
+
+  const totalBasePremium = cancerPremium + brainPremium + heartPremium + metabolicPremium + surgeryPremium;
+
+  let discountRate = 0;
+  if (!isSimplifiedTarget) {
+    if (score >= 90) discountRate = 0.20;
+    else if (score >= 80) discountRate = 0.10;
+    else if (score >= 70) discountRate = 0.05;
+  }
+  const discountAmount = Math.round(totalBasePremium * discountRate);
+  const finalTotalPremium = totalBasePremium - discountAmount;
+
+  const designPlan = [
+    {
+      coverageId: "cov-cancer",
+      coverageName: isFemale ? "여성특화 암 진단비 (표적치료 포함)" : "일반암 진단비 (표적치료 포함)",
+      recommendedLimit: cancerLimitStr.includes("확인") ? "3,000만원" : cancerLimitStr,
+      premium: cancerPremium,
+      opinion: isCancerRisk ? "가족력 또는 병력 반영 및 지식 위키 기반 가입 한도 집중 보강" : "기동된 건강 등급 반영, 기본 권장 한도 적정 설계"
+    },
+    {
+      coverageId: "cov-brain",
+      coverageName: "뇌혈관질환 진단비 (2대 고위험 혈관 보강)",
+      recommendedLimit: brainLimitStr.includes("확인") ? "2,000만원" : brainLimitStr,
+      premium: brainPremium,
+      opinion: isHypertensionRisk ? `고혈압 가족력 또는 수축기혈압(${systolicBP} mmHg) 경계를 반영해 위키 한도 내 특별 증액 배정` : "혈압 안전 수치 반영, 기본 보장형 적정 조율"
+    },
+    {
+      coverageId: "cov-heart",
+      coverageName: "허혈성심장질환 진단비 (협심증 진단 케어)",
+      recommendedLimit: heartLimitStr.includes("확인") ? "2,000만원" : heartLimitStr,
+      premium: heartPremium,
+      opinion: isHypertensionRisk ? `심뇌혈관 상속성 가족력 및 수치(${systolicBP} mmHg) 연동에 따라 위키 최대 한도 내 집중 처방` : "심장 유전성 리스크 없음 반영, 표준 권장형 일반 처방"
+    },
+    {
+      coverageId: "cov-metabolic",
+      coverageName: "대사성 만성질환(당뇨/고혈압 등) 특별보완 특약",
+      recommendedLimit: metabolicLimitStr.includes("확인") ? "500만원" : metabolicLimitStr,
+      premium: metabolicPremium,
+      opinion: isMetabolicRisk ? `당뇨/대사 가족력 또는 식전혈당(${fastingGlucose} mg/dL) 주의 단계를 대조한 만성질환 특별 탑재` : "당뇨/대사 지표 안전 상태 반영, 기본형 안전 배정"
+    },
+    {
+      coverageId: "cov-surgery",
+      coverageName: "일반 질병 수술비 및 120대 다빈도 수술비",
+      recommendedLimit: surgeryLimitStr,
+      premium: surgeryPremium,
+      opinion: pInfo?.coverageLimits?.caregiverExpenses && pInfo.coverageLimits.caregiverExpenses !== "없음" ? `수술비 및 위키에 명시된 간병인사용 지원 혜택(${pInfo.coverageLimits.caregiverExpenses}) 융합 설계` : "기본 종합 수술 치료비 보장 플랜"
+    }
+  ];
+
+  const recommendedInsurance: any = {
+    productName,
+    productDescription,
+    reason: isSimplifiedTarget 
+      ? `고객님은 만성 대사 질환(혈당/혈압) 수치 경계 및 처방 복용약물 상태가 감지되어 일반 건강체 승인이 까다로울 수 있습니다. 지식 위키 규정을 준수한 유병자 간편 고지 맞춤형 포트폴리오를 제공합니다.`
+      : `고객님의 수량적 검진 지표가 대단히 양호하여, 일반 표준체 최적 요율이 적용되는 건강체 특화 포트폴리오를 설계해 드립니다.`,
+    totalPremium: finalTotalPremium,
+    discountRate,
+    discountAmount,
+    isSimplifiedTarget,
+    designPlan
+  };
+
+  if (pInfo) {
+    recommendedInsurance.hasPremiumWaiver = pInfo.hasPremiumWaiver ?? false;
+    recommendedInsurance.premiumWaiverCriteria = pInfo.premiumWaiverCriteria || [];
+    recommendedInsurance.underwritingNotes = pInfo.underwritingNotes || [];
+  } else {
+    recommendedInsurance.hasPremiumWaiver = false;
+    recommendedInsurance.premiumWaiverCriteria = ["상세 조건 약관 확인 필요"];
+    recommendedInsurance.underwritingNotes = ["인수 규정 별도 문의 필요"];
   }
 
   return {
@@ -2764,7 +3083,8 @@ function evaluateClinicalRuleBasedAnalysis(nhisData: any, uploadedPDF: any, fami
       exercise: mockExercise,
       lifestyle: mockLifestyle
     },
-    recommendedChecks: mockChecks
+    recommendedChecks: mockChecks,
+    recommendedInsurance
   };
 }
 

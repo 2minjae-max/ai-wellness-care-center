@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# 임시/테스트 파일
+scratch/
