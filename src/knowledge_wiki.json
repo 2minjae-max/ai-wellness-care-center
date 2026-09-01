@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-01T20:15:43.371Z",
+  "generatedAt": "2026-09-01T21:43:55.311Z",
   "batchLog": "Success - Sliced and processed up to 32 Hanwha Insurance active products.",
   "products": {
     "한화 311 간편건강보험(연만기 갱신형) 무배당2604(간편고지형)": {
@@ -14,13 +14,13 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/311_yeon(2604)_03_1.pdf"
       },
       "coreBenefits": [
-        "유병력자 및 고령자도 간편한 심사를 통해 암 및 주요 질환 진단비 보장",
-        "암, 뇌혈관질환, 허혈성심장질환 등 3대 질병 진단비 및 수술비 집중 보장",
-        "입원 시 간병인 사용 비용 및 입원생활비 보장",
-        "다양한 항암 치료 기술(표적항암, 항암양성자 등)에 대한 정액 보장"
+        "과거 질병 이력이 있는 유병력자나 고령자도 3.1.1 간편심사 질문을 통해 쉽게 가입 가능한 맞춤형 건강보험입니다.",
+        "해약환급금 미지급형 선택 시 표준형 대비 상대적으로 저렴한 보험료로 부담 없이 가입할 수 있습니다.",
+        "암, 뇌혈관질환, 허혈성심장질환 등 주요 3대 질병의 진단비부터 수술, 입원, 통원비까지 종합적으로 보장합니다.",
+        "표적항암제치료, CAR-T항암약물치료, 양성자 및 세기조절방사선치료 등 최신 항암 치료 기법을 폭넓게 준비할 수 있습니다."
       ],
-      "premiumRange": "1만원대에서 4만원대 내외 (연령 및 가입 담보에 따라 상이)",
-      "recommendationFactor": "일반 심사로 보험 가입이 어려운 유병력자 또는 고령층 중 3대 질병 보장이 필요한 고객",
+      "premiumRange": "1~2만원대 수준 (40세 남성, 30년만기 전기납 기준 약 11,579원)",
+      "recommendationFactor": "의학적 병력이 있거나 나이 제한으로 일반 보험 가입이 어려운 고령자 및 유병력자층",
       "targetAge": {
         "minAge": 15,
         "maxAge": 90
@@ -28,22 +28,19 @@
       "renewalType": "갱신형",
       "examinationType": "간편고지(유병자)",
       "simsaCriteria": "3.1.1",
-      "hasPremiumWaiver": true,
-      "premiumWaiverCriteria": [
-        "상해 80% 이상 후유장해",
-        "질병 80% 이상 후유장해"
-      ],
+      "hasPremiumWaiver": false,
+      "premiumWaiverCriteria": [],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타 사항에 따라 가입금액이 제한되거나 인수가 불가능할 수 있음.",
-        "갱신 시 연령 증가 및 기초율 변동에 따라 보험료가 인상 또는 인하될 수 있음.",
-        "일부 담보의 경우 특정 의료기관(상급종합병원 등)이나 특정 질병 코드를 보장 대상에서 제외함."
+        "피보험자의 직업, 직무, 운전 여부 및 기왕증 상태에 따라 보험가입금액이 제한되거나 인수가 거절될 수 있습니다.",
+        "이륜자동차 운전 중 발생한 상해 사고는 이륜자동차운전중상해 부담보 특별약관에 의해 보장에서 제외됩니다.",
+        "해약환급금 미지급형 계약의 경우 가입 후 보험종목 변경, 피보험자 변경, 가입금액 증액 및 담보 추가 신청이 불가능합니다."
       ],
       "coverageLimits": {
         "generalCancer": "최대 5,000만원",
         "similarCancer": "최대 1,000만원",
         "cerebrovascular": "최대 2,000만원",
         "ischemicHeart": "최대 2,000만원",
-        "caregiverExpenses": "일당 최대 15만원"
+        "caregiverExpenses": "일당 최대 15만원 (요양병원 제외)"
       },
       "productMetadata": {
         "targetGender": "M/F",
@@ -51,14 +48,11 @@
         "maxAge": 90,
         "isRenewal": true,
         "isSimpleScreening": true,
-        "premiumIndexKrw": 30000
+        "premiumIndexKrw": 12000
       },
       "underwritingRules": {
-        "eligibility": "3.1.1 간편심사를 통과한 유병력자 및 고령자",
-        "waiverOfPremium": [
-          "상해 80% 이상 후유장해 발생 시",
-          "질병 80% 이상 후유장해 발생 시"
-        ]
+        "eligibility": "만 15세부터 90세까지의 유병자 및 고령자 중 3.1.1 간편고지 기준을 충족하는 자",
+        "waiverOfPremium": []
       },
       "coverages": [
         {
@@ -68,11 +62,26 @@
             "C00-C97"
           ],
           "maxLimitByAge": {
-            "0-40": 50000000,
+            "15-40": 50000000,
             "41-60": 30000000,
             "61-90": 10000000
           },
-          "deductibleAndReduction": "보장개시일 이후 진단 확정, 계약일로부터 1년 미만 시 50% 감액"
+          "deductibleAndReduction": "90일 면책기간 적용, 최초계약일로부터 1년 미만 시 50% 감액 지급 (갱신계약은 면책/감액 미적용)"
+        },
+        {
+          "coverageId": "cov-cancer-similar",
+          "name": "4대유사암진단비",
+          "targetDiseases": [
+            "C44",
+            "C73",
+            "D00-D09"
+          ],
+          "maxLimitByAge": {
+            "15-40": 10000000,
+            "41-60": 10000000,
+            "61-90": 5000000
+          },
+          "deductibleAndReduction": "면책기간 없음, 최초계약일로부터 1년 미만 시 50% 감액 지급"
         },
         {
           "coverageId": "cov-cerebrovascular",
@@ -81,11 +90,11 @@
             "I60-I69"
           ],
           "maxLimitByAge": {
-            "0-40": 20000000,
-            "41-60": 15000000,
-            "61-90": 5000000
+            "15-40": 20000000,
+            "41-60": 20000000,
+            "61-90": 10000000
           },
-          "deductibleAndReduction": "보장개시일 이후 진단 확정, 계약일로부터 1년 미만 시 50% 감액"
+          "deductibleAndReduction": "최초계약일로부터 1년 미만 시 50% 감액 지급"
         },
         {
           "coverageId": "cov-ischemic-heart",
@@ -94,14 +103,26 @@
             "I20-I25"
           ],
           "maxLimitByAge": {
-            "0-40": 20000000,
-            "41-60": 15000000,
-            "61-90": 5000000
+            "15-40": 20000000,
+            "41-60": 20000000,
+            "61-90": 10000000
           },
-          "deductibleAndReduction": "보장개시일 이후 진단 확정, 계약일로부터 1년 미만 시 50% 감액"
+          "deductibleAndReduction": "최초계약일로부터 1년 미만 시 50% 감액 지급"
+        },
+        {
+          "coverageId": "cov-caregiver-expense",
+          "name": "간병인사용입원생활비",
+          "targetDiseases": [
+            "S00-T88",
+            "C00-N99"
+          ],
+          "maxLimitByAge": {
+            "15-90": 150000
+          },
+          "deductibleAndReduction": "면책기간 없음, 간병인 일당 사용 요금 7만원 기준 미만 사용 시 50% 지급"
         }
       ],
-      "analyzedAt": "2026-08-01T18:59:16.727Z"
+      "analyzedAt": "2026-09-01T20:22:07.236Z"
     },
     "한화 311 간편건강보험(연만기 갱신형) 무배당2604(일반고지형)": {
       "fullName": "한화 311 간편건강보험(연만기 갱신형) 무배당2604(일반고지형)",
@@ -115,13 +136,12 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/311_yeon(2604)_03_2.pdf"
       },
       "coreBenefits": [
-        "암, 뇌혈관질환, 허혈성심장질환 등 주요 질병의 진단비 및 수술비 보장",
-        "입원 및 통원 치료 시 필요한 요양병원 입원비, 통원비 등 실질적인 치료비 지원",
-        "표적항암약물허가치료, 항암양성자/세기조절방사선치료 등 최신 암 치료 기법 보장",
-        "간병인사용입원생활비 및 간호간병통합서비스 보장으로 간병 부담 완화"
+        "일반 심사(일반고지형)를 통해 건강체 고객에게 유병자 상품 대비 더 저렴한 보험료로 합리적인 보장을 제공합니다.",
+        "암, 뇌혈관질환, 허혈성심장질환 등 한국인의 주요 3대 질병에 대한 진단비 및 수술비를 집중적으로 보장합니다.",
+        "해약환급금 미지급형 및 순수보장형 구조를 채택하여 월 납입 보험료 부담을 대폭 낮췄습니다."
       ],
-      "premiumRange": "1만원대~4만원대 (연령 및 담보 구성에 따라 상이)",
-      "recommendationFactor": "과거 질병 이력이 있거나 고령으로 인해 일반심사 보험 가입이 어려웠던 유병력자 및 고령자에게 추천함",
+      "premiumRange": "1만원 수준 (40세 상해 1급, 30년만기 전기납 기준)",
+      "recommendationFactor": "기왕증이 없는 건강체로, 저렴한 보험료로 핵심 질병 진단비 및 수술비 위주의 집중 보장을 받으려는 고객",
       "targetAge": {
         "minAge": 15,
         "maxAge": 90
@@ -129,22 +149,19 @@
       "renewalType": "갱신형",
       "examinationType": "일반고지(건강체)",
       "simsaCriteria": "없음",
-      "hasPremiumWaiver": true,
-      "premiumWaiverCriteria": [
-        "상해 80% 이상 후유장해 발생 시",
-        "질병 80% 이상 후유장해 발생 시"
-      ],
+      "hasPremiumWaiver": false,
+      "premiumWaiverCriteria": [],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 건강상태에 따라 가입금액이 제한되거나 인수가 거절될 수 있음",
-        "계약 전 알릴 의무를 사실대로 알리지 않거나 사실과 다르게 알린 경우 계약 해지 및 보장 제한 가능",
-        "이륜자동차 운전 중 상해 사고는 보험금 지급이 제외될 수 있음"
+        "피보험자의 직업, 직무 및 건강 상태 등에 따라 보험가입금액이 제한되거나 가입 인수가 불가능할 수 있습니다.",
+        "이륜자동차 운전 중 상해 부담보 특별약관 부가 시, 이륜차 운전 중 발생한 상해 사고에 대해서는 보장에서 제외됩니다.",
+        "해약환급금 미지급형 상품으로, 보험료 납입 기간 중 계약 해지 시 해약환급금이 전혀 지급되지 않습니다."
       ],
       "coverageLimits": {
-        "generalCancer": "최대 5,000만원",
+        "generalCancer": "최대 5,000만원 (연령 및 인수 기준별 상이)",
         "similarCancer": "최대 1,000만원",
         "cerebrovascular": "최대 2,000만원",
         "ischemicHeart": "최대 2,000만원",
-        "caregiverExpenses": "일당 최대 15만원"
+        "caregiverExpenses": "일당 최대 15만원 (요양병원 제외, 연간 180일 한도)"
       },
       "productMetadata": {
         "targetGender": "M/F",
@@ -152,14 +169,11 @@
         "maxAge": 90,
         "isRenewal": true,
         "isSimpleScreening": false,
-        "premiumIndexKrw": 30000
+        "premiumIndexKrw": 11890
       },
       "underwritingRules": {
-        "eligibility": "15세부터 90세까지 가입 가능하며, 직업 및 건강상태에 따라 인수심사를 거침",
-        "waiverOfPremium": [
-          "상해 80% 이상 후유장해",
-          "질병 80% 이상 후유장해"
-        ]
+        "eligibility": "건강진단 결과 및 직업, 직무, 기타 사항에 따라 가입 한도가 제한되거나 인수가 불가능할 수 있습니다.",
+        "waiverOfPremium": []
       },
       "coverages": [
         {
@@ -169,26 +183,11 @@
             "C00-C97"
           ],
           "maxLimitByAge": {
-            "0-40": 50000000,
-            "41-60": 50000000,
-            "61-90": 20000000
+            "15-40": 50000000,
+            "41-60": 30000000,
+            "61-90": 10000000
           },
-          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
-        },
-        {
-          "coverageId": "cov-cancer-similar",
-          "name": "4대유사암진단비",
-          "targetDiseases": [
-            "C43-C44",
-            "C73-C75",
-            "D00-D09"
-          ],
-          "maxLimitByAge": {
-            "0-40": 10000000,
-            "41-60": 10000000,
-            "61-90": 5000000
-          },
-          "deductibleAndReduction": "면책기간 없음, 1년 미만 50% 감액"
+          "deductibleAndReduction": "최초계약일로부터 90일 면책기간 적용, 1년 미만 진단 시 50% 감액 지급"
         },
         {
           "coverageId": "cov-cerebrovascular",
@@ -197,11 +196,11 @@
             "I60-I69"
           ],
           "maxLimitByAge": {
-            "0-40": 20000000,
-            "41-60": 20000000,
-            "61-90": 10000000
+            "15-40": 20000000,
+            "41-60": 15000000,
+            "61-90": 5000000
           },
-          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
+          "deductibleAndReduction": "면책기간 없음, 1년 미만 진단 시 50% 감액 지급"
         },
         {
           "coverageId": "cov-ischemic-heart",
@@ -210,14 +209,14 @@
             "I20-I25"
           ],
           "maxLimitByAge": {
-            "0-40": 20000000,
-            "41-60": 20000000,
-            "61-90": 10000000
+            "15-40": 20000000,
+            "41-60": 15000000,
+            "61-90": 5000000
           },
-          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
+          "deductibleAndReduction": "면책기간 없음, 1년 미만 진단 시 50% 감액 지급"
         }
       ],
-      "analyzedAt": "2026-08-01T19:01:59.311Z"
+      "analyzedAt": "2026-09-01T20:23:43.267Z"
     },
     "한화 3N5 더간편건강보험(세만기형) 무배당2604(간편고지형)": {
       "fullName": "한화 3N5 더간편건강보험(세만기형) 무배당2604(간편고지형)",
@@ -231,38 +230,39 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5se(2604)_03_1.pdf"
       },
       "coreBenefits": [
-        "암, 뇌질환, 심장질환 등 주요 질병의 진단 및 수술 보장",
-        "상해 및 질병으로 인한 입원 시 입원 일당 및 생활비 보장",
-        "간병인 지원 서비스 또는 간병인 사용 비용 보장",
-        "보험료 납입면제 제도를 통한 보험료 납입 부담 완화"
+        "상해 및 질병으로 인한 사망, 입원, 수술비 및 진단비 보장",
+        "암, 뇌질환, 심장질환 등 주요 성인병에 대한 진단 및 치료비 보장",
+        "간병인 지원 또는 사용 비용 보장",
+        "암 진단 후 특화된 치료 생활비 및 검사 지원"
       ],
-      "premiumRange": "연령, 성별, 가입 세목에 따라 상이함 (기준 예시: 99,158원)",
-      "recommendationFactor": "유병력자나 고령자 등 일반 보험 가입이 어려운 사람들을 위한 간편 심사 상품",
+      "premiumRange": "상품 유형 및 가입 특약에 따라 상이하나 예시 기준 월 99,158원 수준",
+      "recommendationFactor": "유병력자나 고령자 등 일반 보험 가입이 어려운 고객을 위해 간소화된 심사로 가입 가능",
       "targetAge": {
         "minAge": 15,
         "maxAge": 90
       },
-      "renewalType": "갱신형",
+      "renewalType": "혼합형",
       "examinationType": "간편고지(유병자)",
       "simsaCriteria": "3.N.5",
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "상해 또는 질병으로 장해지급률 80% 이상 장해 상태가 된 경우",
-        "암(기타피부암, 갑상선암, 제자리암, 경계성종양 제외)으로 진단확정된 경우",
-        "뇌졸중으로 진단확정된 경우",
-        "급성심근경색증으로 진단확정된 경우"
+        "상해/질병 장해분류표상 장해지급률 80% 이상 발생 시",
+        "납입면제보장개시일 이후 '암' 진단 확정 시",
+        "뇌졸중 진단 확정 시",
+        "급성심근경색증 진단 확정 시",
+        "특정상해성뇌출혈 진단 확정 시"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타사항으로 인해 보험가입금액이 제한되거나 인수가 불가능할 수 있음.",
-        "일부 담보의 경우 건강진단 결과를 요구할 수 있음.",
-        "간편고지형 상품은 일반심사보험 대비 보험료가 할증되어 있음."
+        "피보험자의 직업, 직무, 건강상태에 따라 가입금액 제한 또는 인수 거절 가능",
+        "일부 담보는 1년 미만 가입 시 보험금 50% 감액 지급",
+        "상해로 인한 사망, 입원, 수술 보장 및 질병 관련 특정 담보는 면책기간(90일) 존재"
       ],
       "coverageLimits": {
         "generalCancer": "최대 1,000만원",
         "similarCancer": "최대 100만원",
         "cerebrovascular": "최대 200만원",
         "ischemicHeart": "최대 200만원",
-        "caregiverExpenses": "일당 최대 보험가입금액"
+        "caregiverExpenses": "일당 최대 15만원(세부 특별약관별 상이)"
       },
       "productMetadata": {
         "targetGender": "M/F",
@@ -273,12 +273,14 @@
         "premiumIndexKrw": 99158
       },
       "underwritingRules": {
-        "eligibility": "유병력자 및 고령자도 가입 가능하도록 간소화된 계약 전 알릴 의무 항목을 적용받는 상품",
+        "eligibility": "상해 및 질병으로 인한 사망, 입원, 수술, 진단비 등 보장(간편고지 대상)",
         "waiverOfPremium": [
-          "상해/질병 장해지급률 80% 이상",
-          "암 진단(유사암 제외)",
+          "상해 80% 이상 후유장해",
+          "질병 80% 이상 후유장해",
+          "암 진단(기타피부암, 갑상선암, 제자리암, 경계성종양 제외)",
           "뇌졸중 진단",
-          "급성심근경색증 진단"
+          "급성심근경색증 진단",
+          "특정상해성뇌출혈 진단"
         ]
       },
       "coverages": [
@@ -293,20 +295,7 @@
             "41-60": 10000000,
             "61-90": 10000000
           },
-          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
-        },
-        {
-          "coverageId": "cov-cancer-similar",
-          "name": "4대유사암진단비",
-          "targetDiseases": [
-            "D00-D09"
-          ],
-          "maxLimitByAge": {
-            "0-40": 1000000,
-            "41-60": 1000000,
-            "61-90": 1000000
-          },
-          "deductibleAndReduction": "면책기간 없음, 1년 미만 50% 감액"
+          "deductibleAndReduction": "보장개시일(계약일부터 90일 지난날의 다음날) 면책, 1년 미만 50% 감액"
         },
         {
           "coverageId": "cov-cerebrovascular",
@@ -319,7 +308,7 @@
             "41-60": 2000000,
             "61-90": 2000000
           },
-          "deductibleAndReduction": "면책기간 없음, 1년 미만 50% 감액"
+          "deductibleAndReduction": "1년 미만 50% 감액"
         },
         {
           "coverageId": "cov-ischemic-heart",
@@ -332,10 +321,10 @@
             "41-60": 2000000,
             "61-90": 2000000
           },
-          "deductibleAndReduction": "면책기간 없음, 1년 미만 50% 감액"
+          "deductibleAndReduction": "1년 미만 50% 감액"
         }
       ],
-      "analyzedAt": "2026-08-01T19:04:40.664Z"
+      "analyzedAt": "2026-09-01T20:26:27.805Z"
     },
     "한화 3N5 더간편건강보험(세만기형) 무배당2604(일반고지형)": {
       "fullName": "한화 3N5 더간편건강보험(세만기형) 무배당2604(일반고지형)",
@@ -349,157 +338,35 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5se(2604)_03_2.pdf"
       },
       "coreBenefits": [
-        "암, 뇌혈관질환, 허혈성심장질환 등 주요 3대 질병 진단비 보장",
-        "입원 시 간병인 또는 간호·간병통합서비스 이용 비용 지원",
-        "상해 및 질병으로 인한 수술비 및 진단 후 치료비 지원",
-        "상해 80% 이상 후유장해 시 보험금 지급"
+        "상해 및 질병으로 인한 사망, 입원, 수술비 및 진단비 보장",
+        "암, 뇌질환, 심장질환 등 주요 성인병에 대한 단계별 치료비 보장",
+        "입원 시 간병인 지원 또는 입원비 지원 서비스 제공",
+        "갱신형 및 비갱신형 선택을 통한 유연한 보장 설계 가능"
       ],
-      "premiumRange": "연령 및 성별, 가입 플랜에 따라 3~10만원대 이상으로 다양함",
-      "recommendationFactor": "일반 심사 보험 가입이 어려운 유병력자 및 고령자에게 맞춤형 보장을 제공",
+      "premiumRange": "고객의 가입 형태(종별), 나이, 선택 담보에 따라 상이함 (월 3만원~10만원대 이상으로 다양)",
+      "recommendationFactor": "유병력자나 고령자 등 일반 보험 가입이 어려운 분들이 간편고지 심사를 통해 건강보장을 준비하기에 적합함",
       "targetAge": {
         "minAge": 15,
         "maxAge": 90
       },
       "renewalType": "혼합형",
-      "examinationType": "일반고지(건강체)",
+      "examinationType": "일반고지",
       "simsaCriteria": "없음",
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "상해 장해지급률 80% 이상 발생 시",
-        "질병 장해지급률 80% 이상 발생 시",
-        "암(기타피부암, 갑상선암, 제자리암, 경계성종양 제외) 진단 확정 시",
-        "뇌졸중 진단 확정 시",
-        "급성심근경색증 진단 확정 시"
-      ],
-      "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타사항에 따라 가입금액이 제한되거나 인수가 불가능할 수 있음",
-        "건강진단 결과를 요구할 수 있으며, 고지 의무 위반 시 보장이 제한되거나 해지될 수 있음",
-        "일부 담보의 경우 갱신형/비갱신형 전환 여부에 따라 가입 조건이 달라짐"
-      ],
-      "coverageLimits": {
-        "generalCancer": "1,000만원",
-        "similarCancer": "100만원",
-        "cerebrovascular": "200만원",
-        "ischemicHeart": "200만원",
-        "caregiverExpenses": "일당 최대 보험가입금액 한도"
-      },
-      "productMetadata": {
-        "targetGender": "M/F",
-        "minAge": 15,
-        "maxAge": 90,
-        "isRenewal": true,
-        "isSimpleScreening": false,
-        "premiumIndexKrw": 50000
-      },
-      "underwritingRules": {
-        "eligibility": "상해 및 질병으로 인한 사망, 입원, 수술, 진단, 비용 손해 등을 보장하는 건강보험",
-        "waiverOfPremium": [
-          "상해/질병 장해지급률 80% 이상",
-          "암 진단(유사암 제외)",
-          "뇌졸중 진단",
-          "급성심근경색증 진단"
-        ]
-      },
-      "coverages": [
-        {
-          "coverageId": "cov-cancer-general",
-          "name": "암(4대유사암제외)진단비",
-          "targetDiseases": [
-            "C00-C97"
-          ],
-          "maxLimitByAge": {
-            "0-40": 10000000,
-            "41-60": 10000000,
-            "61-90": 10000000
-          },
-          "deductibleAndReduction": "보장개시일 90일 면책, 1년 미만 50% 감액 지급"
-        },
-        {
-          "coverageId": "cov-cancer-similar",
-          "name": "4대유사암진단비",
-          "targetDiseases": [
-            "D00-D09",
-            "D32",
-            "D33",
-            "D34"
-          ],
-          "maxLimitByAge": {
-            "0-40": 1000000,
-            "41-60": 1000000,
-            "61-90": 1000000
-          },
-          "deductibleAndReduction": "면책기간 없음, 1년 미만 50% 감액 지급"
-        },
-        {
-          "coverageId": "cov-cerebrovascular",
-          "name": "뇌혈관질환진단비",
-          "targetDiseases": [
-            "I60-I69"
-          ],
-          "maxLimitByAge": {
-            "0-40": 2000000,
-            "41-60": 2000000,
-            "61-90": 2000000
-          },
-          "deductibleAndReduction": "1년 미만 50% 감액 지급"
-        },
-        {
-          "coverageId": "cov-ischemic-heart",
-          "name": "허혈성심장질환진단비",
-          "targetDiseases": [
-            "I20-I25"
-          ],
-          "maxLimitByAge": {
-            "0-40": 2000000,
-            "41-60": 2000000,
-            "61-90": 2000000
-          },
-          "deductibleAndReduction": "1년 미만 50% 감액 지급"
-        }
-      ],
-      "analyzedAt": "2026-08-01T19:07:09.173Z"
-    },
-    "한화 3N5 더간편건강보험(연만기 갱신형) 무배당2604(간편고지형)": {
-      "fullName": "한화 3N5 더간편건강보험(연만기 갱신형) 무배당2604(간편고지형)",
-      "category": "상해/질병",
-      "status": "판매중",
-      "salesPeriod": "2026.04.01~현재",
-      "productUrl": "https://www.hwgeneralins.com/notice/ir/product-ing01.do",
-      "pdfUrls": {
-        "summary": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5yeon(2604)_01.pdf",
-        "method": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5yeon(2604)_02.pdf",
-        "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5yeon(2604)_03_1.pdf"
-      },
-      "coreBenefits": [
-        "암, 뇌혈관, 심장질환 등 주요 3대 질병 진단비 및 수술비 보장",
-        "상해/질병 입원 시 간병인 지원 서비스 또는 사용비용 지원",
-        "납입면제 운영형을 통한 중대 질병 진단 시 보험료 납입 면제",
-        "유병력자 및 고령자도 간편한 심사를 통해 가입 가능"
-      ],
-      "premiumRange": "7,946원 수준 (40세 남자 기준 예시)",
-      "recommendationFactor": "일반 심사 보험 가입이 어려운 유병력자나 고령자층에게 권장되는 건강보험",
-      "targetAge": {
-        "minAge": 15,
-        "maxAge": 90
-      },
-      "renewalType": "갱신형",
-      "examinationType": "간편고지(유병자)",
-      "simsaCriteria": "3.N.5",
-      "hasPremiumWaiver": true,
-      "premiumWaiverCriteria": [
-        "상해 또는 질병으로 장해지급률 80% 이상 장해상태",
+        "상해 또는 질병으로 인한 장해지급률 80% 이상 장해상태",
         "암(유사암 제외) 진단확정",
         "뇌졸중 진단확정",
         "급성심근경색증 진단확정",
         "특정상해성뇌출혈 진단확정"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타 사항에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있음",
-        "경우에 따라 건강진단 결과를 요구할 수 있음",
-        "간편고지 상품은 일반고지 상품 대비 보험료가 할증되어 있음"
+        "피보험자의 직업, 직무, 기타 사항에 따라 가입금액 제한 또는 인수 거절 가능",
+        "일부 담보의 경우 특정 신체부위나 질병에 대해 보장 제외 조건부 인수가 가능함",
+        "이륜자동차 운전자는 이륜자동차 운전 중 사고에 대해 상해 관련 보장이 제한될 수 있음"
       ],
       "coverageLimits": {
-        "generalCancer": "최대 5,000만원",
+        "generalCancer": "최대 5,000만원 (상품 세부 종목 및 가입 시점에 따라 상이)",
         "similarCancer": "최대 1,000만원",
         "cerebrovascular": "최대 2,000만원",
         "ischemicHeart": "최대 2,000만원",
@@ -510,11 +377,11 @@
         "minAge": 15,
         "maxAge": 90,
         "isRenewal": true,
-        "isSimpleScreening": true,
-        "premiumIndexKrw": 8000
+        "isSimpleScreening": false,
+        "premiumIndexKrw": 50000
       },
       "underwritingRules": {
-        "eligibility": "유병력자 및 고령자 대상 간편고지 계약 심사",
+        "eligibility": "만 15세부터 90세까지 가입 가능하며, 직업/직무 등에 따라 가입 금액이 제한될 수 있음",
         "waiverOfPremium": [
           "상해 80% 이상 후유장해",
           "질병 80% 이상 후유장해",
@@ -533,10 +400,26 @@
           ],
           "maxLimitByAge": {
             "0-40": 50000000,
-            "41-60": 50000000,
-            "61-90": 20000000
+            "41-60": 30000000,
+            "61-90": 10000000
           },
-          "deductibleAndReduction": "90일 면책기간 적용, 계약일로부터 1년 미만 시 50% 감액 지급"
+          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
+        },
+        {
+          "coverageId": "cov-cancer-similar",
+          "name": "4대유사암진단비",
+          "targetDiseases": [
+            "C44",
+            "C73",
+            "D00-D09",
+            "D37-D48"
+          ],
+          "maxLimitByAge": {
+            "0-40": 10000000,
+            "41-60": 10000000,
+            "61-90": 5000000
+          },
+          "deductibleAndReduction": "면책기간 없음, 1년 미만 50% 감액"
         },
         {
           "coverageId": "cov-cerebrovascular",
@@ -547,15 +430,28 @@
           "maxLimitByAge": {
             "0-40": 20000000,
             "41-60": 20000000,
-            "61-90": 10000000
+            "61-90": 5000000
           },
-          "deductibleAndReduction": "계약일로부터 1년 미만 시 50% 감액 지급"
+          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
+        },
+        {
+          "coverageId": "cov-ischemic-heart",
+          "name": "허혈성심장질환진단비",
+          "targetDiseases": [
+            "I20-I25"
+          ],
+          "maxLimitByAge": {
+            "0-40": 20000000,
+            "41-60": 20000000,
+            "61-90": 5000000
+          },
+          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
         }
       ],
-      "analyzedAt": "2026-08-01T19:10:22.332Z"
+      "analyzedAt": "2026-09-01T20:29:07.220Z"
     },
-    "한화 3N5 더간편건강보험(연만기 갱신형) 무배당2604(일반고지형)": {
-      "fullName": "한화 3N5 더간편건강보험(연만기 갱신형) 무배당2604(일반고지형)",
+    "한화 3N5 더간편건강보험(연만기 갱신형) 무배당2604(간편고지형)": {
+      "fullName": "한화 3N5 더간편건강보험(연만기 갱신형) 무배당2604(간편고지형)",
       "category": "상해/질병",
       "status": "판매중",
       "salesPeriod": "2026.04.01~현재",
@@ -563,35 +459,35 @@
       "pdfUrls": {
         "summary": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5yeon(2604)_01.pdf",
         "method": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5yeon(2604)_02.pdf",
-        "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5yeon(2604)_03_2.pdf"
+        "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5yeon(2604)_03_1.pdf"
       },
       "coreBenefits": [
-        "암, 뇌혈관질환, 허혈성심장질환 등 주요 3대 질병 진단비 보장",
-        "상해 및 질병으로 인한 입원비 및 수술비 보장",
-        "암 직접치료 입원비 및 통원비, 항암 치료비 특화 보장",
-        "상해·질병 후유장해 및 배상책임 보장"
+        "간편고지(3N5) 심사를 통해 유병력자 및 고령자도 간소화된 질문으로 편리하게 가입 가능합니다.",
+        "암, 뇌졸중, 급성심근경색증 등 주요 3대 질병의 진단, 수술, 입원 및 치료비를 폭넓게 보장합니다.",
+        "간병인 지원 및 간병인 사용 일당 보장 특약을 통해 간병이 필요한 시기의 경제적 부담을 덜어줍니다.",
+        "납입면제 운영형 가입 시 3대 질병 진단 또는 장해 발생 시 차회 이후 보험료 납입이 면제됩니다."
       ],
-      "premiumRange": "7,946원 (40세 남자 기준 예시)",
-      "recommendationFactor": "유병력자나 고령자로 일반심사보험 가입이 어려운 분들이 간소화된 고지사항을 통해 가입 가능한 건강보험",
+      "premiumRange": "3~5만원대 수준 (가입 연령, 성별 및 선택 특약에 따라 상이)",
+      "recommendationFactor": "과거 병력이 있거나 고령으로 인해 일반 심사형 보험 가입이 거절되었던 유병자 및 실버 고객층",
       "targetAge": {
         "minAge": 15,
         "maxAge": 90
       },
       "renewalType": "갱신형",
-      "examinationType": "일반고지(건강체)",
-      "simsaCriteria": "없음",
+      "examinationType": "간편고지(유병자)",
+      "simsaCriteria": "3.N.5 (305, 315, 325, 335, 345, 355)",
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "상해 또는 질병으로 장해지급률 80% 이상 장해상태 시",
-        "암(기타피부암, 갑상선암, 제자리암, 경계성종양 제외) 진단 확정 시",
-        "뇌졸중 진단 확정 시",
-        "급성심근경색증 진단 확정 시",
-        "특정상해성뇌출혈 진단 확정 시"
+        "상해로 장해지급률이 80% 이상에 해당하는 장해상태가 된 경우",
+        "질병으로 장해지급률이 80% 이상에 해당하는 장해상태가 된 경우",
+        "납입면제보장개시일 이후 암(기타피부암, 갑상선암, 제자리암, 경계성종양 제외)으로 진단확정된 경우",
+        "뇌졸중으로 진단확정된 경우",
+        "급성심근경색증으로 진단확정된 경우",
+        "특정상해성뇌출혈로 진단확정된 경우 (일부 종형에 한함)"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타 사항에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있음",
-        "경우에 따라 건강진단 결과를 요구할 수 있음",
-        "4대 유사암(기타피부암, 갑상선암, 제자리암, 경계성종양)은 보장범위에서 제외되는 보장이 다수 존재함"
+        "피보험자의 직업, 직무, 건강상태에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있으며 경우에 따라 건강진단 결과를 요구할 수 있습니다.",
+        "이륜자동차 또는 전동킥보드 등 개인형 이동장치를 주기적으로 운전하는 경우 관련 상해 담보 인수가 제한되거나 부담보 조건으로 인수됩니다."
       ],
       "coverageLimits": {
         "generalCancer": "최대 5,000만원",
@@ -605,17 +501,156 @@
         "minAge": 15,
         "maxAge": 90,
         "isRenewal": true,
-        "isSimpleScreening": false,
-        "premiumIndexKrw": 7946
+        "isSimpleScreening": true,
+        "premiumIndexKrw": 35000
       },
       "underwritingRules": {
-        "eligibility": "상해 및 질병을 보장하는 건강보험으로 직업 및 직무에 따라 인수 조건이 달라질 수 있음",
+        "eligibility": "가입 연령 만 15세부터 90세까지의 유병자 및 고령자를 대상으로 하며, 회사 기준 직업 급수 및 운전 형태에 따라 인수가 제한될 수 있습니다.",
         "waiverOfPremium": [
-          "상해 또는 질병으로 장해지급률 80% 이상 발생 시",
-          "암(유사암 제외) 진단 확정 시",
+          "상해/질병 80% 이상 후유장해 발생 시",
+          "일반암(유사암 제외) 진단 확정 시",
           "뇌졸중 진단 확정 시",
-          "급성심근경색증 진단 확정 시",
-          "특정상해성뇌출혈 진단 확정 시"
+          "급성심근경색증 진단 확정 시"
+        ]
+      },
+      "coverages": [
+        {
+          "coverageId": "cov-cancer-general",
+          "name": "암(4대유사암제외)진단비",
+          "targetDiseases": [
+            "C00-C97"
+          ],
+          "maxLimitByAge": {
+            "15-40": 50000000,
+            "41-60": 30000000,
+            "61-90": 10000000
+          },
+          "deductibleAndReduction": "90일 면책기간 적용, 최초계약일로부터 1년 미만 진단 시 50% 감액 지급"
+        },
+        {
+          "coverageId": "cov-cancer-similar",
+          "name": "4대유사암진단비",
+          "targetDiseases": [
+            "C44",
+            "C73",
+            "D00-D09",
+            "D37-D48"
+          ],
+          "maxLimitByAge": {
+            "15-40": 10000000,
+            "41-60": 10000000,
+            "61-90": 5000000
+          },
+          "deductibleAndReduction": "면책기간 없음, 최초계약일로부터 1년 미만 진단 시 50% 감액 지급"
+        },
+        {
+          "coverageId": "cov-cerebrovascular",
+          "name": "뇌혈관질환진단비",
+          "targetDiseases": [
+            "I60-I67",
+            "I69",
+            "Q28",
+            "S06"
+          ],
+          "maxLimitByAge": {
+            "15-40": 20000000,
+            "41-60": 20000000,
+            "61-90": 10000000
+          },
+          "deductibleAndReduction": "최초계약 및 부활 후 1년 미만 사고 시 50% 감액 지급"
+        },
+        {
+          "coverageId": "cov-ischemic-heart",
+          "name": "허혈성심장질환진단비",
+          "targetDiseases": [
+            "I20-I25"
+          ],
+          "maxLimitByAge": {
+            "15-40": 20000000,
+            "41-60": 20000000,
+            "61-90": 10000000
+          },
+          "deductibleAndReduction": "최초계약 및 부활 후 1년 미만 사고 시 50% 감액 지급"
+        },
+        {
+          "coverageId": "cov-caregiver-expense",
+          "name": "간병인사용질병입원비Ⅱ",
+          "targetDiseases": [
+            "A00-Y89"
+          ],
+          "maxLimitByAge": {
+            "15-40": 150000,
+            "41-60": 150000,
+            "61-90": 120000
+          },
+          "deductibleAndReduction": "계약일로부터 1년 미만 간병인 사용 시 지급금액의 50% 감액 지급 (요양병원 제외 의료기관에서 하루 사용금액 7만원 기준 차등 적용)"
+        }
+      ],
+      "analyzedAt": "2026-09-01T20:31:00.784Z"
+    },
+    "한화 3N5 더간편건강보험(연만기 갱신형) 무배당2604(일반고지형)": {
+      "fullName": "한화 3N5 더간편건강보험(연만기 갱신형) 무배당2604(일반고지형)",
+      "category": "상해/질병",
+      "status": "판매중",
+      "salesPeriod": "2026.04.01~현재",
+      "productUrl": "https://www.hwgeneralins.com/notice/ir/product-ing01.do",
+      "pdfUrls": {
+        "summary": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5yeon(2604)_01.pdf",
+        "method": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5yeon(2604)_02.pdf",
+        "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_the3N5yeon(2604)_03_2.pdf"
+      },
+      "coreBenefits": [
+        "상해 및 질병으로 인한 사망, 입원, 수술, 진단비를 포괄적으로 보장합니다.",
+        "중대질환 산정특례 대상 진단비 및 표적항암약물허가치료비를 보장합니다.",
+        "간병인 지원 서비스 또는 비용 지원을 통해 간병 부담을 경감합니다.",
+        "자동차 사고 관련 형사합의금 및 변호사 선임 비용을 실손 보장합니다."
+      ],
+      "premiumRange": "7,946원 수준 (40세 남성, 상해 1급 기준 예시)",
+      "recommendationFactor": "일반 심사로 가입이 어려운 유병력자나 고령자도 간소화된 심사로 가입 가능한 건강보험입니다.",
+      "targetAge": {
+        "minAge": 15,
+        "maxAge": 90
+      },
+      "renewalType": "갱신형",
+      "examinationType": "간편고지(유병자)",
+      "simsaCriteria": "3.N.5",
+      "hasPremiumWaiver": true,
+      "premiumWaiverCriteria": [
+        "상해로 장해지급률 80% 이상 발생 시",
+        "질병으로 장해지급률 80% 이상 발생 시",
+        "암(유사암 제외) 진단 확정 시",
+        "뇌졸중 진단 확정 시",
+        "급성심근경색증 진단 확정 시",
+        "특정상해성뇌출혈 진단 확정 시"
+      ],
+      "underwritingNotes": [
+        "피보험자의 직업, 직무, 기타 사항에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있음.",
+        "건강진단 결과에 따라 인수가 제한될 수 있음.",
+        "이륜자동차 운전 등 특정 위험 직무 수행 시 가입이 제한될 수 있음."
+      ],
+      "coverageLimits": {
+        "generalCancer": "최대 5,000만원",
+        "similarCancer": "최대 1,000만원",
+        "cerebrovascular": "최대 2,000만원",
+        "ischemicHeart": "최대 2,000만원",
+        "caregiverExpenses": "일당 최대 15만원"
+      },
+      "productMetadata": {
+        "targetGender": "M/F",
+        "minAge": 15,
+        "maxAge": 90,
+        "isRenewal": true,
+        "isSimpleScreening": true,
+        "premiumIndexKrw": 8000
+      },
+      "underwritingRules": {
+        "eligibility": "유병력자 및 고령자도 간편 심사를 통해 가입 가능함.",
+        "waiverOfPremium": [
+          "상해/질병 장해지급률 80% 이상",
+          "암(유사암 제외)",
+          "뇌졸중",
+          "급성심근경색증",
+          "특정상해성뇌출혈"
         ]
       },
       "coverages": [
@@ -633,6 +668,22 @@
           "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액 지급"
         },
         {
+          "coverageId": "cov-cancer-similar",
+          "name": "4대유사암진단비",
+          "targetDiseases": [
+            "C44",
+            "C73",
+            "D01",
+            "D09"
+          ],
+          "maxLimitByAge": {
+            "0-40": 10000000,
+            "41-60": 10000000,
+            "61-90": 10000000
+          },
+          "deductibleAndReduction": "면책기간 없음, 1년 미만 50% 감액 지급"
+        },
+        {
           "coverageId": "cov-cerebrovascular",
           "name": "뇌혈관질환진단비",
           "targetDiseases": [
@@ -640,10 +691,10 @@
           ],
           "maxLimitByAge": {
             "0-40": 20000000,
-            "41-60": 15000000,
-            "61-90": 5000000
+            "41-60": 20000000,
+            "61-90": 20000000
           },
-          "deductibleAndReduction": "가입 후 1년 미만 50% 감액 지급"
+          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액 지급"
         },
         {
           "coverageId": "cov-ischemic-heart",
@@ -653,13 +704,13 @@
           ],
           "maxLimitByAge": {
             "0-40": 20000000,
-            "41-60": 15000000,
-            "61-90": 5000000
+            "41-60": 20000000,
+            "61-90": 20000000
           },
-          "deductibleAndReduction": "가입 후 1년 미만 50% 감액 지급"
+          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액 지급"
         }
       ],
-      "analyzedAt": "2026-08-01T19:12:48.983Z"
+      "analyzedAt": "2026-09-01T20:33:53.563Z"
     },
     "한화 가정생활종합보험 무배당2604": {
       "fullName": "한화 가정생활종합보험 무배당2604",
@@ -673,90 +724,91 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/HOMELIFE(2604)_03.pdf"
       },
       "coreBenefits": [
-        "화재, 붕괴 등 재물 손해와 관련 배상책임을 통합 보장합니다.",
-        "자동차 사고로 인한 벌금, 변호사 선임비용 등 운전자 비용을 보장합니다.",
-        "상해 후유장해 및 골절, 화상 등 생활 밀착형 상해 위험을 보장합니다.",
-        "급배수 시설 누출 손해 등 주거 환경에서 발생하는 다양한 비용을 보장합니다."
+        "화재, 붕괴, 사태, 풍수재 등으로 인한 주택 및 가재도구의 재물손해와 배상책임 및 벌금을 종합 보장합니다.",
+        "일상생활 중 배상책임 및 누수로 인한 아랫집 피해 등 법률상 배상책임을 든든하게 보장합니다.",
+        "가전제품 고장수리비용, 인터넷 직거래 사기 피해, 독감 치료비 등 일상 밀착형 비용 손해를 보장합니다.",
+        "상해 50% 이상 후유장해 또는 자동차사고 부상(1~5급) 발생 시 보험료 환급 및 납입지원을 제공합니다."
       ],
       "premiumRange": "3만원 수준",
-      "recommendationFactor": "주택 거주자 및 운전자로서 일상생활의 재물 위험과 법적 배상책임을 한 번에 준비하려는 가입자",
+      "recommendationFactor": "주택 화재 및 누수 사고 대비가 필요하고, 일상 속 가전제품 고장이나 인터넷 사기 등 다양한 비용 손해를 종합 보장받고자 하는 가정 및 주택 소유자",
       "targetAge": {
         "minAge": 0,
         "maxAge": 80
       },
       "renewalType": "혼합형",
-      "examinationType": "일반고지(건강체)",
+      "examinationType": "일반고지",
       "simsaCriteria": "없음",
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "상해 50% 이상 후유장해 발생 시",
-        "자동차 사고 부상등급표에 정한 부상등급(1~5급) 발생 시"
+        "상해의 직접 결과로 장해지급률 50% 이상 장해상태가 된 경우 (보험료 환급 및 지원)",
+        "자동차사고 부상등급 1~5급을 받은 경우 (보험료 환급 및 지원)"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 영위업종 등에 따라 가입 금액 제한 또는 인수가 불가능할 수 있음.",
-        "경우에 따라 건강진단 결과를 요구할 수 있음.",
-        "보험 목적의 상태에 따라 가입이 제한될 수 있음."
+        "피보험자의 직업, 직무, 영위업종 및 보험목적의 상태 등에 따라 가입금액이 제한되거나 인수가 불가능할 수 있습니다.",
+        "이륜자동차 운전 중 상해 부담보 특별약관 부가 시 이륜자동차 운전(탑승 포함) 중 발생한 상해사고는 보상되지 않습니다.",
+        "건물 복구비용지원 특별약관의 가입한도는 화재손해 특별약관 건물 가입금액의 20%로 운영됩니다."
       ],
       "coverageLimits": {
         "generalCancer": "없음",
         "similarCancer": "없음",
         "cerebrovascular": "없음",
         "ischemicHeart": "없음",
-        "caregiverExpenses": "일당 최대 7만원"
+        "caregiverExpenses": "간병인 사용 시 일당 지급 (요양병원 제외 의료기관 사용 시 가입금액의 100%, 요양병원 사용 시 20% 지급)"
       },
       "productMetadata": {
         "targetGender": "M/F",
         "minAge": 0,
         "maxAge": 80,
-        "isRenewal": true,
+        "isRenewal": false,
         "isSimpleScreening": false,
         "premiumIndexKrw": 30000
       },
       "underwritingRules": {
-        "eligibility": "만 0세부터 80세까지 가입 가능하며 피보험자의 직업 및 건강상태에 따라 인수 여부가 결정됨",
+        "eligibility": "0세부터 80세까지 가입 가능하며 직업 급수 및 이륜차 운전 여부, 건물 업종에 따라 가입 조건이 차등 적용됩니다.",
         "waiverOfPremium": [
-          "상해 50% 이상 후유장해 발생 시",
-          "자동차 사고 부상등급표(1~5급) 판정 시"
+          "상해 50% 이상 후유장해 발생",
+          "자동차사고 부상등급 1~5급 부여 시 보험료 환급 및 남은 납입기간에 대한 지원금 지급"
         ]
       },
       "coverages": [
         {
-          "coverageId": "cov-injury-disability",
-          "name": "화재상해후유장해(3-100%)",
-          "targetDiseases": [
-            "S00-T98"
-          ],
+          "coverageId": "cov-family-liability",
+          "name": "가족일상생활중배상책임Ⅳ(갱신형)",
+          "targetDiseases": [],
           "maxLimitByAge": {
-            "0-40": 10000000,
-            "41-60": 10000000,
-            "61-90": 10000000
+            "0-80": 100000000
           },
-          "deductibleAndReduction": "면책기간 없음, 감액 규정 없음"
+          "deductibleAndReduction": "누수사고 자기부담금 50만원, 누수 외 사고 자기부담금 20만원 적용 (대물배상 한정)"
         },
         {
-          "coverageId": "cov-fracture-cast",
-          "name": "골절(치아파절제외)깁스치료비",
-          "targetDiseases": [
-            "S02",
-            "S12",
-            "S22",
-            "S32",
-            "S42",
-            "S52",
-            "S62",
-            "S72",
-            "S82",
-            "S92"
-          ],
+          "coverageId": "cov-fire-damage",
+          "name": "화재손해(실손전부보상)",
+          "targetDiseases": [],
           "maxLimitByAge": {
-            "0-40": 1000000,
-            "41-60": 1000000,
-            "61-90": 1000000
+            "0-80": 500000000
           },
-          "deductibleAndReduction": "면책기간 없음, 감액 규정 없음"
+          "deductibleAndReduction": "면책기간 없음, 실손 보상 한도 내 지급"
+        },
+        {
+          "coverageId": "cov-internet-fraud",
+          "name": "인터넷직거래사기피해보장(실손)",
+          "targetDiseases": [],
+          "maxLimitByAge": {
+            "14-80": 10000000
+          },
+          "deductibleAndReduction": "실제 금전손실액의 70% 보상 (자기부담금 30% 공제)"
+        },
+        {
+          "coverageId": "cov-appliances-repair",
+          "name": "22대가전제품고장수리비용(실손)",
+          "targetDiseases": [],
+          "maxLimitByAge": {
+            "0-80": 1000000
+          },
+          "deductibleAndReduction": "계약체결일부터 60일 이내 수리비는 보상 제외, 자기부담금 2만원 적용"
         }
       ],
-      "analyzedAt": "2026-08-01T19:14:57.856Z"
+      "analyzedAt": "2026-09-01T20:35:30.735Z"
     },
     "한화 건강쑥쑥 어린이보험 무배당2604": {
       "fullName": "한화 건강쑥쑥 어린이보험 무배당2604",
@@ -770,93 +822,184 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/ttok(2604)_03.pdf"
       },
       "coreBenefits": [
-        "상해 및 질병으로 인한 장해 상태 시 보장보험료 납입 면제",
-        "암, 뇌혈관질환, 심혈관질환 등 주요 질병 진단비 및 수술비 보장",
-        "계약전환제도를 통해 최대 100세까지 보장 연장 가능",
-        "태아부터 성인까지 연령별 맞춤형 위험 보장"
+        "사고 시 보험료 납입 면제 혜택을 제공합니다.",
+        "치아 및 척추 관련 진단 및 수술 시 진단비와 수술비를 보장합니다.",
+        "상해 및 질병으로 인한 입원 시 보험금을 지급합니다.",
+        "만기까지 계약 유지 시 납입한 보험료 적립금액을 보장합니다."
       ],
-      "premiumRange": "월 2만원~3만원 수준 (가입 조건에 따라 상이)",
-      "recommendationFactor": "자녀를 위한 종합적인 질병 및 상해 보장을 원하며 향후 계약전환을 고려하는 사용자",
+      "premiumRange": "10만원대",
+      "recommendationFactor": "자녀의 성장 단계별 다양한 위험 보장과 납입 면제 혜택을 제공하여 안심하고 가입할 수 있습니다.",
       "targetAge": {
         "minAge": 0,
         "maxAge": 90
       },
-      "renewalType": "혼합형",
-      "examinationType": "일반고지 및 간편고지 모두 운영",
-      "simsaCriteria": "3.N.5",
+      "renewalType": "갱신형",
+      "examinationType": "일반고지",
+      "simsaCriteria": "없음",
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "상해 또는 질병으로 인한 장해지급률 50% 이상인 경우",
-        "암(유사암 제외)으로 진단확정된 경우",
-        "뇌혈관질환으로 진단확정된 경우",
-        "심혈관질환으로 진단확정된 경우",
-        "특정양성뇌종양으로 진단확정된 경우",
-        "중대한 재생불량성빈혈로 진단확정된 경우",
-        "특정상해성뇌출혈로 진단확정된 경우",
-        "특정상해성장기손상으로 진단확정된 경우",
-        "특정심장방실및전도장애로 진단확정된 경우"
+        "상해로 장해상태가 된 경우 (지급률 50% 이상)",
+        "질병으로 장해상태가 된 경우 (지급률 50% 이상)",
+        "납입면제 개시일 이후 암, 뇌혈관질환, 심혈관질환, 특정양성뇌종양, 중대한재생불량성빈혈, 특정상해뇌출혈, 특정상해성장기손상, 특정심장방실및전도장애로 진단확정된 경우"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타사항에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있음",
-        "경우에 따라 건강진단 결과를 요구할 수 있음",
-        "계약전환 신청 시 회사가 정한 기준에 따라 보험가입금액이 제한될 수 있음"
+        "청약 시 건강상태, 직업 등에 따라 가입 금액이 제한되거나 가입이 불가능할 수 있습니다.",
+        "간편고지 선택 시 인수 기준이 까다로울 수 있습니다."
       ],
       "coverageLimits": {
-        "generalCancer": "최대 1,000만원",
-        "similarCancer": "최대 100만원",
-        "cerebrovascular": "최대 300만원",
-        "ischemicHeart": "최대 300만원",
-        "caregiverExpenses": "없음"
+        "generalCancer": "1억원",
+        "similarCancer": "2,000만원",
+        "cerebrovascular": "3,000만원",
+        "ischemicHeart": "3,000만원",
+        "caregiverExpenses": "1일 최대 15만원 (요양병원 외, 1일 180일 한도)"
       },
       "productMetadata": {
         "targetGender": "M/F",
         "minAge": 0,
         "maxAge": 90,
         "isRenewal": true,
-        "isSimpleScreening": true,
-        "premiumIndexKrw": 20000
+        "isSimpleScreening": false,
+        "premiumIndexKrw": 100000
       },
       "underwritingRules": {
-        "eligibility": "어린이보험으로 분류되는 보장성 상품으로 가입 나이 및 직업/직무 기준 충족 시 가입 가능",
+        "eligibility": "상품의 종류 및 간편고지 유형에 따라 가입 나이, 건강 상태 및 직무에 따라 가입이 불가능할 수 있습니다.",
         "waiverOfPremium": [
-          "장해지급률 50% 이상",
-          "암(유사암 제외) 진단",
-          "뇌혈관질환 진단",
-          "심혈관질환 진단",
-          "특정양성뇌종양 진단",
-          "중대한 재생불량성빈혈 진단",
-          "특정상해성뇌출혈 진단",
-          "특정상해성장기손상 진단",
-          "특정심장방실및전도장애 진단"
+          "상해로 장해상태가 된 경우 (지급률 50% 이상)",
+          "질병으로 장해상태가 된 경우 (지급률 50% 이상)",
+          "납입면제 개시일 이후 \"암\"으로 진단확정된 경우 (\"기타피부암\", \"갑상선암\", \"제자리암\", \"경계성종양\" 제외)",
+          "\"뇌혈관질환\"으로 진단확정된 경우",
+          "\"심혈관질환\"으로 진단확정된 경우",
+          "\"특정양성뇌종양\"으로 진단확정된 경우",
+          "\"중대한 재생불량성빈혈\"로 진단확정된 경우",
+          "\"특정상해성뇌출혈\"로 진단확정된 경우",
+          "\"특정상해성장기손상\"으로 진단확정된 경우",
+          "\"특정심장방실및전도장애\"로 진단확정된 경우"
         ]
       },
       "coverages": [
         {
+          "coverageId": "cov-hospital-day",
+          "name": "입원비",
+          "targetDiseases": [
+            "Z00-Z99",
+            "I00-I99",
+            "J00-J99",
+            "K00-K93",
+            "L00-L99",
+            "M00-M99",
+            "N00-N99",
+            "P00-P96"
+          ],
+          "maxLimitByAge": {
+            "0-10": 10000000,
+            "11-15": 10000000,
+            "16-20": 15000000,
+            "21-25": 15000000,
+            "26-30": 15000000,
+            "31-35": 15000000,
+            "36-40": 15000000,
+            "41-45": 15000000,
+            "46-50": 15000000,
+            "51-55": 15000000,
+            "56-60": 15000000,
+            "61-65": 15000000,
+            "66-70": 15000000,
+            "71-75": 15000000,
+            "76-80": 15000000,
+            "81-85": 15000000,
+            "86-90": 15000000
+          },
+          "deductibleAndReduction": "정해진 일수 초과 시 1회 입원당 정해진 금액 지급 (예: 10일 초과 시 1일당 10만원, 180일 초과 시 1일당 5만원)"
+        },
+        {
+          "coverageId": "cov-hospital-icu-day",
+          "name": "중환자실입원비",
+          "targetDiseases": [
+            "Z00-Z99",
+            "I00-I99",
+            "J00-J99",
+            "K00-K93",
+            "L00-L99",
+            "M00-M99",
+            "N00-N99",
+            "P00-P96"
+          ],
+          "maxLimitByAge": {
+            "0-10": 10000000,
+            "11-15": 10000000,
+            "16-20": 15000000,
+            "21-25": 15000000,
+            "26-30": 15000000,
+            "31-35": 15000000,
+            "36-40": 15000000,
+            "41-45": 15000000,
+            "46-50": 15000000,
+            "51-55": 15000000,
+            "56-60": 15000000,
+            "61-65": 15000000,
+            "66-70": 15000000,
+            "71-75": 15000000,
+            "76-80": 15000000,
+            "81-85": 15000000,
+            "86-90": 15000000
+          },
+          "deductibleAndReduction": "정해진 일수 초과 시 1회 입원당 정해진 금액 지급 (예: 10일 초과 시 1일당 10만원, 180일 초과 시 1일당 5만원)"
+        },
+        {
           "coverageId": "cov-cancer-general",
-          "name": "암(4대유사암제외)진단비",
+          "name": "암진단비",
           "targetDiseases": [
             "C00-C97"
           ],
           "maxLimitByAge": {
-            "0-40": 10000000,
-            "41-60": 10000000,
-            "61-90": 10000000
+            "0-10": 10000000,
+            "11-15": 10000000,
+            "16-20": 15000000,
+            "21-25": 15000000,
+            "26-30": 15000000,
+            "31-35": 15000000,
+            "36-40": 15000000,
+            "41-45": 15000000,
+            "46-50": 15000000,
+            "51-55": 15000000,
+            "56-60": 15000000,
+            "61-65": 15000000,
+            "66-70": 15000000,
+            "71-75": 15000000,
+            "76-80": 15000000,
+            "81-85": 15000000,
+            "86-90": 15000000
           },
-          "deductibleAndReduction": "보장개시일 이후 진단확정, 15세 이상 계약일로부터 90일 지난 날의 다음날부터 보장"
+          "deductibleAndReduction": "암 진단 시, 최초 1회에 한해 보장 (단, 특정암 제외)"
         },
         {
           "coverageId": "cov-cancer-similar",
-          "name": "4대유사암진단비",
+          "name": "유사암진단비",
           "targetDiseases": [
-            "D05",
-            "D09"
+            "C44",
+            "C30-C39",
+            "D05"
           ],
           "maxLimitByAge": {
-            "0-40": 1000000,
-            "41-60": 1000000,
-            "61-90": 1000000
+            "0-10": 1000000,
+            "11-15": 1000000,
+            "16-20": 1500000,
+            "21-25": 1500000,
+            "26-30": 1500000,
+            "31-35": 1500000,
+            "36-40": 1500000,
+            "41-45": 1500000,
+            "46-50": 1500000,
+            "51-55": 1500000,
+            "56-60": 1500000,
+            "61-65": 1500000,
+            "66-70": 1500000,
+            "71-75": 1500000,
+            "76-80": 1500000,
+            "81-85": 1500000,
+            "86-90": 1500000
           },
-          "deductibleAndReduction": "보장개시일 이후 진단확정"
+          "deductibleAndReduction": "암 진단 시, 최초 1회에 한해 보장"
         },
         {
           "coverageId": "cov-cerebrovascular",
@@ -865,11 +1008,25 @@
             "I60-I69"
           ],
           "maxLimitByAge": {
-            "0-40": 3000000,
-            "41-60": 3000000,
-            "61-90": 3000000
+            "0-10": 2000000,
+            "11-15": 2000000,
+            "16-20": 3000000,
+            "21-25": 3000000,
+            "26-30": 3000000,
+            "31-35": 3000000,
+            "36-40": 3000000,
+            "41-45": 3000000,
+            "46-50": 3000000,
+            "51-55": 3000000,
+            "56-60": 3000000,
+            "61-65": 3000000,
+            "66-70": 3000000,
+            "71-75": 3000000,
+            "76-80": 3000000,
+            "81-85": 3000000,
+            "86-90": 3000000
           },
-          "deductibleAndReduction": "보장개시일 이후 진단확정"
+          "deductibleAndReduction": "뇌혈관질환으로 진단 확정 시 최초 1회에 한해 보장"
         },
         {
           "coverageId": "cov-ischemic-heart",
@@ -878,14 +1035,53 @@
             "I20-I25"
           ],
           "maxLimitByAge": {
-            "0-40": 3000000,
-            "41-60": 3000000,
-            "61-90": 3000000
+            "0-10": 2000000,
+            "11-15": 2000000,
+            "16-20": 3000000,
+            "21-25": 3000000,
+            "26-30": 3000000,
+            "31-35": 3000000,
+            "36-40": 3000000,
+            "41-45": 3000000,
+            "46-50": 3000000,
+            "51-55": 3000000,
+            "56-60": 3000000,
+            "61-65": 3000000,
+            "66-70": 3000000,
+            "71-75": 3000000,
+            "76-80": 3000000,
+            "81-85": 3000000,
+            "86-90": 3000000
           },
-          "deductibleAndReduction": "보장개시일 이후 진단확정"
+          "deductibleAndReduction": "허혈성심장질환으로 진단 확정 시 최초 1회에 한해 보장"
+        },
+        {
+          "coverageId": "cov-caregiver-expense",
+          "name": "간병인사용일당",
+          "targetDiseases": [],
+          "maxLimitByAge": {
+            "0-10": 1000000,
+            "11-15": 1000000,
+            "16-20": 1500000,
+            "21-25": 1500000,
+            "26-30": 1500000,
+            "31-35": 1500000,
+            "36-40": 1500000,
+            "41-45": 1500000,
+            "46-50": 1500000,
+            "51-55": 1500000,
+            "56-60": 1500000,
+            "61-65": 1500000,
+            "66-70": 1500000,
+            "71-75": 1500000,
+            "76-80": 1500000,
+            "81-85": 1500000,
+            "86-90": 1500000
+          },
+          "deductibleAndReduction": "입원 1일당 최대 15만원 (최초 1회, 180일 한도)"
         }
       ],
-      "analyzedAt": "2026-08-01T19:17:32.099Z"
+      "analyzedAt": "2026-09-01T20:41:07.319Z"
     },
     "한화 굿밸런스종합보험(연만기 갱신형) 무배당2604": {
       "fullName": "한화 굿밸런스종합보험(연만기 갱신형) 무배당2604",
@@ -899,41 +1095,40 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/GOODBAL(2604)_03.pdf"
       },
       "coreBenefits": [
-        "암, 뇌혈관질환, 허혈성심장질환 등 주요 질병의 진단 및 치료를 보장합니다.",
-        "상해 및 질병으로 인한 입원 시 간병인 지원 서비스 또는 입원비를 보장합니다.",
-        "납입면제 제도를 통해 암, 뇌졸중, 급성심근경색증 등 보험사고 발생 시 보험료 납입이 면제됩니다.",
-        "최초 가입 후 갱신을 통해 최대 100세까지 보장받을 수 있습니다."
+        "최대 100세까지 갱신을 통해 암, 뇌, 심장 등 3대 질병을 보장합니다.",
+        "암, 뇌졸중, 급성심근경색증 등 8대 보험사고 시 보험료 납입이 면제됩니다.",
+        "간병인 지원 서비스 및 다양한 진단비 특약으로 맞춤형 보장이 가능합니다.",
+        "다양한 가입형태(일반형, 유병자형)를 제공하여 가입 문턱을 낮췄습니다."
       ],
       "premiumRange": "4만원 수준",
-      "recommendationFactor": "일상생활 중 발생할 수 있는 상해 및 질병 위험에 대비하고자 하는 모든 연령층에게 적합한 종합보험입니다.",
+      "recommendationFactor": "3대 질병 보장이 필요하고 간편한 고지나 납입면제 기능을 선호하는 고객",
       "targetAge": {
         "minAge": 15,
         "maxAge": 90
       },
       "renewalType": "갱신형",
-      "examinationType": "일반고지 및 간편고지(유병자)",
-      "simsaCriteria": "3.N.5, 3.10.5, 355, 345, 335, 325, 315, 305 등 다수 존재",
+      "examinationType": "일반고지 및 간편고지 모두 운영",
+      "simsaCriteria": "3.10.5, 3.5.5, 3.8.5 등 다양함",
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "상해 장해지급률 80% 이상",
-        "질병 장해지급률 80% 이상",
-        "암(기타피부암, 갑상선암, 제자리암, 경계성종양 제외) 진단 확정",
-        "뇌졸중 진단 확정",
-        "급성심근경색증 진단 확정",
-        "말기간경화 진단 확정",
-        "말기폐질환 진단 확정",
-        "말기신부전증 진단 확정"
+        "상해 또는 질병 장해 지급률 80% 이상",
+        "암 진단 시 (유사암 제외)",
+        "뇌졸중 진단 시",
+        "급성심근경색증 진단 시",
+        "말기간경화 진단 시",
+        "말기폐질환 진단 시",
+        "말기신부전증 진단 시"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 건강상태에 따라 가입금액이 제한되거나 인수가 불가능할 수 있습니다.",
-        "건강진단 결과에 따라 인수가 거절되거나 제한될 수 있습니다."
+        "직업, 직무, 건강상태에 따라 가입금액이 제한되거나 인수가 불가능할 수 있음.",
+        "일부 담보의 경우 특정 신체부위나 질병을 보장하지 않는 조건부 인수가 적용될 수 있음."
       ],
       "coverageLimits": {
         "generalCancer": "최대 2,000만원",
         "similarCancer": "최대 100만원",
         "cerebrovascular": "최대 2,000만원",
         "ischemicHeart": "최대 2,000만원",
-        "caregiverExpenses": "일당 최대 15만원 수준"
+        "caregiverExpenses": "없음"
       },
       "productMetadata": {
         "targetGender": "M/F",
@@ -944,16 +1139,13 @@
         "premiumIndexKrw": 40000
       },
       "underwritingRules": {
-        "eligibility": "피보험자의 직업, 직무, 건강상태에 따라 가입이 제한될 수 있습니다.",
+        "eligibility": "가입나이는 15세부터 90세까지이며, 상품별로 정한 고지 의무를 준수해야 함.",
         "waiverOfPremium": [
-          "상해 80% 이상 후유장해",
-          "질병 80% 이상 후유장해",
-          "암 진단 확정",
-          "뇌졸중 진단 확정",
-          "급성심근경색증 진단 확정",
-          "말기간경화 진단 확정",
-          "말기폐질환 진단 확정",
-          "말기신부전증 진단 확정"
+          "상해/질병 장해 80% 이상",
+          "암 진단",
+          "뇌졸중 진단",
+          "급성심근경색증 진단",
+          "말기 3대 질병(간경화, 폐질환, 신부전)"
         ]
       },
       "coverages": [
@@ -968,50 +1160,52 @@
             "41-60": 20000000,
             "61-90": 20000000
           },
-          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
+          "deductibleAndReduction": "보장개시일 이후 90일 면책기간 적용, 1년 미만 50% 감액"
         },
         {
           "coverageId": "cov-cancer-similar",
           "name": "4대유사암진단비",
           "targetDiseases": [
-            "D00-D09",
-            "D37-D48"
+            "C44",
+            "C73",
+            "D05",
+            "D48"
           ],
           "maxLimitByAge": {
             "0-40": 1000000,
             "41-60": 1000000,
             "61-90": 1000000
           },
-          "deductibleAndReduction": "면책기간 없음, 1년 미만 50% 감액"
+          "deductibleAndReduction": "1년 미만 50% 감액"
         },
         {
           "coverageId": "cov-cerebrovascular",
-          "name": "뇌혈관질환진단비",
+          "name": "뇌졸중진단비",
           "targetDiseases": [
-            "I60-I69"
+            "I60-I63"
           ],
           "maxLimitByAge": {
             "0-40": 20000000,
             "41-60": 20000000,
             "61-90": 20000000
           },
-          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
+          "deductibleAndReduction": "1년 미만 50% 감액"
         },
         {
           "coverageId": "cov-ischemic-heart",
-          "name": "허혈성심장질환진단비",
+          "name": "급성심근경색증진단비",
           "targetDiseases": [
-            "I20-I25"
+            "I21-I23"
           ],
           "maxLimitByAge": {
             "0-40": 20000000,
             "41-60": 20000000,
             "61-90": 20000000
           },
-          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
+          "deductibleAndReduction": "1년 미만 50% 감액"
         }
       ],
-      "analyzedAt": "2026-08-01T19:19:55.973Z"
+      "analyzedAt": "2026-09-01T20:43:09.232Z"
     },
     "한화 더 경증 간편건강보험(연만기 갱신형) 무배당2604(간편고지형)": {
       "fullName": "한화 더 경증 간편건강보험(연만기 갱신형) 무배당2604(간편고지형)",
@@ -1025,13 +1219,13 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/3ten55_yeon(2604)_03_1.pdf"
       },
       "coreBenefits": [
-        "암, 뇌혈관질환, 허혈성심장질환 등 주요 질병 진단비 및 수술비 보장",
-        "입원 시 간병인 지원 서비스 또는 사용 비용 지원",
-        "암 진단 후 항암 방사선 및 약물 치료비 보장",
-        "심뇌혈관질환 및 관절 관련 수술비 보장 강화"
+        "유병력자 및 고령자도 간편한 3.10.5 고지 항목을 통해 심사를 간소화하여 편리하게 가입 가능합니다.",
+        "암(유사암 제외), 뇌졸중, 급성심근경색증 등 핵심 3대 질병의 진단 및 수술비를 든든하게 보장합니다.",
+        "간병인 사용 시 일당을 지원하여 고령층 및 유병자의 실질적인 간병비 부담을 크게 덜어줍니다.",
+        "가입 조건에 따라 암, 뇌졸중, 급성심근경색증 등 주요 질병 진단 시 보장보험료 납입면제 혜택을 제공합니다."
       ],
-      "premiumRange": "월납 6,536원부터 (1종 기준 예시)",
-      "recommendationFactor": "과거 병력이나 나이 제한으로 일반 보험 가입이 어려운 유병력자 및 고령자에게 적합함",
+      "premiumRange": "3~5만원대 수준",
+      "recommendationFactor": "과거 병력이 있거나 만성 질환(고혈압, 당뇨 등)을 앓고 있어 일반 보험 가입이 어려운 고령자 및 유병자층에게 추천합니다.",
       "targetAge": {
         "minAge": 15,
         "maxAge": 90
@@ -1041,23 +1235,23 @@
       "simsaCriteria": "3.10.5",
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "상해 또는 질병으로 80% 이상 후유장해 발생",
-        "납입면제보장개시일 이후 암(유사암 제외) 진단 확정",
-        "뇌졸중 진단 확정",
-        "급성심근경색증 진단 확정",
-        "특정상해성뇌출혈 진단 확정"
+        "암(기타피부암, 갑상선암, 제자리암, 경계성종양 제외)으로 진단확정 시",
+        "뇌졸중으로 진단확정 시",
+        "급성심근경색증으로 진단확정 시",
+        "특정상해성뇌출혈로 진단확정 시",
+        "상해 또는 질병으로 장해지급률 80% 이상 장해상태 적용 시 (1, 3종 한정)"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 건강상태에 따라 가입금액 제한 또는 인수가 거절될 수 있음",
-        "일부 담보의 경우 특정 신체부위나 질병에 대해 보장제한부 인수 특별약관이 적용될 수 있음",
-        "간편고지 상품은 표준체 대상 일반고지보험에 비해 가입 인수 심사 과정을 간소화하였음"
+        "피보험자의 직업, 직무, 건강상태에 따라 가입 금액이 제한되거나 인수가 불가능할 수 있으며, 필요 시 건강진단 결과를 요구할 수 있습니다.",
+        "해약환급금미지급형(1, 3종)으로 가입하는 경우 가입 후 보험종목, 기간, 납입기간, 피보험자 변경 및 가입금액 증액이 제한됩니다.",
+        "이륜자동차 운전 및 탑승 중 발생한 상해 사고는 관련 부담보 특별약관 부가 시 보장 대상에서 제외됩니다."
       ],
       "coverageLimits": {
-        "generalCancer": "1000만원",
-        "similarCancer": "1000만원",
-        "cerebrovascular": "200만원",
-        "ischemicHeart": "200만원",
-        "caregiverExpenses": "일당 최대 15만원(세부보장별 한도 상이)"
+        "generalCancer": "최대 5,000만원 (연령별로 한도가 차등 적용될 수 있음)",
+        "similarCancer": "최대 1,000만원",
+        "cerebrovascular": "최대 2,000만원",
+        "ischemicHeart": "최대 2,000만원",
+        "caregiverExpenses": "일당 최대 15만원 (간병인 사용금액 1일 7만원 이상 기준)"
       },
       "productMetadata": {
         "targetGender": "M/F",
@@ -1065,16 +1259,16 @@
         "maxAge": 90,
         "isRenewal": true,
         "isSimpleScreening": true,
-        "premiumIndexKrw": 6536
+        "premiumIndexKrw": 40000
       },
       "underwritingRules": {
-        "eligibility": "유병력자 또는 고령자로 계약 전 알릴의무 항목을 간소화하여 가입 가능한 피보험자",
+        "eligibility": "최초 계약 기준 만 15세부터 90세까지의 유병자 및 고령자가 가입 가능하며, 직업 급수 및 건강 상태에 따라 인수 심사를 진행합니다.",
         "waiverOfPremium": [
-          "상해/질병 장해지급률 80% 이상",
-          "암(유사암 제외) 진단 확정",
-          "뇌졸중 진단 확정",
-          "급성심근경색증 진단 확정",
-          "특정상해성뇌출혈 진단 확정"
+          "납입면제보장개시일 이후 암(유사암 제외) 진단확정",
+          "뇌졸중 진단확정",
+          "급성심근경색증 진단확정",
+          "특정상해성뇌출혈 진단확정",
+          "상해/질병으로 80% 이상 후유장해 발생 (종별 조건 상이)"
         ]
       },
       "coverages": [
@@ -1082,14 +1276,32 @@
           "coverageId": "cov-cancer-general",
           "name": "암(4대유사암제외)진단비",
           "targetDiseases": [
-            "C00-C97"
+            "C00-C97",
+            "C44 제외",
+            "C73 제외"
           ],
           "maxLimitByAge": {
-            "0-40": 10000000,
+            "15-40": 50000000,
+            "41-60": 30000000,
+            "61-90": 20000000
+          },
+          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 진단 시 50% 감액지급"
+        },
+        {
+          "coverageId": "cov-cancer-similar",
+          "name": "4대유사암진단비",
+          "targetDiseases": [
+            "C44",
+            "C73",
+            "D09",
+            "D37-D48"
+          ],
+          "maxLimitByAge": {
+            "15-40": 10000000,
             "41-60": 10000000,
             "61-90": 10000000
           },
-          "deductibleAndReduction": "보장개시일 이후 90일 면책기간 적용, 1년 미만 50% 감액"
+          "deductibleAndReduction": "면책기간 없음, 1년 미만 진단 시 50% 감액지급"
         },
         {
           "coverageId": "cov-cerebrovascular",
@@ -1098,14 +1310,41 @@
             "I60-I69"
           ],
           "maxLimitByAge": {
-            "0-40": 2000000,
-            "41-60": 2000000,
-            "61-90": 2000000
+            "15-40": 20000000,
+            "41-60": 20000000,
+            "61-90": 10000000
           },
-          "deductibleAndReduction": "가입 후 1년 미만 50% 감액"
+          "deductibleAndReduction": "1년 미만 진단 시 50% 감액지급"
+        },
+        {
+          "coverageId": "cov-ischemic-heart",
+          "name": "허혈성심장질환진단비",
+          "targetDiseases": [
+            "I20-I25"
+          ],
+          "maxLimitByAge": {
+            "15-40": 20000000,
+            "41-60": 20000000,
+            "61-90": 10000000
+          },
+          "deductibleAndReduction": "1년 미만 진단 시 50% 감액지급"
+        },
+        {
+          "coverageId": "cov-caregiver-expense",
+          "name": "간병인사용입원생활비",
+          "targetDiseases": [
+            "S00-T88",
+            "A00-Y89"
+          ],
+          "maxLimitByAge": {
+            "15-40": 150000,
+            "41-60": 150000,
+            "61-90": 150000
+          },
+          "deductibleAndReduction": "1회 입원당 180일 한도, 1년 미만 경과 시 감액 없음"
         }
       ],
-      "analyzedAt": "2026-08-01T19:23:06.907Z"
+      "analyzedAt": "2026-09-01T20:44:59.225Z"
     },
     "한화 더 경증 간편건강보험(연만기 갱신형) 무배당2604(일반고지형)": {
       "fullName": "한화 더 경증 간편건강보험(연만기 갱신형) 무배당2604(일반고지형)",
@@ -1119,129 +1358,45 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/3ten55_yeon(2604)_03_2.pdf"
       },
       "coreBenefits": [
-        "암, 뇌혈관질환, 허혈성심장질환 등 주요 3대 질병 진단비 및 수술비 보장",
-        "상해 및 질병으로 인한 입원 시 간병인 지원 서비스 또는 비용 보장",
-        "질병 또는 상해로 인한 80% 이상 후유장해 시 보험료 납입면제 제공",
-        "중증질환 산정특례 대상 진단비 및 표적항암약물허가치료비 보장"
+        "API 오류로 인해 3종 PDF 요약이 누락되었습니다."
       ],
-      "premiumRange": "가입 조건 및 연령에 따라 상이함 (약 3~10만원대 추정)",
-      "recommendationFactor": "과거 병력이나 고령으로 인해 일반 심사 보험 가입이 어려운 유병력자 및 고령자에게 추천",
+      "premiumRange": "분석 실패 (오류 발생)",
+      "recommendationFactor": "3종 PDF 파일 분석 도중 할당량 초과 또는 네트워크 오류가 발생하여 요약을 생략합니다.",
       "targetAge": {
-        "minAge": 15,
-        "maxAge": 90
+        "minAge": null,
+        "maxAge": null
       },
-      "renewalType": "갱신형",
-      "examinationType": "일반고지",
-      "simsaCriteria": "없음",
-      "hasPremiumWaiver": true,
+      "renewalType": "확인 불가",
+      "examinationType": "확인 불가",
+      "simsaCriteria": "확인 불가",
+      "hasPremiumWaiver": false,
       "premiumWaiverCriteria": [
-        "상해 또는 질병으로 인한 장해지급률 80% 이상 장해 상태",
-        "암(기타피부암, 갑상선암, 제자리암, 경계성종양 제외) 진단 확정",
-        "뇌졸중 진단 확정",
-        "급성심근경색증 진단 확정",
-        "특정상해성뇌출혈 진단 확정"
+        "API 오류로 인해 확인 불가"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타 사항에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있음",
-        "일부 담보 가입 시 특정 신체부위·질병 보장제한부 인수 특별약관이 적용될 수 있음",
-        "갱신 시 기초율 변동(연령 증가 등)으로 보험료가 인상 또는 인하될 수 있음"
+        "API 오류로 인해 확인 불가"
       ],
       "coverageLimits": {
-        "generalCancer": "최대 5,000만원",
-        "similarCancer": "최대 1,000만원",
-        "cerebrovascular": "최대 2,000만원",
-        "ischemicHeart": "최대 2,000만원",
-        "caregiverExpenses": "일당 최대 15만원"
+        "generalCancer": "확인 불가",
+        "similarCancer": "확인 불가",
+        "cerebrovascular": "확인 불가",
+        "ischemicHeart": "확인 불가",
+        "caregiverExpenses": "확인 불가"
       },
       "productMetadata": {
         "targetGender": "M/F",
-        "minAge": 15,
-        "maxAge": 90,
-        "isRenewal": true,
+        "minAge": null,
+        "maxAge": null,
+        "isRenewal": false,
         "isSimpleScreening": false,
-        "premiumIndexKrw": 6536
+        "premiumIndexKrw": 30000
       },
       "underwritingRules": {
-        "eligibility": "피보험자의 직업, 직무 등에 따라 인수 여부가 결정되며 건강진단 결과를 요구할 수 있음",
-        "waiverOfPremium": [
-          "상해 80% 이상 장해",
-          "질병 80% 이상 장해",
-          "암 진단 확정",
-          "뇌졸중 진단 확정",
-          "급성심근경색증 진단 확정",
-          "특정상해성뇌출혈 진단 확정"
-        ]
+        "eligibility": "API 오류로 확인 불가",
+        "waiverOfPremium": []
       },
-      "coverages": [
-        {
-          "coverageId": "cov-cancer-general",
-          "name": "암(4대유사암제외)진단비",
-          "targetDiseases": [
-            "C00-C97"
-          ],
-          "maxLimitByAge": {
-            "0-40": 50000000,
-            "41-60": 50000000,
-            "61-90": 30000000
-          },
-          "deductibleAndReduction": "보장개시일 이후 진단 시 100% 지급, 계약일부터 90일 지난 날의 다음날 보장개시, 1년 미만 시 50% 감액지급"
-        },
-        {
-          "coverageId": "cov-cancer-similar",
-          "name": "4대유사암진단비",
-          "targetDiseases": [
-            "D00-D09",
-            "D37-D48"
-          ],
-          "maxLimitByAge": {
-            "0-40": 10000000,
-            "41-60": 10000000,
-            "61-90": 10000000
-          },
-          "deductibleAndReduction": "보장개시일 계약일, 1년 미만 시 50% 감액지급"
-        },
-        {
-          "coverageId": "cov-cerebrovascular",
-          "name": "뇌혈관질환진단비",
-          "targetDiseases": [
-            "I60-I69"
-          ],
-          "maxLimitByAge": {
-            "0-40": 20000000,
-            "41-60": 20000000,
-            "61-90": 10000000
-          },
-          "deductibleAndReduction": "보장개시일 이후 진단 시 100% 지급, 90일 면책기간 적용, 1년 미만 시 50% 감액지급"
-        },
-        {
-          "coverageId": "cov-ischemic-heart",
-          "name": "허혈성심장질환진단비",
-          "targetDiseases": [
-            "I20-I25"
-          ],
-          "maxLimitByAge": {
-            "0-40": 20000000,
-            "41-60": 20000000,
-            "61-90": 10000000
-          },
-          "deductibleAndReduction": "보장개시일 이후 진단 시 100% 지급, 90일 면책기간 적용, 1년 미만 시 50% 감액지급"
-        },
-        {
-          "coverageId": "cov-caregiver-expense",
-          "name": "간병인사용입원생활비",
-          "targetDiseases": [
-            "질병 전체",
-            "상해 전체"
-          ],
-          "maxLimitByAge": {
-            "0-40": 150000,
-            "41-60": 150000,
-            "61-90": 100000
-          },
-          "deductibleAndReduction": "입원 1일당 정액지급, 최대 180일 한도, 1년 미만 시 50% 감액지급"
-        }
-      ],
-      "analyzedAt": "2026-08-01T19:26:32.637Z"
+      "coverages": [],
+      "analyzedAt": "2026-09-01T20:45:38.169Z"
     },
     "한화 더 경증 간편건강보험Ⅱ(세만기형) 무배당2604(간편고지형)": {
       "fullName": "한화 더 경증 간편건강보험Ⅱ(세만기형) 무배당2604(간편고지형)",
@@ -1255,37 +1410,38 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/3ten55_se_2(2604)_03_1.pdf"
       },
       "coreBenefits": [
-        "암, 뇌혈관질환, 허혈성심장질환 등 주요 질병의 진단 및 치료를 보장합니다.",
-        "간병인 지원 서비스 또는 비용 지원을 통해 간병 부담을 완화합니다.",
-        "갱신형 및 비갱신형 특약을 조합하여 개인 맞춤형 설계가 가능합니다.",
-        "유병력자 및 고령자도 간편심사를 통해 가입할 수 있습니다."
+        "유병력자나 고령자도 간편한 심사를 통해 암, 뇌, 심장 질환 보장 가능",
+        "다양한 항암 치료 기술(표적항암제, 양성자, 중입자 등) 보장",
+        "입원 시 간병인 지원 서비스 또는 간병인 사용 비용 지급",
+        "질병 또는 상해로 인한 진단, 수술비 및 배상책임까지 폭넓게 보장"
       ],
-      "premiumRange": "상품 조건에 따라 5만원 이상",
-      "recommendationFactor": "유병력자나 고령자로 일반 보험 가입이 어려운 사용자",
+      "premiumRange": "상품 요약서 예시 기준 월 88,717원 (연령, 성별, 가입유형에 따라 상이함)",
+      "recommendationFactor": "유병력자 또는 고령자와 같이 일반 심사 보험 가입이 어려운 사람에게 적합함",
       "targetAge": {
         "minAge": 15,
         "maxAge": 90
       },
-      "renewalType": "갱신형",
+      "renewalType": "혼합형",
       "examinationType": "간편고지(유병자)",
-      "simsaCriteria": "3.10.5, 385, 365",
+      "simsaCriteria": "3.10.5, 3.8.5, 3.6.5, 3.5.5 등 다수 존재",
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
         "상해/질병 장해지급률 80% 이상 발생 시",
-        "암 진단 확정 시(유사암 제외)",
-        "뇌졸중 진단 확정 시",
-        "급성심근경색증 진단 확정 시"
+        "암 진단 확정(기타피부암, 갑상선암, 제자리암, 경계성종양 제외)",
+        "뇌졸중 진단 확정",
+        "급성심근경색증 진단 확정"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타 사항으로 인해 가입 금액이 제한되거나 인수가 불가능할 수 있음.",
-        "일반계약심사 대상 상품과 간편고지 상품 간 가입 한도 및 인수 기준이 상이할 수 있음."
+        "피보험자의 직업, 직무, 기타 사항에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있음.",
+        "일부 담보의 경우 건강진단 결과를 요구할 수 있음.",
+        "사고 발생시 고의 또는 중대한 과실로 고지 의무를 위반한 경우 계약전환 무효 및 보험금 지급 거절 가능."
       ],
       "coverageLimits": {
-        "generalCancer": "최대 5,000만원",
-        "similarCancer": "최대 1,000만원",
-        "cerebrovascular": "최대 2,000만원",
-        "ischemicHeart": "최대 2,000만원",
-        "caregiverExpenses": "일당 최대 15만원"
+        "generalCancer": "최대 1,000만원 (예시 기준)",
+        "similarCancer": "최대 100만원 (예시 기준)",
+        "cerebrovascular": "최대 200만원 (예시 기준)",
+        "ischemicHeart": "최대 200만원 (예시 기준)",
+        "caregiverExpenses": "일당 최대 15만원 (보장 항목에 따라 상이)"
       },
       "productMetadata": {
         "targetGender": "M/F",
@@ -1293,13 +1449,14 @@
         "maxAge": 90,
         "isRenewal": true,
         "isSimpleScreening": true,
-        "premiumIndexKrw": 50000
+        "premiumIndexKrw": 88717
       },
       "underwritingRules": {
-        "eligibility": "유병력자나 고령자도 계약 전 알릴의무 항목을 간소화하여 가입 가능한 상품입니다.",
+        "eligibility": "유병력자 및 고령자도 간편 심사를 통해 가입 가능하나, 세부 종별(3.10.5, 3.8.5 등)에 따라 심사 항목이 다름",
         "waiverOfPremium": [
-          "상해/질병 장해지급률 80% 이상 발생",
-          "암(유사암 제외) 진단 확정",
+          "상해 80% 이상 후유장해",
+          "질병 80% 이상 후유장해",
+          "암 진단 확정",
           "뇌졸중 진단 확정",
           "급성심근경색증 진단 확정"
         ]
@@ -1312,11 +1469,26 @@
             "C00-C97"
           ],
           "maxLimitByAge": {
-            "0-40": 50000000,
-            "41-60": 50000000,
+            "0-40": 10000000,
+            "41-60": 10000000,
             "61-90": 10000000
           },
-          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
+          "deductibleAndReduction": "보장개시일 이후 90일 면책, 1년 미만 50% 감액"
+        },
+        {
+          "coverageId": "cov-cancer-similar",
+          "name": "4대유사암진단비",
+          "targetDiseases": [
+            "C44",
+            "C73",
+            "D01-D09"
+          ],
+          "maxLimitByAge": {
+            "0-40": 1000000,
+            "41-60": 1000000,
+            "61-90": 1000000
+          },
+          "deductibleAndReduction": "보장개시일 이후 면책 없음, 1년 미만 50% 감액"
         },
         {
           "coverageId": "cov-cerebrovascular",
@@ -1325,9 +1497,9 @@
             "I60-I69"
           ],
           "maxLimitByAge": {
-            "0-40": 20000000,
-            "41-60": 20000000,
-            "61-90": 10000000
+            "0-40": 2000000,
+            "41-60": 2000000,
+            "61-90": 2000000
           },
           "deductibleAndReduction": "1년 미만 50% 감액"
         },
@@ -1338,14 +1510,14 @@
             "I20-I25"
           ],
           "maxLimitByAge": {
-            "0-40": 20000000,
-            "41-60": 20000000,
-            "61-90": 10000000
+            "0-40": 2000000,
+            "41-60": 2000000,
+            "61-90": 2000000
           },
           "deductibleAndReduction": "1년 미만 50% 감액"
         }
       ],
-      "analyzedAt": "2026-08-01T19:29:10.655Z"
+      "analyzedAt": "2026-09-01T20:48:37.901Z"
     },
     "한화 더 경증 간편건강보험Ⅱ(세만기형) 무배당2604(일반고지형)": {
       "fullName": "한화 더 경증 간편건강보험Ⅱ(세만기형) 무배당2604(일반고지형)",
@@ -1359,53 +1531,70 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/3ten55_se_2(2604)_03_2.pdf"
       },
       "coreBenefits": [
-        "암, 뇌혈관질환, 허혈성심장질환 등 주요 질병의 진단비 보장",
-        "입원 및 수술 시 발생하는 비용을 보장하며 간병인 지원 서비스 제공",
-        "다양한 항암 치료(표적, 면역 등) 및 신의료 기술 치료비 보장"
+        "이 상품은 질병 및 상해로 인한 입원, 수술, 진단 시 보험금을 지급하는 간편 고지 건강보험입니다.",
+        "암(4대 유사암 제외) 진단 시 보장하며, 갱신형 계약 시에도 보장합니다.",
+        "주요 순환계 및 뇌혈관 질환, 특정 암에 대한 진단비를 보장합니다.",
+        "간병인 지원 서비스 특약을 통해 간병인 비용을 보장합니다."
       ],
-      "premiumRange": "약 8만원대 (40세, 상해1급 기준 표준 예시)",
-      "recommendationFactor": "과거 질병 이력이 있거나 나이가 많아 일반 심사 보험 가입이 어려운 유병력자 및 고령자",
+      "premiumRange": "15세~89세",
+      "recommendationFactor": "유병력자나 고령자도 간편 고지로 가입 가능하여 보험 가입에 용이합니다.",
       "targetAge": {
         "minAge": 15,
         "maxAge": 90
       },
       "renewalType": "갱신형",
-      "examinationType": "일반고지(건강체)",
-      "simsaCriteria": "없음",
+      "examinationType": "간편고지",
+      "simsaCriteria": [
+        "3.10.5간편고지형",
+        "3.8.5간편고지형",
+        "3.6.5간편고지형",
+        "3.10.5간편고지형(고혈압추가고지)",
+        "3.8.5간편고지형(고혈압추가고지)",
+        "3.6.5간편고지형(고혈압추가고지)",
+        "3.10.5간편고지형(당뇨추가고지)",
+        "3.8.5간편고지형(당뇨추가고지)",
+        "3.6.5간편고지형(당뇨추가고지)",
+        "3.10.5간편고지형(고혈압 및 당뇨추가고지)",
+        "3.8.5간편고지형(고혈압 및 당뇨추가고지)",
+        "3.6.5간편고지형(고혈압 및 당뇨추가고지)"
+      ],
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "상해 또는 질병 장해 지급률 80% 이상 발생 시",
-        "암(기타피부암, 갑상선암, 제자리암, 경계성종양 제외) 진단 확정 시",
-        "뇌졸중 진단 확정 시",
-        "급성심근경색증 진단 확정 시"
+        "암으로 진단 확정된 경우(기타피부암, 갑상선암, 제자리암, 경계성 종양 제외)",
+        "뇌졸중으로 진단 확정된 경우",
+        "급성심근경색증으로 진단 확정된 경우",
+        "상해로 장해분류표에서 정한 장해지급률이 80% 이상에 해당하는 장해상태가 된 경우",
+        "질병으로 장해분류표에서 정한 장해지급률이 80% 이상에 해당하는 장해상태가 된 경우"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타사항에 따라 보험가입금액 제한 또는 인수가 불가능할 수 있음",
-        "일부의 경우 건강진단 결과를 요구할 수 있음",
-        "이륜자동차 운전 중 상해는 보장제한 될 수 있음"
+        "간편고지 상품의 경우, 주요 질병(암, 뇌졸중, 심근경색 등) 진단 시 보험료가 할증될 수 있습니다.",
+        "특정 질병이나 신체 부위에 대한 보장이 제한되거나, 특정 수술에 대한 보장이 제한될 수 있습니다.",
+        "보험료 납입 기간 중 계약이 해지될 경우 해약환급금이 지급되지 않거나, 지급되더라도 기본형의 50%가 지급됩니다."
       ],
       "coverageLimits": {
-        "generalCancer": "1,000만원",
-        "similarCancer": "100만원",
-        "cerebrovascular": "200만원",
-        "ischemicHeart": "200만원",
-        "caregiverExpenses": "일당 최대 15만원(세부 약관 참조)"
+        "generalCancer": "5,000만원 (1종, 기본형)",
+        "similarCancer": "2,000만원 (1종, 기본형)",
+        "cerebrovascular": "2,000만원 (1종, 기본형)",
+        "ischemicHeart": "2,000만원 (1종, 기본형)",
+        "caregiverExpenses": "일당 15만원 (간병인사용입원생활비Ⅱ)"
       },
       "productMetadata": {
-        "targetGender": "M/F",
+        "targetGender": "남녀",
         "minAge": 15,
         "maxAge": 90,
         "isRenewal": true,
-        "isSimpleScreening": false,
-        "premiumIndexKrw": 88717
+        "isSimpleScreening": true,
+        "premiumIndexKrw": 127
       },
       "underwritingRules": {
-        "eligibility": "상해 및 질병으로 인한 사망, 입원, 수술, 진단비, 배상책임을 종합적으로 보장하는 건강보험",
+        "eligibility": "피보험자의 건강 상태, 직업, 운전 여부, 원동기장치 자전거 사용 여부 등에 따라 가입이 제한되거나 불가능할 수 있습니다.",
         "waiverOfPremium": [
-          "상해 또는 질병 장해 지급률 80% 이상 발생 시",
-          "암 진단 확정 시",
-          "뇌졸중 진단 확정 시",
-          "급성심근경색증 진단 확정 시"
+          "암으로 진단 확정된 경우(기타피부암, 갑상선암, 제자리암, 경계성종양 제외)",
+          "뇌졸중으로 진단 확정된 경우",
+          "급성심근경색증으로 진단 확정된 경우",
+          "상해로 장해분류표에서 정한 장해지급률이 80% 이상에 해당하는 장해상태가 된 경우",
+          "질병으로 장해분류표에서 정한 장해지급률이 80% 이상에 해당하는 장해상태가 된 경우",
+          "갑상선암으로 진단 확정되고 그 직접적인 치료를 목적으로 수술한 경우"
         ]
       },
       "coverages": [
@@ -1462,7 +1651,7 @@
           "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
         }
       ],
-      "analyzedAt": "2026-08-01T19:31:45.253Z"
+      "analyzedAt": "2026-09-01T20:52:50.421Z"
     },
     "한화 더건강한 0540 종합보험 무배당": {
       "fullName": "한화 더건강한 0540 종합보험 무배당",
@@ -1476,92 +1665,45 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/THE0540_03.pdf"
       },
       "coreBenefits": [
-        "상해 및 질병으로 인한 후유장해 발생 시 보험가입금액에 지급률을 곱하여 보장",
-        "암, 뇌혈관질환, 허혈성심장질환 등 주요 질병 진단 시 보장",
-        "상해 또는 질병으로 중환자실 입원 및 치료 시 보장",
-        "간병인 지원 서비스 또는 간병인 사용 비용 보장"
+        "API 오류로 인해 3종 PDF 요약이 누락되었습니다."
       ],
-      "premiumRange": "상품의 보장 담보 구성에 따라 다양하며, 5만원 수준으로 월납입 가능",
-      "recommendationFactor": "위험보장과 성인 질환 보장이 필요한 자녀부터 성인까지 종합적인 보장을 원하는 사용자에게 적합",
+      "premiumRange": "분석 실패 (오류 발생)",
+      "recommendationFactor": "3종 PDF 파일 분석 도중 할당량 초과 또는 네트워크 오류가 발생하여 요약을 생략합니다.",
       "targetAge": {
-        "minAge": 5,
-        "maxAge": 90
+        "minAge": null,
+        "maxAge": null
       },
-      "renewalType": "혼합형",
-      "examinationType": "간편고지(유병자)",
-      "simsaCriteria": "3.N.5",
-      "hasPremiumWaiver": true,
+      "renewalType": "확인 불가",
+      "examinationType": "확인 불가",
+      "simsaCriteria": "확인 불가",
+      "hasPremiumWaiver": false,
       "premiumWaiverCriteria": [
-        "상해로 장해지급률 50% 이상인 경우",
-        "질병으로 장해지급률 50% 이상인 경우",
-        "암(유사암 제외) 진단 확정 시",
-        "뇌혈관질환 진단 확정 시",
-        "허혈성심장질환 진단 확정 시",
-        "특정양성뇌종양 진단 확정 시",
-        "중대한 재생불량성빈혈 진단 확정 시",
-        "상해 또는 질병으로 중환자실 2일 이상 입원 시"
+        "API 오류로 인해 확인 불가"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타 사항에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있음.",
-        "일부 담보의 경우 가입 시 건강진단 결과 제출을 요구할 수 있음."
+        "API 오류로 인해 확인 불가"
       ],
       "coverageLimits": {
-        "generalCancer": "최대 10,000만원",
-        "similarCancer": "최대 1,000만원",
-        "cerebrovascular": "최대 3,000만원",
-        "ischemicHeart": "최대 3,000만원",
-        "caregiverExpenses": "일당 최대 7만원"
+        "generalCancer": "확인 불가",
+        "similarCancer": "확인 불가",
+        "cerebrovascular": "확인 불가",
+        "ischemicHeart": "확인 불가",
+        "caregiverExpenses": "확인 불가"
       },
       "productMetadata": {
         "targetGender": "M/F",
-        "minAge": 5,
-        "maxAge": 90,
-        "isRenewal": true,
-        "isSimpleScreening": true,
-        "premiumIndexKrw": 50000
+        "minAge": null,
+        "maxAge": null,
+        "isRenewal": false,
+        "isSimpleScreening": false,
+        "premiumIndexKrw": 30000
       },
       "underwritingRules": {
-        "eligibility": "피보험자의 직업, 직무, 건강 상태에 따라 가입 조건이 달라질 수 있으며, 일부 특약은 의무부가 대상임.",
-        "waiverOfPremium": [
-          "상해 50% 이상 장해",
-          "질병 50% 이상 장해",
-          "암(유사암 제외) 진단",
-          "뇌혈관질환 진단",
-          "허혈성심장질환 진단",
-          "특정양성뇌종양 진단",
-          "중대한 재생불량성빈혈 진단",
-          "중환자실 입원 및 치료"
-        ]
+        "eligibility": "API 오류로 확인 불가",
+        "waiverOfPremium": []
       },
-      "coverages": [
-        {
-          "coverageId": "cov-cancer-general",
-          "name": "암(4대유사암제외)진단비",
-          "targetDiseases": [
-            "C00-C97"
-          ],
-          "maxLimitByAge": {
-            "0-40": 100000000,
-            "41-60": 50000000,
-            "61-90": 20000000
-          },
-          "deductibleAndReduction": "보장개시일 이후 진단 시 보장(15세 이상 계약일로부터 90일 지난 날의 다음날), 1년 미만 50% 감액"
-        },
-        {
-          "coverageId": "cov-cerebrovascular",
-          "name": "뇌혈관질환진단비",
-          "targetDiseases": [
-            "I60-I69"
-          ],
-          "maxLimitByAge": {
-            "0-40": 30000000,
-            "41-60": 20000000,
-            "61-90": 10000000
-          },
-          "deductibleAndReduction": "최초 1회 한하여 보장, 가입 후 1년 미만 시 50% 감액"
-        }
-      ],
-      "analyzedAt": "2026-08-01T19:34:20.239Z"
+      "coverages": [],
+      "analyzedAt": "2026-09-01T20:54:09.331Z"
     },
     "한화 더건강한 한아름종합보험 무배당2604": {
       "fullName": "한화 더건강한 한아름종합보험 무배당2604",
@@ -1575,56 +1717,59 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan(2604)_03.pdf"
       },
       "coreBenefits": [
-        "암, 뇌혈관질환, 허혈성심장질환 등 주요 3대 질병 진단비 보장",
-        "상해 및 질병으로 인한 입원 및 간병인 지원 서비스 제공",
-        "뇌졸중, 급성심근경색증 등 특정 질병 진단 시 납입면제 혜택",
-        "운전자 사고 시 발생하는 벌금 및 변호사 선임비용 등 비용손해 보장"
+        "일상생활 중 발생할 수 있는 다양한 위험(상해, 질병, 비용, 배상책임 등)을 종합적으로 보장합니다.",
+        "특정 8대 질병에 대한 진단, 수술, 입원, 항암방사선·약물치료 등 다양한 보장을 통해 든든하게 대비합니다.",
+        "간편고지 심사를 통해 유병자나 고령자도 보다 쉽게 가입할 수 있습니다.",
+        "자동갱신 특약을 통해 고객의 편의에 맞춰 보험 보장을 유지할 수 있습니다."
       ],
-      "premiumRange": "가입담보와 유형에 따라 상이하며, 일반적으로 3~10만원대 수준",
-      "recommendationFactor": "암, 뇌, 심장 질환에 대한 집중적인 보장과 간병인 지원이 필요한 중장년층 및 고연령층",
+      "premiumRange": "10만원 초반 수준",
+      "recommendationFactor": "일상생활 중 발생할 수 있는 다양한 위험에 대한 종합적인 보장과 간편한 가입 절차를 원하는 고객",
       "targetAge": {
         "minAge": 15,
         "maxAge": 90
       },
-      "renewalType": "혼합형",
-      "examinationType": "일반고지 및 간편고지(유병자) 모두 운영",
-      "simsaCriteria": "3.N.5",
+      "renewalType": "갱신형",
+      "examinationType": "일반고지",
+      "simsaCriteria": "없음",
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "상해 또는 질병 장해지급률 80% 이상 발생 시",
-        "암 진단 확정 시(기타피부암, 갑상선암, 제자리암, 경계성종양 제외)",
-        "뇌졸중 진단 확정 시",
-        "급성심근경색증 진단 확정 시",
-        "말기간경화, 말기폐질환, 말기신부전증 진단 확정 시"
+        "상해로 장해분류표에서 정한 장해지급률이 80% 이상에 해당하는 장해상태가 된 경우",
+        "질병으로 장해분류표에서 정한 장해지급률이 80% 이상에 해당하는 장해상태가 된 경우",
+        "납입면제보장개시일 이후 “암”으로 진단확정된 경우",
+        "“뇌졸중”으로 진단확정된 경우",
+        "“급성심근경색증”으로 진단확정된 경우",
+        "“말기간경화”로 진단확정된 경우",
+        "“말기폐질환”으로 진단확정된 경우",
+        "“말기신부전증”으로 진단확정된 경우"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타 사항에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있음",
-        "가입 시 건강진단 결과가 요구될 수 있으며, 기왕증 확인을 위한 심사가 필요함",
-        "일부 담보의 경우 가입 전 특정 질병에 대한 알릴 의무를 위반하면 보장이 제한되거나 계약이 해지될 수 있음"
+        "표준화된 심사 기준 적용",
+        "고지혈증, 당뇨 등 특정 질환은 추가 심사 또는 가입 제한될 수 있음."
       ],
       "coverageLimits": {
-        "generalCancer": "최대 5,000만원",
-        "similarCancer": "최대 1,000만원",
+        "generalCancer": "3,000만원 (일반암 기준)",
+        "similarCancer": "4대 유사암 진단비 최대 1,000만원",
         "cerebrovascular": "최대 2,000만원",
         "ischemicHeart": "최대 2,000만원",
-        "caregiverExpenses": "일당 최대 15만원"
+        "caregiverExpenses": "일당 10만원 (재택 시)",
+        "specificCancerSpecificTreatment": "보장개시일 이후 암 진단 시, 특정 항암치료비(1회당) 최대 2,000만원 (암 종류별 상이)",
+        "specialTherapyFee": "표적항암약물허가치료비(1회당) 최대 2,000만원, 특정면역항암약물허가치료비(1회한) 최대 2,000만원"
       },
       "productMetadata": {
         "targetGender": "M/F",
         "minAge": 15,
         "maxAge": 90,
         "isRenewal": true,
-        "isSimpleScreening": true,
-        "premiumIndexKrw": 50000
+        "isSimpleScreening": false,
+        "premiumIndexKrw": null
       },
       "underwritingRules": {
-        "eligibility": "만 15세부터 90세까지 가입 가능하며 건강상태 및 직무에 따라 심사 후 가입 여부 결정",
+        "eligibility": "피보험자의 건강상태, 직업, 운전 여부 등에 따라 가입이 제한될 수 있습니다.",
         "waiverOfPremium": [
-          "상해/질병 장해지급률 80% 이상 발생",
-          "암(유사암 제외) 진단 확정",
-          "뇌졸중 진단 확정",
-          "급성심근경색증 진단 확정",
-          "말기간경화/말기폐질환/말기신부전증 진단 확정"
+          "암, 뇌혈관질환, 허혈성심장질환, 80%이상후유장해, 말기3대질병으로 진단 시",
+          "뇌졸중, 급성심근경색증으로 진단 시",
+          "상해로 장해분류표에서 정한 장해지급률이 80% 이상인 경우",
+          "질병으로 장해분류표에서 정한 장해지급률이 80% 이상인 경우"
         ]
       },
       "coverages": [
@@ -1635,11 +1780,50 @@
             "C00-C97"
           ],
           "maxLimitByAge": {
-            "0-40": 50000000,
-            "41-60": 30000000,
-            "61-90": 10000000
+            "0-15": 50000000,
+            "16-20": 60000000,
+            "21-25": 70000000,
+            "26-30": 80000000,
+            "31-35": 90000000,
+            "36-40": 100000000,
+            "41-45": 110000000,
+            "46-50": 120000000,
+            "51-55": 130000000,
+            "56-60": 140000000,
+            "61-65": 150000000,
+            "66-70": 160000000,
+            "71-75": 170000000,
+            "76-80": 180000000,
+            "81-85": 190000000,
+            "86-90": 200000000
           },
-          "deductibleAndReduction": "보장개시일은 계약일부터 90일 지난 날의 다음날이며, 1년 미만 진단 시 50% 지급"
+          "deductibleAndReduction": "보장개시일 이후 10년 미만시 50% 감액"
+        },
+        {
+          "coverageId": "cov-cancer-similar",
+          "name": "4대유사암진단비",
+          "targetDiseases": [
+            "C00-C97"
+          ],
+          "maxLimitByAge": {
+            "0-15": 50000000,
+            "16-20": 60000000,
+            "21-25": 70000000,
+            "26-30": 80000000,
+            "31-35": 90000000,
+            "36-40": 100000000,
+            "41-45": 110000000,
+            "46-50": 120000000,
+            "51-55": 130000000,
+            "56-60": 140000000,
+            "61-65": 150000000,
+            "66-70": 160000000,
+            "71-75": 170000000,
+            "76-80": 180000000,
+            "81-85": 190000000,
+            "86-90": 200000000
+          },
+          "deductibleAndReduction": "보장개시일 이후 1년 미만시 50% 감액"
         },
         {
           "coverageId": "cov-cerebrovascular",
@@ -1648,14 +1832,77 @@
             "I60-I69"
           ],
           "maxLimitByAge": {
-            "0-40": 20000000,
-            "41-60": 15000000,
-            "61-90": 10000000
+            "0-15": 50000000,
+            "16-20": 60000000,
+            "21-25": 70000000,
+            "26-30": 80000000,
+            "31-35": 90000000,
+            "36-40": 100000000,
+            "41-45": 110000000,
+            "46-50": 120000000,
+            "51-55": 130000000,
+            "56-60": 140000000,
+            "61-65": 150000000,
+            "66-70": 160000000,
+            "71-75": 170000000,
+            "76-80": 180000000,
+            "81-85": 190000000,
+            "86-90": 200000000
           },
-          "deductibleAndReduction": "가입 후 1년 미만 시 50% 감액 지급"
+          "deductibleAndReduction": "보장개시일 이후 1년 미만시 50% 감액"
+        },
+        {
+          "coverageId": "cov-ischemic-heart",
+          "name": "허혈성심장질환진단비",
+          "targetDiseases": [
+            "I20-I25"
+          ],
+          "maxLimitByAge": {
+            "0-15": 50000000,
+            "16-20": 60000000,
+            "21-25": 70000000,
+            "26-30": 80000000,
+            "31-35": 90000000,
+            "36-40": 100000000,
+            "41-45": 110000000,
+            "46-50": 120000000,
+            "51-55": 130000000,
+            "56-60": 140000000,
+            "61-65": 150000000,
+            "66-70": 160000000,
+            "71-75": 170000000,
+            "76-80": 180000000,
+            "81-85": 190000000,
+            "86-90": 200000000
+          },
+          "deductibleAndReduction": "보장개시일 이후 1년 미만시 50% 감액"
+        },
+        {
+          "coverageId": "cov-caregiver-expense",
+          "name": "간병인사용입원생활비",
+          "targetDiseases": [],
+          "maxLimitByAge": {
+            "0-15": 10000000,
+            "16-20": 15000000,
+            "21-25": 20000000,
+            "26-30": 25000000,
+            "31-35": 30000000,
+            "36-40": 35000000,
+            "41-45": 40000000,
+            "46-50": 45000000,
+            "51-55": 50000000,
+            "56-60": 55000000,
+            "61-65": 60000000,
+            "66-70": 65000000,
+            "71-75": 70000000,
+            "76-80": 75000000,
+            "81-85": 80000000,
+            "86-90": 85000000
+          },
+          "deductibleAndReduction": "일당 10만원 (해당 특별약관에 따라 최대 15만원)"
         }
       ],
-      "analyzedAt": "2026-08-01T19:38:10.286Z"
+      "analyzedAt": "2026-09-01T20:59:44.993Z"
     },
     "한화 세이프단체보험 무배당2604": {
       "fullName": "한화 세이프단체보험 무배당2604",
@@ -1669,48 +1916,50 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/safe(2604)_03.pdf"
       },
       "coreBenefits": [
-        "상해 및 질병으로 인한 후유장해 발생 시 장해지급률에 따라 보험금 지급",
-        "암, 뇌졸중, 급성심근경색증 등 중대 질병 진단비 및 수술비 보장",
-        "교통사고 및 일상생활 중 상해로 인한 입원비 및 치료비 보장",
-        "운전자용 특별약관을 통한 변호사 선임비용 및 형사합의금 지원"
+        "상해 및 질병으로 인한 후유장해 및 사망을 폭넓게 보장합니다.",
+        "암, 뇌졸중, 급성심근경색증 등 주요 3대 질병을 진단 및 수술까지 종합적으로 보장합니다.",
+        "자동차 사고 시 발생하는 법률 비용 및 면허 관련 비용을 보장합니다.",
+        "출산 및 육아휴직 시 보험료 납입 유예 제도를 운영합니다."
       ],
-      "premiumRange": "단체보험 특성상 단체 구성원 및 가입 담보 구성에 따라 상이하여 정해진 가격대 없음",
-      "recommendationFactor": "동일한 단체에 소속된 5인 이상의 근로자로 구성된 단체, 기업 임직원 보장용",
+      "premiumRange": "단체보험 특성상 단체 규모와 보장 설계에 따라 상이함 (월납, 연납 등 선택 가능)",
+      "recommendationFactor": "동일한 단체에 소속된 5인 이상의 구성원을 대상으로 위험을 효율적으로 관리하고자 하는 단체 및 법인에게 적합합니다.",
       "targetAge": {
         "minAge": 0,
         "maxAge": 80
       },
-      "renewalType": "비갱신형(전기납)",
+      "renewalType": "갱신형/비갱신형 혼합",
       "examinationType": "일반고지(건강체)",
       "simsaCriteria": "없음",
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "상해 또는 질병으로 인한 80% 이상 후유장해 진단 시"
+        "상해 80% 이상 후유장해 발생 시",
+        "질병 80% 이상 후유장해 발생 시"
       ],
       "underwritingNotes": [
-        "동일 단체 소속 피보험자 5인 이상 필수 구성(일부 담보는 10인 이상)",
-        "직무, 직종, 건강상태에 따라 가입금액 제한 또는 가입 불가능할 수 있음",
-        "이륜차 운전 중 사고는 별도 특별약관 가입 필요"
+        "동일한 단체에 소속된 5인 이상의 피보험자 구성을 원칙으로 합니다.",
+        "피보험자의 직업, 직무, 건강상태에 따라 가입금액이 제한되거나 거절될 수 있습니다.",
+        "특정 신체부위나 질병에 대하여 보장이 제한되는 조건부 인수가 적용될 수 있습니다."
       ],
       "coverageLimits": {
-        "generalCancer": "최대 2,000만원 한도",
-        "similarCancer": "최대 400만원 한도",
-        "cerebrovascular": "최대 1,000만원 한도",
-        "ischemicHeart": "최대 1,000만원 한도",
+        "generalCancer": "개인당 최대 2억원 이내",
+        "similarCancer": "개인당 최대 2억원 이내 (암 진단비 한도 내)",
+        "cerebrovascular": "없음",
+        "ischemicHeart": "없음",
         "caregiverExpenses": "없음"
       },
       "productMetadata": {
         "targetGender": "M/F",
         "minAge": 0,
         "maxAge": 80,
-        "isRenewal": false,
+        "isRenewal": true,
         "isSimpleScreening": false,
-        "premiumIndexKrw": 0
+        "premiumIndexKrw": 30000
       },
       "underwritingRules": {
-        "eligibility": "동일한 단체에 소속된 5인 이상의 구성원 대상이며 회사가 정한 인수 기준을 충족해야 함",
+        "eligibility": "동일한 단체에 소속된 5인 이상의 근로자 및 구성원 가입 가능",
         "waiverOfPremium": [
-          "상해 또는 질병으로 인한 80% 이상 후유장해 진단"
+          "상해 80% 이상 후유장해",
+          "질병 80% 이상 후유장해"
         ]
       },
       "coverages": [
@@ -1721,9 +1970,9 @@
             "C00-C97"
           ],
           "maxLimitByAge": {
-            "0-40": 20000000,
-            "41-60": 20000000,
-            "61-80": 20000000
+            "0-40": 200000000,
+            "41-60": 200000000,
+            "61-90": 200000000
           },
           "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
         },
@@ -1733,44 +1982,17 @@
           "targetDiseases": [
             "C44",
             "C73",
-            "D00-D09",
-            "D37-D48"
+            "D00-D09"
           ],
           "maxLimitByAge": {
-            "0-40": 4000000,
-            "41-60": 4000000,
-            "61-80": 4000000
+            "0-40": 200000000,
+            "41-60": 200000000,
+            "61-90": 200000000
           },
           "deductibleAndReduction": "면책기간 없음, 1년 미만 50% 감액"
-        },
-        {
-          "coverageId": "cov-cerebrovascular",
-          "name": "뇌졸중진단비",
-          "targetDiseases": [
-            "I60-I66"
-          ],
-          "maxLimitByAge": {
-            "0-40": 10000000,
-            "41-60": 10000000,
-            "61-80": 10000000
-          },
-          "deductibleAndReduction": "1년 미만 50% 감액"
-        },
-        {
-          "coverageId": "cov-ischemic-heart",
-          "name": "급성심근경색증진단비",
-          "targetDiseases": [
-            "I21-I23"
-          ],
-          "maxLimitByAge": {
-            "0-40": 10000000,
-            "41-60": 10000000,
-            "61-80": 10000000
-          },
-          "deductibleAndReduction": "1년 미만 50% 감액"
         }
       ],
-      "analyzedAt": "2026-08-01T19:39:49.943Z"
+      "analyzedAt": "2026-09-01T21:00:47.914Z"
     },
     "한화 시그니처 여성 간편건강보험4.0 무배당2604(간편고지형)": {
       "fullName": "한화 시그니처 여성 간편건강보험4.0 무배당2604(간편고지형)",
@@ -1784,63 +2006,45 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/WOMAN_3N5_4.0(2604)_03_1.pdf"
       },
       "coreBenefits": [
-        "주요 암 진단비를 보장하며, 4대 특정 암에 대해 보장합니다.",
-        "뇌혈관질환 및 허혈성심장질환 진단비를 보장합니다.",
-        "수술비(1-5종) 및 입원비를 보장합니다.",
-        "간병인사용시 입원 생활비를 보장합니다."
+        "API 오류로 인해 3종 PDF 요약이 누락되었습니다."
       ],
-      "premiumRange": "월 1천원 ~ 109,000원 (가입 조건에 따라 상이)",
-      "recommendationFactor": "간편고지로 유병자 및 고연령자도 가입 가능하며, 생활에 필요한 다양한 보장을 제공합니다.",
+      "premiumRange": "분석 실패 (오류 발생)",
+      "recommendationFactor": "3종 PDF 파일 분석 도중 할당량 초과 또는 네트워크 오류가 발생하여 요약을 생략합니다.",
       "targetAge": {
-        "minAge": 15,
-        "maxAge": 90
+        "minAge": null,
+        "maxAge": null
       },
-      "renewalType": "갱신형",
-      "examinationType": "간편고지",
-      "simsaCriteria": [
-        "10년(간편고지형)",
-        "3년/5년(갱신형)",
-        "3년/5년/10년/20년(갱신형)"
-      ],
-      "hasPremiumWaiver": true,
+      "renewalType": "확인 불가",
+      "examinationType": "확인 불가",
+      "simsaCriteria": "확인 불가",
+      "hasPremiumWaiver": false,
       "premiumWaiverCriteria": [
-        "암 (진단 확정 시)",
-        "뇌졸중 (진단 확정 시)",
-        "급성심근경색증 (진단 확정 시)",
-        "상해로 장해분류표에서 정한 장해지급률 80% 이상에 해당하는 장해상태가 된 경우",
-        "질병으로 장해분류표에서 정한 장해지급률이 80% 이상에 해당하는 장해상태가 된 경우"
+        "API 오류로 인해 확인 불가"
       ],
       "underwritingNotes": [
-        "계약 전 알릴 의무 위반 시 계약 해지 또는 보험금 지급 제한이 발생할 수 있습니다.",
-        "간편고지 유형에 따라 보험료가 할증될 수 있습니다."
+        "API 오류로 인해 확인 불가"
       ],
       "coverageLimits": {
-        "generalCancer": "암(4대유사암제외)진단비: 1억 (갱신형)",
-        "similarCancer": "4대유사암 진단비: 1억 (갱신형)",
-        "cerebrovascular": "뇌혈관질환진단비: 1억원 (갱신형)",
-        "ischemicHeart": "허혈성심장질환진단비: 1억원 (갱신형)",
-        "caregiverExpenses": "간병인사용입원생활비(요양병원제외, 연간 180일 한도): 1일당 7만원 이상 시 최대 15만원, 7만원 미만 시 1일당 보험가입금액의 50%"
+        "generalCancer": "확인 불가",
+        "similarCancer": "확인 불가",
+        "cerebrovascular": "확인 불가",
+        "ischemicHeart": "확인 불가",
+        "caregiverExpenses": "확인 불가"
       },
       "productMetadata": {
-        "targetGender": "여성",
-        "minAge": 15,
-        "maxAge": 90,
-        "isRenewal": true,
-        "isSimpleScreening": true,
-        "premiumIndexKrw": 60000
+        "targetGender": "M/F",
+        "minAge": null,
+        "maxAge": null,
+        "isRenewal": false,
+        "isSimpleScreening": false,
+        "premiumIndexKrw": 30000
       },
       "underwritingRules": {
-        "eligibility": "만 15세~90세까지 가입 가능하나, 특정 질병 이력이 있거나 특정 직무 종사자는 심사 후 가입이 제한될 수 있습니다.",
-        "waiverOfPremium": [
-          "암 (진단 확정 시, 기타 피부암, 갑상선암, 제자리암, 경계성종양 제외)",
-          "뇌졸중 (진단 확정 시)",
-          "급성심근경색증 (진단 확정 시)",
-          "상해로 장해분류표에서 정한 장해지급률 80% 이상에 해당하는 장해상태가 된 경우",
-          "질병으로 장해분류표에서 정한 장해지급률 80% 이상에 해당하는 장해상태가 된 경우"
-        ]
+        "eligibility": "API 오류로 확인 불가",
+        "waiverOfPremium": []
       },
       "coverages": [],
-      "analyzedAt": "2026-08-01T19:43:27.724Z"
+      "analyzedAt": "2026-09-01T21:05:57.677Z"
     },
     "한화 시그니처 여성 간편건강보험4.0 무배당2604(일반고지형)": {
       "fullName": "한화 시그니처 여성 간편건강보험4.0 무배당2604(일반고지형)",
@@ -1854,38 +2058,42 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/WOMAN_3N5_4.0(2604)_03_2.pdf"
       },
       "coreBenefits": [
-        "여성에게 특화된 암 보장",
-        "간편 고지로 유병자 및 고령자도 쉽게 가입 가능",
-        "만기환급금 없이 납입 면제 또는 보험료 50% 감액 지급 기능",
-        "다양한 수술비, 입원비, 특정 항암 약물 치료비 보장"
+        "상해로 인한 사망, 입원, 수술, 진단비를 보장하는 건강보험",
+        "3가지 간편고지(3.10.5, 3.8.5, 3.6.5) 유형으로 유병자나 고령자도 간편하게 가입 가능",
+        "납입면제 사유 발생 시 잔여 기간 보험료 납입 면제",
+        "갱신 시 보험료 변동 가능"
       ],
-      "premiumRange": "1~5만원대 (월 납입 기준, 305간편고지형 기준)",
-      "recommendationFactor": "유병력자, 고연령층, 여성에게 특화된 보장",
+      "premiumRange": "월 45,758원 수준",
+      "recommendationFactor": "건강 상태에 따라 보험료 혜택이 적용될 수 있는 상품",
       "targetAge": {
         "minAge": 15,
         "maxAge": 90
       },
       "renewalType": "갱신형",
       "examinationType": "간편고지",
-      "simsaCriteria": "3.10.5",
+      "simsaCriteria": [
+        "3.10.5",
+        "3.8.5",
+        "3.6.5"
+      ],
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "암(진단 확정 시, 단 기타피부암, 갑상선암, 제자리암, 경계성종양 제외)",
-        "뇌졸중(진단 확정 시)",
-        "급성심근경색증(진단 확정 시)",
-        "상해로 장해분류표에서 정한 장해지급률 80% 이상에 해당하는 장해상태가 된 경우",
+        "암으로 진단확정 시 (기타피부암, 갑상선암, 제자리암, 경계성종양 제외)",
+        "뇌졸중으로 진단확정 시",
+        "급성심근경색증으로 진단확정 시",
+        "상해로 장해분류표에서 정한 장해지급률이 80% 이상에 해당하는 장해상태가 된 경우",
         "질병으로 장해분류표에서 정한 장해지급률이 80% 이상에 해당하는 장해상태가 된 경우"
       ],
       "underwritingNotes": [
-        "특정 간편고지형 계약자의 경우, 계약 전 알릴 의무를 상세하게 확인하며, 간편고지형 외 일반고지형으로 계약전환 가능",
-        "특정 항암 약물 치료의 경우, 약관에서 정한 특정 질병 및 치료에 한하여 보장"
+        "특정 질병 또는 사고 시 계약 전 알릴 의무 위반 시 보험계약 해지 또는 보장 제한될 수 있음",
+        "간편고지 유형별로 보험료가 다르며, 고지혈증, 당뇨 등 고지 유형에 따라 보험료가 할증될 수 있음"
       ],
       "coverageLimits": {
-        "generalCancer": "500만원",
-        "similarCancer": "500만원",
-        "cerebrovascular": "200만원",
-        "ischemicHeart": "200만원",
-        "caregiverExpenses": "일당 최대 7만원 (본인부담금 100/100, 1년 미만 50% 지급)"
+        "generalCancer": "최초 계약 시, 100세 만기, 20년 납 기준으로 1,306,148원의 해약환급금 (9% 지급)",
+        "similarCancer": "없음",
+        "cerebrovascular": "없음",
+        "ischemicHeart": "없음",
+        "caregiverExpenses": "일당 최대 7만원"
       },
       "productMetadata": {
         "targetGender": "여성",
@@ -1893,97 +2101,84 @@
         "maxAge": 90,
         "isRenewal": true,
         "isSimpleScreening": true,
-        "premiumIndexKrw": 30000
+        "premiumIndexKrw": 72000
       },
       "underwritingRules": {
-        "eligibility": "피보험자의 건강상태 및 직무 등에 따라 가입 거절 또는 제한될 수 있음.",
+        "eligibility": "피보험자가 계약 전 알릴 의무 사항에 사실대로 답하고, 특정 질병 및 신체 관련 조건에 따라 가입 가능 여부가 결정됨.",
         "waiverOfPremium": [
-          "암(진단 확정 시, 단 기타피부암, 갑상선암, 제자리암, 경계성종양 제외)",
-          "뇌졸중(진단 확정 시)",
-          "급성심근경색증(진단 확정 시)",
-          "상해로 장해분류표에서 정한 장해지급률 80% 이상에 해당하는 장해상태가 된 경우",
-          "질병으로 장해분류표에서 정한 장해지급률 80% 이상에 해당하는 장해상태가 된 경우"
+          "암으로 진단확정 시 (기타피부암, 갑상선암, 제자리암, 경계성종양 제외)",
+          "뇌졸중으로 진단확정 시",
+          "급성심근경색증으로 진단확정 시",
+          "상해로 장해분류표에서 정한 장해지급률이 80% 이상에 해당하는 장해상태가 된 경우",
+          "질병으로 장해분류표에서 정한 장해지급률이 80% 이상에 해당하는 장해상태가 된 경우"
         ]
       },
       "coverages": [
         {
           "coverageId": "cov-cancer-general",
-          "name": "암(4대유사암제외)진단비Ⅱ(간편,갱신형)",
+          "name": "암(4대유사암제외)진단비",
           "targetDiseases": [
-            "C00-C97",
-            "D06",
-            "D07.0",
-            "D07.1",
-            "D07.2",
-            "D07.3",
-            "N60",
-            "N61",
-            "N80",
-            "N81",
-            "N82",
-            "N83",
-            "N84",
-            "I60-I69"
+            "C00-C79"
           ],
           "maxLimitByAge": {
-            "0-40": 50000000,
-            "41-60": 30000000,
-            "61-90": 10000000
+            "0-40": 89000000,
+            "41-60": 79000000,
+            "61-90": 59000000
           },
-          "deductibleAndReduction": "계약 전 알릴의무 사항에 따른 추가 계약 전환 시 무사고 기간에 따라 간편고지 유형에 따른 제한이 있을 수 있음."
+          "deductibleAndReduction": "계약체결 시점에 따라 적용"
         },
         {
           "coverageId": "cov-cancer-similar",
-          "name": "암(4대유사암제외)진단비(출산후5년보장강화)",
+          "name": "암(4대유사암제외)진단비",
           "targetDiseases": [
-            "C00-C97"
+            "C00-C79"
           ],
           "maxLimitByAge": {
-            "0-40": 40000000,
-            "41-60": 30000000,
-            "61-90": 20000000
+            "0-40": 89000000,
+            "41-60": 79000000,
+            "61-90": 59000000
           },
-          "deductibleAndReduction": "암(4대유사암제외)진단후 특별약관"
+          "deductibleAndReduction": "계약체결 시점에 따라 적용"
         },
         {
           "coverageId": "cov-cerebrovascular",
-          "name": "뇌졸중진단비(간편)",
+          "name": "뇌졸중진단비",
           "targetDiseases": [
             "I60-I69"
           ],
           "maxLimitByAge": {
-            "0-40": 50000000,
-            "41-60": 30000000,
-            "61-90": 20000000
+            "0-40": 89000000,
+            "41-60": 79000000,
+            "61-90": 59000000
           },
-          "deductibleAndReduction": "뇌혈관질환진단비(간편, 갱신형)"
+          "deductibleAndReduction": "계약체결 시점에 따라 적용"
         },
         {
           "coverageId": "cov-ischemic-heart",
-          "name": "허혈성심장질환진단비(간편)",
+          "name": "허혈성심장질환진단비",
           "targetDiseases": [
             "I20-I25"
           ],
           "maxLimitByAge": {
-            "0-40": 50000000,
-            "41-60": 30000000,
-            "61-90": 20000000
+            "0-40": 89000000,
+            "41-60": 79000000,
+            "61-90": 59000000
           },
-          "deductibleAndReduction": "허혈성심장질환진단비(간편, 갱신형)"
+          "deductibleAndReduction": "계약체결 시점에 따라 적용"
         },
         {
           "coverageId": "cov-caregiver-expense",
-          "name": "간병인사용입원생활비(요양병원제외,연간180일한도)(간편)",
+          "name": "간병인사용입원생활비",
           "targetDiseases": [],
           "maxLimitByAge": {
-            "0-40": 8900000,
-            "41-60": 7900000,
-            "61-90": 6900000
+            "0-40": 89000000,
+            "41-60": 79000000,
+            "61-90": 59000000
           },
-          "deductibleAndReduction": "간병인사용입원생활비(요양병원제외,1일이상180일한도)(간편,갱신형)"
+          "deductibleAndReduction": "1일당 최대 15만원"
         }
       ],
-      "analyzedAt": "2026-08-01T19:47:08.125Z"
+      "analyzedAt": "2026-09-01T21:10:49.254Z"
     },
     "한화 시그니처 여성 건강보험4.0 무배당2604": {
       "fullName": "한화 시그니처 여성 건강보험4.0 무배당2604",
@@ -1997,39 +2192,40 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/WOMAN_4.0(2604)_03.pdf"
       },
       "coreBenefits": [
-        "여성에게 특화된 암(4대 유사암 제외) 및 유방·갑상선 관련 다빈치로봇수술 보장",
-        "뇌혈관질환, 허혈성심장질환 등 주요 2대 질환 진단비 및 수술비 집중 보장",
-        "질병 또는 상해로 인한 입원 시 간병인 지원 서비스 제공",
-        "납입면제 사유 발생 시 차회 이후 보장보험료 납입 면제 혜택"
+        "여성에게 특화된 암, 뇌혈관, 허혈성 심장질환 등 주요 질병 진단비 보장",
+        "난임 및 임신·출산 관련 다양한 특별약관 제공",
+        "갱신형 및 독립 특별약관을 통한 유연한 보장 설계 가능",
+        "간병인 사용 및 간병인 지원 서비스 제공"
       ],
-      "premiumRange": "상품종류 및 가입 조건에 따라 2~3만원대부터 다양함",
-      "recommendationFactor": "여성 질환에 대한 집중적인 보장이 필요하고, 유병력자도 간편 심사를 통해 가입 가능한 건강보험을 찾는 분",
+      "premiumRange": "3만원 수준 (1종 일반고지형 40세 여성 기준)",
+      "recommendationFactor": "여성 질환 및 난임, 출산 관련 보장이 필요한 여성 가입자",
       "targetAge": {
         "minAge": 15,
         "maxAge": 90
       },
-      "renewalType": "혼합형",
-      "examinationType": "일반고지 또는 간편고지",
-      "simsaCriteria": "3.N.5, 3.10.5, 3.8.5, 3.6.5, 3.11, 355, 345, 335, 325, 315, 305 등 매우 다양함",
+      "renewalType": "갱신형",
+      "examinationType": "일반고지(건강체) 및 간편고지(유병자)",
+      "simsaCriteria": "3.5.5, 3.4.5, 3.3.5, 3.2.5, 3.1.5, 3.8.5, 3.6.5 등 고지 유형별 상이",
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "암(기타피부암, 갑상선암, 제자리암 및 경계성종양 제외) 진단 시",
-        "뇌혈관질환 진단 시",
-        "허혈성심장질환 진단 시",
-        "상해 또는 질병으로 인한 장해지급률 50% 이상 장해상태 시",
-        "갑상선암 진단 후 직접적인 치료를 목적으로 수술한 경우"
+        "암 진단(기타피부암, 갑상선암, 제자리암, 경계성종양 제외)",
+        "뇌혈관질환 진단",
+        "허혈성심장질환 진단",
+        "상해 50% 이상 후유장해",
+        "질병 50% 이상 후유장해",
+        "갑상선암 진단 후 직접적인 치료 목적 수술"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 건강 상태에 따라 가입금액이 제한되거나 인수가 불가능할 수 있음.",
-        "일부 특정 질환 보유자는 표준체 가입이 어려울 수 있으며, 이 경우 특별조건부(표준하체보험료할증) 특별약관을 통해 할증된 보험료로 가입 가능함.",
-        "갱신형 계약은 나이 증가 및 기초율 변동에 따라 갱신 시 보험료가 인상될 수 있음."
+        "피보험자의 직업, 직무, 건강상태에 따라 가입 금액 제한 또는 인수가 거절될 수 있음.",
+        "일부 담보의 경우 특정 연령대 및 직업군에 따라 가입 한도가 차등 적용됨.",
+        "갱신 시 기초율 변동 및 연령 증가로 인해 보험료가 인상될 수 있음."
       ],
       "coverageLimits": {
-        "generalCancer": "5,000만원",
-        "similarCancer": "100만원",
-        "cerebrovascular": "200만원",
-        "ischemicHeart": "200만원",
-        "caregiverExpenses": "일당 최대 7만원(입원 1일당 가입금액 기준)"
+        "generalCancer": "최대 5,000만원",
+        "similarCancer": "최대 1,000만원",
+        "cerebrovascular": "최대 2,000만원",
+        "ischemicHeart": "최대 2,000만원",
+        "caregiverExpenses": "일당 최대 15만원"
       },
       "productMetadata": {
         "targetGender": "F",
@@ -2040,45 +2236,28 @@
         "premiumIndexKrw": 30000
       },
       "underwritingRules": {
-        "eligibility": "만 15세부터 90세까지 여성만 피보험자로 가입 가능(계약자는 남녀 모두 가능).",
+        "eligibility": "피보험자는 여성만 가입 가능하며 가입 기준에 부합하는 건강상태 및 직업을 갖추어야 함.",
         "waiverOfPremium": [
-          "암(기타피부암, 갑상선암, 제자리암, 경계성종양 제외)",
-          "뇌혈관질환",
-          "허혈성심장질환",
-          "상해/질병 장해지급률 50% 이상",
-          "갑상선암 직접 치료 목적 수술"
+          "암(유사암 제외) 진단",
+          "뇌혈관질환 진단",
+          "허혈성심장질환 진단",
+          "상해/질병 50% 이상 후유장해 발생",
+          "갑상선암 진단 후 직접적인 치료 목적 수술"
         ]
       },
       "coverages": [
         {
           "coverageId": "cov-cancer-general",
-          "name": "암(4대유사암제외)진단비",
+          "name": "암(유사암제외)진단비",
           "targetDiseases": [
             "C00-C97"
           ],
           "maxLimitByAge": {
             "0-40": 50000000,
-            "41-60": 50000000,
-            "61-90": 50000000
+            "41-60": 30000000,
+            "61-90": 10000000
           },
-          "deductibleAndReduction": "90일 면책기간 적용, 계약일로부터 1년 미만 시 50% 감액"
-        },
-        {
-          "coverageId": "cov-cancer-similar",
-          "name": "4대유사암진단비",
-          "targetDiseases": [
-            "C44",
-            "C73",
-            "D05",
-            "D06",
-            "D07"
-          ],
-          "maxLimitByAge": {
-            "0-40": 1000000,
-            "41-60": 1000000,
-            "61-90": 1000000
-          },
-          "deductibleAndReduction": "가입 즉시 보장, 감액 없음"
+          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
         },
         {
           "coverageId": "cov-cerebrovascular",
@@ -2087,40 +2266,14 @@
             "I60-I69"
           ],
           "maxLimitByAge": {
-            "0-40": 2000000,
-            "41-60": 2000000,
-            "61-90": 2000000
+            "0-40": 20000000,
+            "41-60": 20000000,
+            "61-90": 10000000
           },
-          "deductibleAndReduction": "가입 후 1년 미만 시 50% 감액"
-        },
-        {
-          "coverageId": "cov-ischemic-heart",
-          "name": "허혈성심장질환진단비",
-          "targetDiseases": [
-            "I20-I25"
-          ],
-          "maxLimitByAge": {
-            "0-40": 2000000,
-            "41-60": 2000000,
-            "61-90": 2000000
-          },
-          "deductibleAndReduction": "가입 후 1년 미만 시 50% 감액"
-        },
-        {
-          "coverageId": "cov-caregiver-expense",
-          "name": "간병인사용입원비",
-          "targetDiseases": [
-            "A00-Z99"
-          ],
-          "maxLimitByAge": {
-            "0-40": 70000,
-            "41-60": 70000,
-            "61-90": 70000
-          },
-          "deductibleAndReduction": "간병인 사용 일당 정액 지급(요양병원 등급별 차등)"
+          "deductibleAndReduction": "가입 후 1년 미만 50% 감액"
         }
       ],
-      "analyzedAt": "2026-08-01T19:49:45.258Z"
+      "analyzedAt": "2026-09-01T21:13:21.635Z"
     },
     "한화 시그니처 여성 건강보험4.0(건강관리형) 무배당2604": {
       "fullName": "한화 시그니처 여성 건강보험4.0(건강관리형) 무배당2604",
@@ -2134,39 +2287,40 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/WOMAN_4.0(CARE)(2604)_03.pdf"
       },
       "coreBenefits": [
-        "여성에게 특화된 암, 뇌혈관, 허혈성 심장질환 등 주요 질병 보장",
-        "난임 진단 및 치료, 출산 및 산후관리 관련 보장 제공",
-        "갱신형 및 다양한 간편고지 옵션을 통한 가입 편의성 증대",
-        "납입면제 제도를 통해 피보험자의 중증 질병 발생 시 경제적 부담 완화"
+        "암, 뇌혈관질환, 허혈성심장질환 등 주요 질병의 진단 및 치료를 보장합니다.",
+        "갱신형 및 비갱신형 특약을 통해 개인별 상황에 맞춘 유연한 보장 설계가 가능합니다.",
+        "간병인 지원 서비스 및 전문 의료진 건강상담 등 건강관리형 헬스케어 서비스를 제공합니다.",
+        "여성 특화 암, 난임 관련 보장 등 여성 맞춤형 보장이 포함되어 있습니다."
       ],
       "premiumRange": "3만원 수준",
-      "recommendationFactor": "질병 진단 후 경제적 활동이 제한될 경우 보험료 납입 면제가 필요한 사용자나, 여성 질환 및 난임 관련 보장이 필요한 가입자에게 적합합니다.",
+      "recommendationFactor": "여성 질환 및 3대 진단, 간병 비용에 대해 종합적인 보장을 원하는 사용자에게 추천합니다.",
       "targetAge": {
         "minAge": 15,
         "maxAge": 90
       },
       "renewalType": "혼합형",
-      "examinationType": "일반고지 및 간편고지 병행",
-      "simsaCriteria": "3.N.5, 3.10.5, 3.8.5, 3.6.5 등 세분화된 고지 유형 적용",
+      "examinationType": "일반고지(건강체) 또는 간편고지(유병자) 모두 가능",
+      "simsaCriteria": "3.1.1, 3.2.5, 3.3.5, 3.4.5, 3.5.5, 3.6.5, 3.8.5, 3.10.5, 3N5 등 다양",
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "암 진단 확정(기타피부암, 갑상선암, 제자리암, 경계성종양 제외)",
-        "뇌혈관질환 진단 확정",
-        "허혈성심장질환 진단 확정",
-        "상해 또는 질병으로 인한 장해지급률 50% 이상 장해 상태",
-        "갑상선암 진단 확정 후 치료 목적 수술 시"
+        "암 진단 시(기타피부암, 갑상선암, 제자리암, 경계성종양 제외)",
+        "뇌혈관질환 진단 시",
+        "허혈성심장질환 진단 시",
+        "상해 또는 질병으로 인한 장해지급률 50% 이상 장해 상태 시",
+        "갑상선암 진단 및 직접적인 치료 목적의 수술 시",
+        "상해 또는 질병으로 인한 중환자실 2일 이상 입원 시"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 건강상태에 따라 가입금액이 제한되거나 인수가 불가능할 수 있음.",
-        "피보험자는 여성만 가입 가능하며, 일부 특약은 특정 연령 및 혼인 여부에 따라 가입이 제한됨.",
-        "표준체 가입기준 미충족 시 할증보험료법(특별조건부 인수)을 통해 가입 가능."
+        "여성전용보험으로 피보험자는 여성만 가능합니다.",
+        "피보험자의 직업, 직무, 건강상태에 따라 가입금액 제한 또는 인수가 불가능할 수 있습니다.",
+        "특정 질병(암, 뇌혈관질환 등)에 대한 보장개시일(보통 90일 후) 및 감액 기간 확인이 필요합니다."
       ],
       "coverageLimits": {
-        "generalCancer": "5,000만원",
-        "similarCancer": "100만원",
-        "cerebrovascular": "200만원",
-        "ischemicHeart": "200만원",
-        "caregiverExpenses": "일당 최대 보험가입금액(간호간병통합서비스 2배)"
+        "generalCancer": "최대 5,000만원",
+        "similarCancer": "최대 1,000만원",
+        "cerebrovascular": "최대 200만원",
+        "ischemicHeart": "최대 200만원",
+        "caregiverExpenses": "일당 최대 15만원"
       },
       "productMetadata": {
         "targetGender": "F",
@@ -2177,13 +2331,14 @@
         "premiumIndexKrw": 30000
       },
       "underwritingRules": {
-        "eligibility": "15세부터 90세까지의 여성 가입 가능하며, 가입 형태(일반/간편고지)에 따라 고지 의무 및 인수 기준이 상이함.",
+        "eligibility": "여성 전용 보험으로 만 15세부터 90세까지 가입 가능하며 건강고지 또는 간편고지 유형 선택 가능",
         "waiverOfPremium": [
           "암(유사암 제외) 진단",
           "뇌혈관질환 진단",
           "허혈성심장질환 진단",
-          "상해/질병 장해지급률 50% 이상",
-          "갑상선암 수술"
+          "50% 이상 장해상태",
+          "갑상선암 진단 및 수술",
+          "중환자실 입원"
         ]
       },
       "coverages": [
@@ -2195,54 +2350,26 @@
           ],
           "maxLimitByAge": {
             "0-40": 50000000,
-            "41-60": 50000000,
-            "61-90": 50000000
+            "41-60": 30000000,
+            "61-90": 10000000
           },
-          "deductibleAndReduction": "가입 후 90일 면책, 계약일로부터 1년 미만 시 50% 감액"
-        },
-        {
-          "coverageId": "cov-cancer-similar",
-          "name": "4대유사암진단비",
-          "targetDiseases": [
-            "D05",
-            "D06",
-            "D07"
-          ],
-          "maxLimitByAge": {
-            "0-40": 1000000,
-            "41-60": 1000000,
-            "61-90": 1000000
-          },
-          "deductibleAndReduction": "가입 후 1년 미만 시 50% 감액"
+          "deductibleAndReduction": "보장개시일(90일) 이후 보장, 1년 미만 시 50% 감액"
         },
         {
           "coverageId": "cov-cerebrovascular",
           "name": "뇌혈관질환진단비",
           "targetDiseases": [
-            "I60-I67"
+            "I60-I69"
           ],
           "maxLimitByAge": {
             "0-40": 2000000,
             "41-60": 2000000,
             "61-90": 2000000
           },
-          "deductibleAndReduction": "가입 후 1년 미만 시 50% 감액"
-        },
-        {
-          "coverageId": "cov-ischemic-heart",
-          "name": "허혈성심장질환진단비",
-          "targetDiseases": [
-            "I20-I25"
-          ],
-          "maxLimitByAge": {
-            "0-40": 2000000,
-            "41-60": 2000000,
-            "61-90": 2000000
-          },
-          "deductibleAndReduction": "가입 후 1년 미만 시 50% 감액"
+          "deductibleAndReduction": "1년 미만 시 50% 감액"
         }
       ],
-      "analyzedAt": "2026-08-01T19:52:23.275Z"
+      "analyzedAt": "2026-09-01T21:17:58.646Z"
     },
     "한화 운전자상해보험 무배당2604": {
       "fullName": "한화 운전자상해보험 무배당2604",
@@ -2256,84 +2383,95 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/DRIVER(2604)_03.pdf"
       },
       "coreBenefits": [
-        "상해 사고로 인한 사망 및 후유장해 보장",
-        "입원일당, 벌금, 자동차사고 변호사선임비용 등 운전자 비용손해 보장",
-        "자동차사고 부상발생금(1-14급) 지원"
+        "교통사고로 인한 상해 사망 및 후유장해는 물론 상해 입원일당과 수술비까지 종합 보장합니다.",
+        "자동차사고 벌금, 변호사 선임비용, 교통사고 처리지원금 등 운전 중 발생하는 비용손해를 실손 보장합니다.",
+        "간병인 사용 일당 및 지원 서비스를 제공하여 간병비 부담을 최소화합니다.",
+        "무사고 시 유병자(간편고지) 계약에서 우량한 계약으로 전환 가능한 가입 후 무사고 계약전환 제도를 운영합니다."
       ],
-      "premiumRange": "1만원 수준 (예시 기준)",
-      "recommendationFactor": "자동차 운전을 하는 운전자 및 상해 보장을 원하는 사용자층",
+      "premiumRange": "월 1만원 ~ 3만원 수준 (가입 조건 및 특약 선택에 따라 상이)",
+      "recommendationFactor": "운전 중 발생하는 형사적·행정적 책임 비용과 일상생활 중 상해 위험을 저렴한 보험료로 종합 대비하고자 하는 운전자",
       "targetAge": {
         "minAge": 0,
-        "maxAge": 90
+        "maxAge": 80
       },
       "renewalType": "혼합형",
-      "examinationType": "일반고지(건강체) 및 간편고지(유병자)",
-      "simsaCriteria": "3.N.5, 3.5.5, 3.10.5, 3.8.5, 3.6.5 등 다양한 간편고지 유형 존재",
+      "examinationType": "일반고지 및 간편고지 선택 가능",
+      "simsaCriteria": "3.10.5, 3.8.5, 3.6.5, 3.5.5, 3.4.5, 3.3.5, 3.2.5, 3.1.5, 3.0.5 등 다양한 간편고지 유형 지원",
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "상해 50% 이상 후유장해",
-        "특정상해성 뇌출혈 진단",
-        "특정상해성 장기손상 진단",
-        "자동차 사고로 인한 부상등급(1-7급)"
+        "자동차사고로 인한 상해의 직접 결과로 자동차사고 부상등급 1~7급을 받은 경우 (1종)",
+        "상해후유장해 지급률이 50% 이상에 해당하는 장해상태가 된 경우 (2종)",
+        "특정상해성뇌출혈 진단확정 시 (2종)",
+        "특정상해성장기손상 진단확정 시 (2종)"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타 사항에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있음",
-        "이륜자동차 운전 중 상해는 부담보 특별약관 부가 시 보험금 지급이 제한될 수 있음",
-        "사고의 종류 및 상태(음주, 무면허, 도주사고 등)에 따라 보장이 제한됨"
+        "피보험자의 직업, 직무, 운전 목적(자가용/영업용)에 따라 인수 한도가 제한되거나 가입이 불가능할 수 있습니다.",
+        "이륜자동차 운전 중 상해 부담보 특별약관 부가 시 이륜차 운전 중 발생한 사고는 보상 대상에서 제외됩니다.",
+        "건강고지형 가입 시에는 최근 10년 이내 입원, 수술 여부 및 3대 중대질환(암, 협심증/심근경색, 뇌졸중) 진단 여부를 사실대로 고지해야 합니다."
       ],
       "coverageLimits": {
         "generalCancer": "없음",
         "similarCancer": "없음",
-        "cerebrovascular": "없음",
+        "cerebrovascular": "없음 (특정상해성뇌출혈진단비는 최대 1,000만원 보장)",
         "ischemicHeart": "없음",
-        "caregiverExpenses": "일당 최대 180일 한도"
+        "caregiverExpenses": "일당 최대 15만원 (간병인지원상해입원비 특약 가입 시 간병인 지원 또는 실제 간병인 사용 비용 한도 내 지급)"
       },
       "productMetadata": {
         "targetGender": "M/F",
         "minAge": 0,
-        "maxAge": 90,
+        "maxAge": 80,
         "isRenewal": true,
         "isSimpleScreening": true,
-        "premiumIndexKrw": 10000
+        "premiumIndexKrw": 20000
       },
       "underwritingRules": {
-        "eligibility": "자동차 운전자 및 상해 보장 희망자 (피보험자 가입나이 0~90세)",
+        "eligibility": "만 18세부터 80세까지의 운전자(자가용 및 영업용) 및 0세부터 80세까지의 상해보장 가입 희망자",
         "waiverOfPremium": [
-          "상해 50% 이상 후유장해",
-          "특정상해성 뇌출혈 진단",
-          "특정상해성 장기손상 진단",
-          "자동차 사고 부상등급(1-7급)"
+          "자동차사고 부상등급 1~7급 판정",
+          "상해 50% 이상 후유장해 발생",
+          "특정상해성뇌출혈 진단확정",
+          "특정상해성장기손상 진단확정"
         ]
       },
       "coverages": [
         {
-          "coverageId": "cov-traffic-injury",
-          "name": "자동차사고부상발생금(1-7급)",
-          "targetDiseases": [
-            "자동차사고 부상등급표 1-7급"
-          ],
+          "coverageId": "cov-car-accident-fine",
+          "name": "자동차사고대인벌금Ⅱ(스쿨존사고외)",
+          "targetDiseases": [],
           "maxLimitByAge": {
-            "0-40": 100000,
-            "41-60": 100000,
-            "61-90": 100000
+            "18-80": 20000000
           },
-          "deductibleAndReduction": "면책기간 없음"
+          "deductibleAndReduction": "면책기간 없음, 실손보상 (음주, 무면허, 약물 운전 및 도주사고 제외)"
         },
         {
-          "coverageId": "cov-caregiver-expense",
-          "name": "간병인사용상해입원비",
-          "targetDiseases": [
-            "상해 사고로 인한 입원"
-          ],
+          "coverageId": "cov-schoolzone-fine",
+          "name": "스쿨존자동차사고대인벌금",
+          "targetDiseases": [],
           "maxLimitByAge": {
-            "0-40": 180,
-            "41-60": 180,
-            "61-90": 180
+            "18-80": 30000000
           },
-          "deductibleAndReduction": "1회 입원당 180일 한도"
+          "deductibleAndReduction": "면책기간 없음, 특정범죄 가중처벌 등에 관한 법률 제5조의13에 따른 벌금형 확정 시 실손보상"
+        },
+        {
+          "coverageId": "cov-attorney-expense",
+          "name": "자동차사고변호사선임비용Ⅴ",
+          "targetDiseases": [],
+          "maxLimitByAge": {
+            "18-80": 50000000
+          },
+          "deductibleAndReduction": "면책기간 없음, 구속영장 발부, 공소제기(약식기소 제외) 또는 정식재판 청구 시 실손보상"
+        },
+        {
+          "coverageId": "cov-caregiver-support",
+          "name": "간병인지원상해입원비(갱신형)",
+          "targetDiseases": [],
+          "maxLimitByAge": {
+            "0-80": 150000
+          },
+          "deductibleAndReduction": "1회 입원당 최대 180일 한도, 지원 희망일 48시간 전 회사 신청 필수 (미지원 시 간병인사용비용 실손 지급)"
         }
       ],
-      "analyzedAt": "2026-08-01T19:53:54.214Z"
+      "analyzedAt": "2026-09-01T21:19:49.008Z"
     },
     "한화 하얀미소플러스치아보험Ⅱ 무배당2604(연만기)": {
       "fullName": "한화 하얀미소플러스치아보험Ⅱ 무배당2604(연만기)",
@@ -2347,26 +2485,26 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/Plusteeth(2604)_03_1.pdf"
       },
       "coreBenefits": [
-        "치아우식증(충치) 및 치주질환으로 인한 치수치료 및 발치 치료비 보장",
-        "임플란트, 틀니, 브릿지 등 치아보철치료비 보장",
-        "크라운치료 및 아말감, 레진 등 치아충전치료비 보장",
-        "스케일링, 치아영상진단 등 예방 및 검사비용 보장"
+        "치아우식증(충치) 및 치주질환에 대한 보존치료(충전, 크라운) 보장",
+        "상해 및 질병으로 인한 치아 상실 시 임플란트, 틀니, 브릿지 보철치료 보장",
+        "치수치료, 치아 발치 및 치조골 이식술 등 치과 치료비 전반 보장",
+        "치과 치료 외에 민사소송법률비용 및 보이스피싱 손해까지 보장"
       ],
-      "premiumRange": "5~7만원대 수준",
-      "recommendationFactor": "치과 치료 비용 부담이 큰 사용자 또는 임플란트/크라운 등 고액 치료가 예상되는 사용자",
+      "premiumRange": "상품요약서 예시 기준 5~7만원대 수준",
+      "recommendationFactor": "충치나 잇몸질환 등으로 치과 치료비 부담이 걱정되는 사용자 또는 치과 보철치료를 대비하고자 하는 사용자",
       "targetAge": {
         "minAge": 2,
         "maxAge": 75
       },
       "renewalType": "혼합형",
-      "examinationType": "일반고지(건강체)",
+      "examinationType": "일반고지",
       "simsaCriteria": "없음",
       "hasPremiumWaiver": false,
       "premiumWaiverCriteria": [],
       "underwritingNotes": [
-        "피보험자의 직업/직무/기타사항으로 인해 가입금액 제한 또는 인수 거절 가능",
-        "질병(충치 및 치주질환)으로 인한 치아보철치료는 계약일로부터 90일 경과 후 보장 개시",
-        "상해로 인한 치료는 면책기간 및 감액기간이 적용되지 않음"
+        "피보험자의 직업, 직무, 건강상태에 따라 가입금액이 제한되거나 인수가 불가능할 수 있음.",
+        "치아우식증(충치) 및 치주질환으로 인한 치아보철치료는 계약일로부터 90일 이후 보장 개시.",
+        "상해로 인한 치료 시 면책기간 및 감액기간이 적용되지 않음."
       ],
       "coverageLimits": {
         "generalCancer": "없음",
@@ -2384,7 +2522,102 @@
         "premiumIndexKrw": 60000
       },
       "underwritingRules": {
-        "eligibility": "가입나이 범위 내에서 직업 및 건강상태에 따라 가입 가능함.",
+        "eligibility": "만 2세부터 최대 75세까지 가입 가능하며, 직업/직무 등에 따라 인수 제한될 수 있음.",
+        "waiverOfPremium": []
+      },
+      "coverages": [
+        {
+          "coverageId": "cov-dental-prosthodontics",
+          "name": "영구치보철치료비",
+          "targetDiseases": [
+            "K00-K08"
+          ],
+          "maxLimitByAge": {
+            "0-40": 1000000,
+            "41-60": 1000000,
+            "61-90": 1000000
+          },
+          "deductibleAndReduction": "질병 면책기간 90일 적용, 2년 미만 발거 시 50% 감액"
+        },
+        {
+          "coverageId": "cov-dental-conservative",
+          "name": "영구치보존치료비",
+          "targetDiseases": [
+            "K00-K08"
+          ],
+          "maxLimitByAge": {
+            "0-40": 200000,
+            "41-60": 200000,
+            "61-90": 200000
+          },
+          "deductibleAndReduction": "질병 면책기간 90일 적용, 1년 미만 치료 시 50% 감액"
+        },
+        {
+          "coverageId": "cov-dental-pulp",
+          "name": "영구치치수치료비",
+          "targetDiseases": [
+            "K04"
+          ],
+          "maxLimitByAge": {
+            "0-40": 30000,
+            "41-60": 30000,
+            "61-90": 30000
+          },
+          "deductibleAndReduction": "질병 면책기간 90일 적용, 1년 미만 치료 시 50% 감액"
+        }
+      ],
+      "analyzedAt": "2026-09-01T21:21:55.190Z"
+    },
+    "한화 하얀미소플러스치아보험Ⅱ 무배당2604(연만기갱신형)": {
+      "fullName": "한화 하얀미소플러스치아보험Ⅱ 무배당2604(연만기갱신형)",
+      "category": "상해/질병",
+      "status": "판매중",
+      "salesPeriod": "2026.04.01~현재",
+      "productUrl": "https://www.hwgeneralins.com/notice/ir/product-ing01.do",
+      "pdfUrls": {
+        "summary": "https://www.hwgeneralins.com/upload/hmpag_upload/product/Plusteeth(2604)_01.pdf",
+        "method": "https://www.hwgeneralins.com/upload/hmpag_upload/product/Plusteeth(2604)_02.pdf",
+        "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/Plusteeth(2604)_03_2.pdf"
+      },
+      "coreBenefits": [
+        "임플란트, 틀니, 브릿지 등 치아보철치료비 보장",
+        "충전치료(레진, 인레이/온레이 등) 및 크라운 치료 보장",
+        "치수치료 및 주요 치주질환 치료 보장",
+        "영구치 발거 및 상실에 따른 진단비 보장"
+      ],
+      "premiumRange": "월 5~7만원 수준",
+      "recommendationFactor": "임플란트 등 치과 치료비 부담을 대비하고 싶은 갱신형 상품 선호 사용자",
+      "targetAge": {
+        "minAge": 2,
+        "maxAge": 75
+      },
+      "renewalType": "갱신형",
+      "examinationType": "일반고지(건강체)",
+      "simsaCriteria": "없음",
+      "hasPremiumWaiver": false,
+      "premiumWaiverCriteria": [],
+      "underwritingNotes": [
+        "직업, 직무 또는 건강상태에 따라 가입금액이 제한되거나 인수가 불가능할 수 있음",
+        "치아 관련 보장 가입 시 최근 5년 이내의 치과 진료 이력(충치, 임플란트, 브릿지 등)에 대한 계약 전 알릴 의무 사항 있음",
+        "치아보철치료는 계약일로부터 90일이 지난 다음날부터 보장개시됨"
+      ],
+      "coverageLimits": {
+        "generalCancer": "없음",
+        "similarCancer": "없음",
+        "cerebrovascular": "없음",
+        "ischemicHeart": "없음",
+        "caregiverExpenses": "없음"
+      },
+      "productMetadata": {
+        "targetGender": "M/F",
+        "minAge": 2,
+        "maxAge": 75,
+        "isRenewal": true,
+        "isSimpleScreening": false,
+        "premiumIndexKrw": 60000
+      },
+      "underwritingRules": {
+        "eligibility": "치과 치료 이력이 있는 피보험자는 알릴의무 사항에 따라 가입이 제한될 수 있음",
         "waiverOfPremium": []
       },
       "coverages": [
@@ -2399,10 +2632,10 @@
             "41-60": 1000000,
             "61-90": 1000000
           },
-          "deductibleAndReduction": "질병 시 90일 면책기간 적용, 2년 미만 50% 감액지급"
+          "deductibleAndReduction": "90일 면책기간 적용, 2년 미만 50% 감액"
         },
         {
-          "coverageId": "cov-dental-conservative",
+          "coverageId": "cov-dental-preservation",
           "name": "영구치보존치료비",
           "targetDiseases": [
             "K00-K08"
@@ -2412,118 +2645,10 @@
             "41-60": 200000,
             "61-90": 200000
           },
-          "deductibleAndReduction": "질병 시 90일 면책기간 적용, 1년 미만 50% 감액지급"
-        },
-        {
-          "coverageId": "cov-pulp-treatment",
-          "name": "영구치치수치료비",
-          "targetDiseases": [
-            "K04"
-          ],
-          "maxLimitByAge": {
-            "0-40": 30000,
-            "41-60": 30000,
-            "61-90": 30000
-          },
-          "deductibleAndReduction": "질병 시 90일 면책기간 적용, 1년 미만 50% 감액지급"
-        }
-      ],
-      "analyzedAt": "2026-08-01T19:55:43.728Z"
-    },
-    "한화 하얀미소플러스치아보험Ⅱ 무배당2604(연만기갱신형)": {
-      "fullName": "한화 하얀미소플러스치아보험Ⅱ 무배당2604(연만기갱신형)",
-      "category": "상해/질병",
-      "status": "판매중",
-      "salesPeriod": "2026.04.01~현재",
-      "productUrl": "https://www.hwgeneralins.com/notice/ir/product-ing01.do",
-      "pdfUrls": {
-        "summary": "https://www.hwgeneralins.com/upload/hmpag_upload/product/Plusteeth(2604)_01.pdf",
-        "method": "https://www.hwgeneralins.com/upload/hmpag_upload/product/Plusteeth(2604)_02.pdf",
-        "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/Plusteeth(2604)_03_2.pdf"
-      },
-      "coreBenefits": [
-        "치과 치료의 핵심인 치수치료 및 크라운 치료 보장",
-        "임플란트, 틀니, 브릿지 등 보철치료비 보장",
-        "영구치 발거 시 영구치상실발생금 보장",
-        "치아영상진단 및 치석제거(스케일링) 등 예방 치료 보장"
-      ],
-      "premiumRange": "5~7만원대 수준",
-      "recommendationFactor": "충치 및 치주질환 등 치과 치료가 걱정되는 일반인",
-      "targetAge": {
-        "minAge": 2,
-        "maxAge": 75
-      },
-      "renewalType": "갱신형",
-      "examinationType": "일반고지",
-      "simsaCriteria": "없음",
-      "hasPremiumWaiver": false,
-      "premiumWaiverCriteria": [],
-      "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타 사항으로 인해 가입금액 제한 또는 인수 불가능할 수 있음",
-        "질병(치아우식증, 치주질환)으로 인한 보철치료는 계약일로부터 90일 이후 보장 개시",
-        "임플란트 재식립 치료는 최초 임플란트 보험금 지급사유 발생일로부터 1년 경과 후 보장"
-      ],
-      "coverageLimits": {
-        "generalCancer": "없음",
-        "similarCancer": "없음",
-        "cerebrovascular": "없음",
-        "ischemicHeart": "없음",
-        "caregiverExpenses": "없음"
-      },
-      "productMetadata": {
-        "targetGender": "M/F",
-        "minAge": 2,
-        "maxAge": 75,
-        "isRenewal": true,
-        "isSimpleScreening": false,
-        "premiumIndexKrw": 60000
-      },
-      "underwritingRules": {
-        "eligibility": "연령별 가입 가능하며, 직업/직무 등에 따라 보험가입금액이 제한될 수 있음",
-        "waiverOfPremium": []
-      },
-      "coverages": [
-        {
-          "coverageId": "cov-dental-prosthetic",
-          "name": "영구치보철치료비Ⅲ(무제한,틀니연간1개한)",
-          "targetDiseases": [
-            "K00-K08"
-          ],
-          "maxLimitByAge": {
-            "0-40": 1000000,
-            "41-60": 1000000,
-            "61-90": 1000000
-          },
-          "deductibleAndReduction": "90일 면책기간 적용, 2년 미만 50% 감액"
-        },
-        {
-          "coverageId": "cov-dental-conservative",
-          "name": "영구치보존치료비(크라운무제한)",
-          "targetDiseases": [
-            "K00-K08"
-          ],
-          "maxLimitByAge": {
-            "0-40": 200000,
-            "41-60": 200000,
-            "61-90": 200000
-          },
-          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
-        },
-        {
-          "coverageId": "cov-dental-pulp",
-          "name": "영구치치수치료비",
-          "targetDiseases": [
-            "K00-K08"
-          ],
-          "maxLimitByAge": {
-            "0-40": 30000,
-            "41-60": 30000,
-            "61-90": 30000
-          },
           "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
         }
       ],
-      "analyzedAt": "2026-08-01T19:58:00.111Z"
+      "analyzedAt": "2026-09-01T21:23:42.377Z"
     },
     "한화 한아름 실속 건강보험(연만기 갱신형) 무배당(간편고지형)": {
       "fullName": "한화 한아름 실속 건강보험(연만기 갱신형) 무배당(간편고지형)",
@@ -2537,13 +2662,13 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan_5th_03_2.pdf"
       },
       "coreBenefits": [
-        "암, 뇌혈관질환, 심장질환 등 주요 질병의 진단비 및 수술비 보장",
-        "입원 시 간병인 사용 지원 또는 비용 보장",
-        "질병 또는 상해로 인한 후유장해 보장",
-        "질병 수술 및 치료에 대한 통합적인 보장 체계"
+        "암, 뇌혈관질환, 허혈성심장질환 등 주요 질병의 진단 및 수술 보장",
+        "입원 시 간병인 사용 비용 지원 및 요양병원 입원비 보장",
+        "다양한 항암 치료 기술(표적항암, 카티치료 등)에 대한 보장",
+        "무사고 시 보험료 할인 및 전자적 안내 동의 할인 혜택 제공"
       ],
-      "premiumRange": "7,000원 ~ 10,000원 수준 (40세 남성, 30년 만기 전기납 기준)",
-      "recommendationFactor": "일반 심사보험 가입이 어려운 유병력자 및 고령자에게 추천",
+      "premiumRange": "7,859원 수준 (40세 남자 기준 예시)",
+      "recommendationFactor": "유병력자 및 고령자 등 일반 보험 가입이 어려운 고객을 위한 간편고지형 상품",
       "targetAge": {
         "minAge": 15,
         "maxAge": 90
@@ -2554,15 +2679,16 @@
       "hasPremiumWaiver": false,
       "premiumWaiverCriteria": [],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타사항에 따라 가입금액 제한 또는 인수가 불가능할 수 있음.",
-        "일부 담보의 경우 가입 전 건강진단 결과를 요구할 수 있음."
+        "피보험자의 직업, 직무, 기타 사항으로 인해 보험가입금액이 제한되거나 인수가 불가능할 수 있음.",
+        "일부의 경우 건강진단 결과를 요구할 수 있음.",
+        "가입 후 3개월 이내 일반고지 상품으로의 전환 시 계약 무효 및 보험료 반환 규정 적용."
       ],
       "coverageLimits": {
-        "generalCancer": "5,000만원",
-        "similarCancer": "1,000만원",
-        "cerebrovascular": "200만원",
-        "ischemicHeart": "200만원",
-        "caregiverExpenses": "1만원"
+        "generalCancer": "100%",
+        "similarCancer": "100%",
+        "cerebrovascular": "100%",
+        "ischemicHeart": "100%",
+        "caregiverExpenses": "일당 최대 180일 한도"
       },
       "productMetadata": {
         "targetGender": "M/F",
@@ -2573,8 +2699,140 @@
         "premiumIndexKrw": 7859
       },
       "underwritingRules": {
-        "eligibility": "유병력자 및 고령자 대상 간소화된 심사를 통해 가입 가능한 상품",
+        "eligibility": "유병력자나 고령자 등 일반심사보험 가입이 어려운 피보험자를 대상으로 하는 간편고지형 상품",
         "waiverOfPremium": []
+      },
+      "coverages": [
+        {
+          "coverageId": "cov-cancer-general",
+          "name": "암(4대유사암제외)진단비",
+          "targetDiseases": [
+            "C00-C97"
+          ],
+          "maxLimitByAge": {
+            "0-40": 100000000,
+            "41-60": 100000000,
+            "61-90": 100000000
+          },
+          "deductibleAndReduction": "가입 후 90일 면책기간 적용, 1년 미만 50% 감액지급"
+        },
+        {
+          "coverageId": "cov-cancer-similar",
+          "name": "4대유사암진단비",
+          "targetDiseases": [
+            "D00-D09",
+            "D32",
+            "D33",
+            "D34"
+          ],
+          "maxLimitByAge": {
+            "0-40": 100000000,
+            "41-60": 100000000,
+            "61-90": 100000000
+          },
+          "deductibleAndReduction": "면책기간 없음, 1년 미만 50% 감액지급"
+        },
+        {
+          "coverageId": "cov-cerebrovascular",
+          "name": "뇌혈관질환진단비",
+          "targetDiseases": [
+            "I60-I69"
+          ],
+          "maxLimitByAge": {
+            "0-40": 100000000,
+            "41-60": 100000000,
+            "61-90": 100000000
+          },
+          "deductibleAndReduction": "면책기간 없음, 1년 미만 50% 감액지급"
+        },
+        {
+          "coverageId": "cov-ischemic-heart",
+          "name": "허혈성심장질환진단비",
+          "targetDiseases": [
+            "I20-I25"
+          ],
+          "maxLimitByAge": {
+            "0-40": 100000000,
+            "41-60": 100000000,
+            "61-90": 100000000
+          },
+          "deductibleAndReduction": "면책기간 없음, 1년 미만 50% 감액지급"
+        },
+        {
+          "coverageId": "cov-caregiver-expense",
+          "name": "간병인사용입원생활비",
+          "targetDiseases": [
+            "A00-Z99"
+          ],
+          "maxLimitByAge": {
+            "0-40": 100000000,
+            "41-60": 100000000,
+            "61-90": 100000000
+          },
+          "deductibleAndReduction": "면책기간 없음, 감액 없음"
+        }
+      ],
+      "analyzedAt": "2026-09-01T21:26:42.035Z"
+    },
+    "한화 한아름 실속 건강보험(연만기 갱신형) 무배당(일반/건강고지형)": {
+      "fullName": "한화 한아름 실속 건강보험(연만기 갱신형) 무배당(일반/건강고지형)",
+      "category": "상해/질병",
+      "status": "판매중",
+      "salesPeriod": "2026.05.18~현재",
+      "productUrl": "https://www.hwgeneralins.com/notice/ir/product-ing01.do",
+      "pdfUrls": {
+        "summary": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan_5th_01.pdf",
+        "method": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan_5th_02.pdf",
+        "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan_5th_03_1.pdf"
+      },
+      "coreBenefits": [
+        "암, 뇌혈관질환, 허혈성심장질환 등 주요 질병의 진단비와 수술비 보장",
+        "상급종합병원 및 요양병원 입원 치료비 및 간병인 지원 서비스 제공",
+        "표적항암약물허가치료 및 카티(CAR-T)항암약물허가치료 보장",
+        "건강고지형 및 간편고지형 운영을 통한 유병력자 가입 문턱 완화"
+      ],
+      "premiumRange": "7,859원 수준 (40세 남자 기준 예시)",
+      "recommendationFactor": "기왕증이 있거나 고령으로 일반 보험 가입이 어려운 분들에게 적합한 유병자 맞춤형 건강보험",
+      "targetAge": {
+        "minAge": 15,
+        "maxAge": 90
+      },
+      "renewalType": "갱신형",
+      "examinationType": "간편고지(유병자)",
+      "simsaCriteria": "3.2.5, 3.5.5, 3.10.5",
+      "hasPremiumWaiver": true,
+      "premiumWaiverCriteria": [
+        "암 진단 시",
+        "뇌졸중 진단 시",
+        "급성심근경색증 진단 시"
+      ],
+      "underwritingNotes": [
+        "피보험자의 직업, 직무, 기타 사항에 따라 보험가입금액 제한 또는 인수가 불가능할 수 있음.",
+        "일부 담보는 특정 세부보장을 동시에 가입해야 하는 등의 가입 제한 요건이 존재함.",
+        "갱신 시 나이 증가 및 기초율 변동으로 보험료가 인상 또는 인하될 수 있음."
+      ],
+      "coverageLimits": {
+        "generalCancer": "최대 5,000만원",
+        "similarCancer": "최대 1,000만원",
+        "cerebrovascular": "최대 200만원",
+        "ischemicHeart": "최대 200만원",
+        "caregiverExpenses": "일당 최대 7만원(간병인 사용 시)"
+      },
+      "productMetadata": {
+        "targetGender": "M/F",
+        "minAge": 15,
+        "maxAge": 90,
+        "isRenewal": true,
+        "isSimpleScreening": true,
+        "premiumIndexKrw": 7859
+      },
+      "underwritingRules": {
+        "eligibility": "피보험자의 건강상태, 직업, 직무 등에 따라 가입이 제한되거나 건강진단 결과가 요구될 수 있음.",
+        "waiverOfPremium": [
+          "암 진단 시",
+          "뇌졸중 진단 시",
+          "급성심근경색증 진단 시"
+        ]
       },
       "coverages": [
         {
@@ -2588,13 +2846,16 @@
             "41-60": 50000000,
             "61-90": 50000000
           },
-          "deductibleAndReduction": "보장개시일 이후 90일 면책, 1년 미만 50% 감액"
+          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
         },
         {
           "coverageId": "cov-cancer-similar",
           "name": "4대유사암진단비",
           "targetDiseases": [
-            "D00-D48"
+            "D00-D09",
+            "D32",
+            "D33",
+            "D37-D48"
           ],
           "maxLimitByAge": {
             "0-40": 10000000,
@@ -2630,95 +2891,7 @@
           "deductibleAndReduction": "면책기간 없음, 1년 미만 50% 감액"
         }
       ],
-      "analyzedAt": "2026-08-01T20:00:06.437Z"
-    },
-    "한화 한아름 실속 건강보험(연만기 갱신형) 무배당(일반/건강고지형)": {
-      "fullName": "한화 한아름 실속 건강보험(연만기 갱신형) 무배당(일반/건강고지형)",
-      "category": "상해/질병",
-      "status": "판매중",
-      "salesPeriod": "2026.05.18~현재",
-      "productUrl": "https://www.hwgeneralins.com/notice/ir/product-ing01.do",
-      "pdfUrls": {
-        "summary": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan_5th_01.pdf",
-        "method": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan_5th_02.pdf",
-        "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/hw_thehan_5th_03_1.pdf"
-      },
-      "coreBenefits": [
-        "암, 뇌질환, 심장질환 등 주요 3대 질병 진단비 및 수술비 보장",
-        "입원, 통원, 간병인 등 다양한 치료 관련 생활비 지원",
-        "표적항암제, 카티(CAR-T) 항암약물허가치료 등 최신 암 치료 지원",
-        "무사고 시 보험료 할인 및 전자적 안내동의 할인 제도 운영"
-      ],
-      "premiumRange": "월 1만원~10만원 수준 (연령 및 담보 구성에 따라 상이)",
-      "recommendationFactor": "유병력자나 고령자 등 일반심사보험 가입이 어려운 고객에게 추천",
-      "targetAge": {
-        "minAge": 15,
-        "maxAge": 90
-      },
-      "renewalType": "갱신형",
-      "examinationType": "일반고지 및 간편고지 모두 가능",
-      "simsaCriteria": "3.2.5, 3.5.5, 3.10.5",
-      "hasPremiumWaiver": true,
-      "premiumWaiverCriteria": [
-        "상해 80% 이상 후유장해 발생 시",
-        "질병 80% 이상 후유장해 발생 시"
-      ],
-      "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타 사항에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있음.",
-        "일부 담보의 경우 건강진단 결과를 요구할 수 있음.",
-        "갱신형 보장의 면책/감액은 최초 계약에 대해서만 적용됨."
-      ],
-      "coverageLimits": {
-        "generalCancer": "50세 이하 최대 5,000만원",
-        "similarCancer": "최대 1,000만원",
-        "cerebrovascular": "최대 2,000만원",
-        "ischemicHeart": "최대 2,000만원",
-        "caregiverExpenses": "일당 최대 18만원"
-      },
-      "productMetadata": {
-        "targetGender": "M/F",
-        "minAge": 15,
-        "maxAge": 90,
-        "isRenewal": true,
-        "isSimpleScreening": true,
-        "premiumIndexKrw": 30000
-      },
-      "underwritingRules": {
-        "eligibility": "상해 및 질병으로 인한 사망, 입원, 수술, 진단, 비용손해, 배상책임을 보장하는 건강보험",
-        "waiverOfPremium": [
-          "상해 80% 이상 후유장해 발생 시 납입면제",
-          "질병 80% 이상 후유장해 발생 시 납입면제"
-        ]
-      },
-      "coverages": [
-        {
-          "coverageId": "cov-cancer-general",
-          "name": "암(4대유사암제외)진단비",
-          "targetDiseases": [
-            "C00-C97"
-          ],
-          "maxLimitByAge": {
-            "0-40": 50000000,
-            "41-60": 30000000,
-            "61-90": 10000000
-          },
-          "deductibleAndReduction": "90일 면책기간 적용, 1년 미만 50% 감액"
-        },
-        {
-          "coverageId": "cov-cerebrovascular",
-          "name": "뇌혈관질환진단비",
-          "targetDiseases": [
-            "I60-I69"
-          ],
-          "maxLimitByAge": {
-            "0-40": 20000000,
-            "41-60": 15000000,
-            "61-90": 5000000
-          },
-          "deductibleAndReduction": "1년 미만 50% 감액"
-        }
-      ],
-      "analyzedAt": "2026-08-01T20:01:45.586Z"
+      "analyzedAt": "2026-09-01T21:29:37.456Z"
     },
     "한화간편실손의료보험(갱신형) 무배당2604": {
       "fullName": "한화간편실손의료보험(갱신형) 무배당2604",
@@ -2732,12 +2905,13 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/easy_medical(2604)_03.pdf"
       },
       "coreBenefits": [
-        "상해 및 질병으로 인한 의료기관 입원비 보장",
-        "상해 및 질병으로 인한 의료기관 통원비 보장",
-        "국민건강보험법에 따른 본인부담금 및 비급여 의료비 보상"
+        "상해로 인한 입원 및 통원 의료비 보장",
+        "질병으로 인한 입원 및 통원 의료비 보장",
+        "경미한 유병력자 및 만성질환자 가입 가능",
+        "건강보험 본인부담금 및 비급여 의료비 보상"
       ],
-      "premiumRange": "월 3만원 수준 (40세 남성 기준)",
-      "recommendationFactor": "기존 표준화 실손의료보험 가입이 어려운 경미한 유병력자 및 만성질환자 추천",
+      "premiumRange": "3만원대 수준 (40세 남성 1종 기준 월 30,567원)",
+      "recommendationFactor": "기존 표준화 실손의료보험 가입이 어려운 경미한 유병력자 및 만성질환자",
       "targetAge": {
         "minAge": 5,
         "maxAge": 109
@@ -2748,9 +2922,9 @@
       "hasPremiumWaiver": false,
       "premiumWaiverCriteria": [],
       "underwritingNotes": [
-        "이륜자동차 소유·사용·관리 시 운전 중 상해 부담보 특약 부가 필요",
-        "유병력자 대상 상품으로 일반 표준체 상품 대비 보험료 할증 및 공제금액 큼",
-        "도수치료, 비급여 주사료, 비급여 MRI/MRA 등 특정 비급여 항목 보상 제외"
+        "최근 3개월 내 표준체 가입자의 경우 유병력 여부 추가 심사",
+        "이륜자동차 운전 중 상해는 부담보 특별약관 부가 필요",
+        "연령, 직무, 건강상태에 따라 가입금액 제한 또는 가입 불가 가능"
       ],
       "coverageLimits": {
         "generalCancer": "없음",
@@ -2768,7 +2942,7 @@
         "premiumIndexKrw": 30567
       },
       "underwritingRules": {
-        "eligibility": "표준체 실손보험 가입이 어려운 유병력자로, 간편고지 질문항목을 통과한 피보험자",
+        "eligibility": "3개월 내 의사로부터 진찰 또는 검사(건강검진 포함)를 통한 입원·수술·치료 필요소견 및 질병확정진단/의심소견이 없고, 2년 내 입원/수술, 5년 내 암 진단/입원/수술/치료 사실이 없는 유병력자",
         "waiverOfPremium": []
       },
       "coverages": [
@@ -2783,7 +2957,7 @@
             "41-60": 50000000,
             "61-90": 50000000
           },
-          "deductibleAndReduction": "보장대상의료비에서 10만원과 30% 중 큰 금액 차감, 연간 200만원 한도 초과 시 보상"
+          "deductibleAndReduction": "10만원과 보장대상의료비의 30% 중 큰 금액 공제"
         },
         {
           "coverageId": "cov-disease-inpatient",
@@ -2796,7 +2970,7 @@
             "41-60": 50000000,
             "61-90": 50000000
           },
-          "deductibleAndReduction": "보장대상의료비에서 10만원과 30% 중 큰 금액 차감, 연간 200만원 한도 초과 시 보상"
+          "deductibleAndReduction": "10만원과 보장대상의료비의 30% 중 큰 금액 공제"
         },
         {
           "coverageId": "cov-injury-outpatient",
@@ -2809,7 +2983,7 @@
             "41-60": 200000,
             "61-90": 200000
           },
-          "deductibleAndReduction": "방문 1회당 2만원과 보장대상의료비의 30% 중 큰 금액 차감, 연간 180회 한도"
+          "deductibleAndReduction": "2만원과 보장대상의료비의 30% 중 큰 금액 공제"
         },
         {
           "coverageId": "cov-disease-outpatient",
@@ -2822,10 +2996,10 @@
             "41-60": 200000,
             "61-90": 200000
           },
-          "deductibleAndReduction": "방문 1회당 2만원과 보장대상의료비의 30% 중 큰 금액 차감, 연간 180회 한도"
+          "deductibleAndReduction": "2만원과 보장대상의료비의 30% 중 큰 금액 공제"
         }
       ],
-      "analyzedAt": "2026-08-01T20:03:42.564Z"
+      "analyzedAt": "2026-09-01T21:31:36.807Z"
     },
     "한화노후실손의료보험(갱신형,재가입용) 무배당2604": {
       "fullName": "한화노후실손의료보험(갱신형,재가입용) 무배당2604",
@@ -2839,13 +3013,13 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/senior_medacal(2604)_03.pdf"
       },
       "coreBenefits": [
-        "국민건강보험 본인부담금 및 비급여 의료비를 보상하는 노후 실손의료보험입니다.",
-        "상해형 및 질병형 보장을 통해 입원 및 통원 의료비를 보장합니다.",
-        "상급병실료 차액 및 요양병원 의료비에 대한 추가 보장을 제공합니다.",
-        "만기 후 재가입을 통해 최대 보험나이 110세까지 보장받을 수 있습니다."
+        "국민건강보험의 본인부담금 및 비급여 의료비를 보상합니다.",
+        "상해 및 질병으로 인한 입원 및 통원 의료비를 매년 보상합니다.",
+        "상급병실료 차액 및 요양병원 의료비 보장을 선택할 수 있습니다.",
+        "만기 후 재가입을 통해 최대 110세까지 보장받을 수 있습니다."
       ],
       "premiumRange": "5만원대 수준",
-      "recommendationFactor": "고령자를 대상으로 공제금액과 공제비율을 조정하여 상대적으로 저렴한 보험료로 실손 의료비를 보장받고자 하는 분들에게 추천합니다.",
+      "recommendationFactor": "고령자를 대상으로 실손의료비 단독 보장이 필요한 분들에게 적합합니다.",
       "targetAge": {
         "minAge": 53,
         "maxAge": 109
@@ -2853,12 +3027,14 @@
       "renewalType": "갱신형",
       "examinationType": "일반고지(건강체)",
       "simsaCriteria": "없음",
-      "hasPremiumWaiver": false,
-      "premiumWaiverCriteria": [],
+      "hasPremiumWaiver": true,
+      "premiumWaiverCriteria": [
+        "납입면제 사유 발생 시 보험료 납입기간 일부에 대한 보험료 면제"
+      ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 건강상태에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있습니다.",
-        "의료비를 보장하는 다수의 보험계약이 체결되어 있는 경우 비례보상됩니다.",
-        "이륜자동차를 주기적으로 운전하는 경우 등 위험도가 높은 직무는 별도의 특별약관이 필요합니다."
+        "피보험자의 직업, 직무, 건강진단 결과에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있음.",
+        "상급병실료차액 및 요양병원 실손의료비는 상해형과 질병형을 동시에 가입한 경우에만 가입 가능.",
+        "연속 3개월 이상 해외 체류 시 납입중지 또는 환급 제도를 운영하며, 해당 기간 보장은 중지됨."
       ],
       "coverageLimits": {
         "generalCancer": "없음",
@@ -2876,8 +3052,10 @@
         "premiumIndexKrw": 55000
       },
       "underwritingRules": {
-        "eligibility": "53세부터 109세까지 가입 가능하며 건강상태 및 직무 등에 따라 인수 여부가 결정됩니다.",
-        "waiverOfPremium": []
+        "eligibility": "53세부터 109세까지 가입 가능하며, 건강상태와 직무에 따라 인수 제한이 있을 수 있습니다.",
+        "waiverOfPremium": [
+          "일부기간 납입면제(단기납입면제)"
+        ]
       },
       "coverages": [
         {
@@ -2887,11 +3065,9 @@
             "S00-T98"
           ],
           "maxLimitByAge": {
-            "0-40": 0,
-            "41-60": 0,
-            "61-90": 100000000
+            "53-109": 100000000
           },
-          "deductibleAndReduction": "급여 80%, 비급여 70% 보상 (입원 30만원, 통원 3만원 공제)"
+          "deductibleAndReduction": "입원당 30만원, 통원당 3만원 공제, 급여 80% 비급여 70% 보상"
         },
         {
           "coverageId": "cov-disease-medical",
@@ -2900,40 +3076,12 @@
             "A00-R99"
           ],
           "maxLimitByAge": {
-            "0-40": 0,
-            "41-60": 0,
-            "61-90": 100000000
+            "53-109": 100000000
           },
-          "deductibleAndReduction": "급여 80%, 비급여 70% 보상 (입원 30만원, 통원 3만원 공제)"
-        },
-        {
-          "coverageId": "cov-ward-difference",
-          "name": "상급병실료차액 보장",
-          "targetDiseases": [
-            "A00-T98"
-          ],
-          "maxLimitByAge": {
-            "0-40": 0,
-            "41-60": 0,
-            "61-90": 20000000
-          },
-          "deductibleAndReduction": "기준병실료와의 차액 50% 보상 (1일당 10만원 한도)"
-        },
-        {
-          "coverageId": "cov-convalescent-hospital",
-          "name": "요양병원 실손의료비 보장",
-          "targetDiseases": [
-            "A00-T98"
-          ],
-          "maxLimitByAge": {
-            "0-40": 0,
-            "41-60": 0,
-            "61-90": 50000000
-          },
-          "deductibleAndReduction": "급여 80%, 비급여 50% 보상 (입원 30만원, 통원 3만원 공제)"
+          "deductibleAndReduction": "입원당 30만원, 통원당 3만원 공제, 급여 80% 비급여 70% 보상"
         }
       ],
-      "analyzedAt": "2026-08-01T20:05:46.462Z"
+      "analyzedAt": "2026-09-01T21:34:16.772Z"
     },
     "한화다이렉트실손의료보험(갱신형)(계약전환용)Ⅴ 무배당": {
       "fullName": "한화다이렉트실손의료보험(갱신형)(계약전환용)Ⅴ 무배당",
@@ -2947,87 +3095,45 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/directsilson_conver2605_03.pdf"
       },
       "coreBenefits": [
-        "국민건강보험에서 보장하는 급여 항목의 본인부담금 보장",
-        "비급여 항목에 대한 의료비 보장(특약 가입 시)",
-        "3대 비급여 항목(도수치료/체외충격파/증식치료, 주사료, MRI/MRA) 집중 보장(특약 가입 시)",
-        "5년 주기로 보장내용 변경 및 재가입을 통한 최대 100세까지 보장 유지"
+        "API 오류로 인해 3종 PDF 요약이 누락되었습니다."
       ],
-      "premiumRange": "약 1.5만원~7.8만원 수준 (가입 연령 및 담보 구성에 따라 상이)",
-      "recommendationFactor": "기존 실손의료보험 계약의 계약전환이 필요하거나 단독 실손의료보험 가입을 희망하는 일반 소비자",
+      "premiumRange": "분석 실패 (오류 발생)",
+      "recommendationFactor": "3종 PDF 파일 분석 도중 할당량 초과 또는 네트워크 오류가 발생하여 요약을 생략합니다.",
       "targetAge": {
-        "minAge": 19,
-        "maxAge": 99
+        "minAge": null,
+        "maxAge": null
       },
-      "renewalType": "갱신형",
-      "examinationType": "일반고지(건강체)",
-      "simsaCriteria": "없음",
+      "renewalType": "확인 불가",
+      "examinationType": "확인 불가",
+      "simsaCriteria": "확인 불가",
       "hasPremiumWaiver": false,
-      "premiumWaiverCriteria": [],
+      "premiumWaiverCriteria": [
+        "API 오류로 인해 확인 불가"
+      ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 건강상태에 따라 가입금액이 제한되거나 인수가 거절될 수 있음.",
-        "일부 특정 질병이나 신체 부위에 대한 보장제한부 인수나 특별조건부(보험료 할증) 인수가 적용될 수 있음."
+        "API 오류로 인해 확인 불가"
       ],
       "coverageLimits": {
-        "generalCancer": "없음",
-        "similarCancer": "없음",
-        "cerebrovascular": "없음",
-        "ischemicHeart": "없음",
-        "caregiverExpenses": "없음"
+        "generalCancer": "확인 불가",
+        "similarCancer": "확인 불가",
+        "cerebrovascular": "확인 불가",
+        "ischemicHeart": "확인 불가",
+        "caregiverExpenses": "확인 불가"
       },
       "productMetadata": {
         "targetGender": "M/F",
-        "minAge": 19,
-        "maxAge": 99,
-        "isRenewal": true,
+        "minAge": null,
+        "maxAge": null,
+        "isRenewal": false,
         "isSimpleScreening": false,
         "premiumIndexKrw": 30000
       },
       "underwritingRules": {
-        "eligibility": "실손의료비 보장이 포함된 당사 유효 보험계약 보유자가 실손의료보험 계약전환Ⅳ 특별약관에 따라 전환하는 경우 가입 가능",
+        "eligibility": "API 오류로 확인 불가",
         "waiverOfPremium": []
       },
-      "coverages": [
-        {
-          "coverageId": "cov-medical-expenses-basic",
-          "name": "기본형 실손의료비(갱신형)",
-          "targetDiseases": [
-            "A00-Z99"
-          ],
-          "maxLimitByAge": {
-            "0-40": 50000000,
-            "41-60": 50000000,
-            "61-90": 50000000
-          },
-          "deductibleAndReduction": "급여 본인부담금의 80% 보상 (연간 200만원 한도 초과 시 전액 보상)"
-        },
-        {
-          "coverageId": "cov-special-type1",
-          "name": "특약형1(중증 비급여) 실손의료비(갱신형)",
-          "targetDiseases": [
-            "A00-Z99"
-          ],
-          "maxLimitByAge": {
-            "0-40": 50000000,
-            "41-60": 50000000,
-            "61-90": 50000000
-          },
-          "deductibleAndReduction": "비급여 의료비의 70% 보상(상급병실료는 50% 보상)"
-        },
-        {
-          "coverageId": "cov-special-type2",
-          "name": "특약형2(비중증 비급여) 실손의료비(갱신형)",
-          "targetDiseases": [
-            "A00-Z99"
-          ],
-          "maxLimitByAge": {
-            "0-40": 10000000,
-            "41-60": 10000000,
-            "61-90": 10000000
-          },
-          "deductibleAndReduction": "비급여 의료비의 50% 보상(상급병실료는 50% 보상)"
-        }
-      ],
-      "analyzedAt": "2026-08-01T20:08:09.332Z"
+      "coverages": [],
+      "analyzedAt": "2026-09-01T21:35:33.566Z"
     },
     "한화다이렉트실손의료보험(갱신형)Ⅴ 무배당": {
       "fullName": "한화다이렉트실손의료보험(갱신형)Ⅴ 무배당",
@@ -3041,28 +3147,25 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/directmedical2605_03.pdf"
       },
       "coreBenefits": [
-        "국민건강보험법에서 정한 급여의 본인부담금과 비급여 의료비를 보장합니다.",
-        "상해 및 질병으로 인한 입원 및 통원 치료비를 폭넓게 보장합니다.",
-        "중증 및 비중증 비급여 의료비에 대한 특약 보장을 선택하여 가입할 수 있습니다.",
-        "매년 갱신을 통해 최대 100세까지 보장받을 수 있습니다."
+        "국민건강보험법 및 의료급여법에 따른 급여의 본인부담금과 비급여 의료비를 종합적으로 보장합니다.",
+        "입원 시 입원실료, 입원제비용, 입원수술비를 합산하여 연간 5천만원 한도로 보장합니다.",
+        "통원 시 외래 및 처방조제비를 합산하여 회당 20만원 한도로 보장합니다.",
+        "비급여 의료비의 경우 특별약관 가입 시에만 보장하며, 3대 비급여 특약으로 세분화된 보장을 제공합니다."
       ],
-      "premiumRange": "약 15만원 수준 (남자 40세, 5년 합산 기준)",
-      "recommendationFactor": "국민건강보험의 보장 범위를 넘어선 의료비 부담을 줄이고자 하는 모든 연령층에게 추천합니다.",
+      "premiumRange": "남자 40세 기준 월 1만원대 수준 (위험률 변경에 따라 매년 변동)",
+      "recommendationFactor": "기본적인 의료비 부담을 낮추기 위해 급여 및 비급여 의료 실비를 체계적으로 준비하고자 하는 가입자에게 추천합니다.",
       "targetAge": {
         "minAge": 19,
         "maxAge": 99
       },
       "renewalType": "갱신형",
-      "examinationType": "일반고지",
+      "examinationType": "일반고지(건강체)",
       "simsaCriteria": "없음",
-      "hasPremiumWaiver": true,
-      "premiumWaiverCriteria": [
-        "상해 또는 질병으로 장해분류표에서 정한 지급률이 80% 이상인 후유장해 발생 시"
-      ],
+      "hasPremiumWaiver": false,
+      "premiumWaiverCriteria": [],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 건강상태에 따라 가입금액이 제한되거나 인수가 불가능할 수 있음.",
-        "과거 병력이나 특정 신체부위 및 질병에 따라 보장제한부 인수 특별약관이 적용될 수 있음.",
-        "이륜자동차를 주기적으로 운전하는 경우 이륜자동차운전중상해 부담보 특별약관이 부가될 수 있음."
+        "피보험자의 직업, 직무, 건강상태에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있습니다.",
+        "경우에 따라 건강진단 결과를 요구할 수 있으며, 이륜자동차 운전 여부에 따라 부담보 설정이 필요할 수 있습니다."
       ],
       "coverageLimits": {
         "generalCancer": "없음",
@@ -3077,43 +3180,28 @@
         "maxAge": 99,
         "isRenewal": true,
         "isSimpleScreening": false,
-        "premiumIndexKrw": 150000
+        "premiumIndexKrw": 15954
       },
       "underwritingRules": {
-        "eligibility": "신규가입 시 19세~70세, 재가입 시 최고 99세까지 가입 가능합니다.",
-        "waiverOfPremium": [
-          "상해 또는 질병으로 장해분류표에서 정한 지급률이 80% 이상인 후유장해 발생 시"
-        ]
+        "eligibility": "19세부터 99세까지 가입 가능하며, 직업 및 건강상태에 따른 심사 결과에 따라 가입이 제한될 수 있습니다.",
+        "waiverOfPremium": []
       },
       "coverages": [
         {
-          "coverageId": "cov-injury-benefit",
-          "name": "기본형 실손의료비(상해급여)",
+          "coverageId": "cov-medical-expense",
+          "name": "기본형 실손의료비(갱신형)",
           "targetDiseases": [
-            "S00-T98"
+            "A00-T98"
           ],
           "maxLimitByAge": {
             "0-40": 50000000,
             "41-60": 50000000,
             "61-90": 50000000
           },
-          "deductibleAndReduction": "연간 보험가입금액 한도 내 보상, 통원 시 의료기관별 공제금액 차감"
-        },
-        {
-          "coverageId": "cov-disease-benefit",
-          "name": "기본형 실손의료비(질병급여)",
-          "targetDiseases": [
-            "A00-R99"
-          ],
-          "maxLimitByAge": {
-            "0-40": 50000000,
-            "41-60": 50000000,
-            "61-90": 50000000
-          },
-          "deductibleAndReduction": "연간 보험가입금액 한도 내 보상, 통원 시 의료기관별 공제금액 차감"
+          "deductibleAndReduction": "면책기간 없음, 매년 갱신 시 보험료 변동"
         }
       ],
-      "analyzedAt": "2026-08-01T20:09:52.498Z"
+      "analyzedAt": "2026-09-01T21:38:23.995Z"
     },
     "한화실손의료보험(갱신형)(계약전환용)Ⅴ 무배당": {
       "fullName": "한화실손의료보험(갱신형)(계약전환용)Ⅴ 무배당",
@@ -3127,13 +3215,13 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/silson_conver(2605)_03.pdf"
       },
       "coreBenefits": [
-        "국민건강보험법에서 정한 급여 의료비 중 본인부담금과 비급여 의료비를 보장합니다.",
-        "상해 및 질병으로 인한 입원과 통원 치료 시 발생하는 실제 의료비 실비를 보장합니다.",
-        "재가입을 통해 최대 100세까지 보장이 가능한 갱신형 실손의료보험 상품입니다.",
-        "산정특례 대상 질환에 대한 비급여 치료를 특별약관을 통해 보장합니다."
+        "국민건강보험에서 보장하는 급여 의료비 중 본인부담금의 80% 보장",
+        "상해 및 질병으로 인한 비급여 의료비(특약 가입 시) 보장",
+        "입원과 통원을 합산하여 연간 최대 5천만원 한도 보장(선택 금액 내)",
+        "재가입을 통해 100세까지 보장 내용 변경주기별 보장 가능"
       ],
-      "premiumRange": "1만원대(40세 남자 기준, 가입 조건에 따라 상이)",
-      "recommendationFactor": "기존에 가입한 실손의료보험을 최신 규정의 단독 실손 상품으로 전환하거나 유지하고자 하는 경우에 추천합니다.",
+      "premiumRange": "남자 40세 기준 월 1.5만원 수준 (예시 보험료)",
+      "recommendationFactor": "기존 당사 실손보험 계약자 중 계약 전환을 희망하거나, 단체보험 피보험자 중 개인 실손으로 전환하고자 하는 사용자에게 적합",
       "targetAge": {
         "minAge": 0,
         "maxAge": 99
@@ -3143,12 +3231,12 @@
       "simsaCriteria": "없음",
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "상해 또는 질병으로 인한 장해지급률 80% 이상 장해 상태 발생 시"
+        "상해 또는 질병으로 장해분류표상 장해지급률 80% 이상 발생 시 납입면제"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 기타 사항에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있음.",
-        "보험업감독규정에서 정한 노후실손의료보험 및 유병력자실손의료보험은 전환이 불가능함.",
-        "이륜자동차 운전 중 상해 위험도가 회사가 정한 기준에 적합하지 않은 경우 별도 부담보 특별약관이 부가될 수 있음."
+        "피보험자의 직업, 직무, 기타 사항에 따라 보험가입금액이 제한되거나 인수가 불가능할 수 있음",
+        "경우에 따라 건강진단 결과를 요구할 수 있음",
+        "특정 신체부위·질병 보장제한부 인수 특별약관 등을 통해 보장이 제한될 수 있음"
       ],
       "coverageLimits": {
         "generalCancer": "없음",
@@ -3163,43 +3251,30 @@
         "maxAge": 99,
         "isRenewal": true,
         "isSimpleScreening": false,
-        "premiumIndexKrw": 15000
+        "premiumIndexKrw": 15788
       },
       "underwritingRules": {
-        "eligibility": "유효한 실손의료비 보장 계약을 보유한 계약자가 계약전환 절차를 통해 가입 가능한 상품입니다.",
+        "eligibility": "실손의료비 보장이 부가된 유효한 당사 보험계약의 계약자 또는 단체보험 피보험자로서 계약전환 특별약관에 해당하는 자",
         "waiverOfPremium": [
-          "상해 또는 질병으로 인한 장해지급률 80% 이상 발생 시"
+          "상해 또는 질병으로 장해지급률 80% 이상 발생 시 납입면제"
         ]
       },
       "coverages": [
         {
-          "coverageId": "cov-injury-medical",
-          "name": "기본형 실손의료비(상해급여형)",
+          "coverageId": "cov-medical-expenses-general",
+          "name": "기본형 실손의료비(상해급여형/질병급여형)",
           "targetDiseases": [
-            "S00-T98"
+            "A00-T98"
           ],
           "maxLimitByAge": {
             "0-40": 50000000,
             "41-60": 50000000,
             "61-90": 50000000
           },
-          "deductibleAndReduction": "입원 80% 보장(연간 200만원 한도 내 비급여 차등 적용), 통원 1회당 20만원 한도"
-        },
-        {
-          "coverageId": "cov-disease-medical",
-          "name": "기본형 실손의료비(질병급여형)",
-          "targetDiseases": [
-            "A00-R99"
-          ],
-          "maxLimitByAge": {
-            "0-40": 50000000,
-            "41-60": 50000000,
-            "61-90": 50000000
-          },
-          "deductibleAndReduction": "입원 80% 보장(연간 200만원 한도 내 비급여 차등 적용), 통원 1회당 20만원 한도"
+          "deductibleAndReduction": "급여 항목 본인부담금의 80% 보상, 연간 200만원 초과 시 초과액 전액 보상"
         }
       ],
-      "analyzedAt": "2026-08-01T20:12:05.976Z"
+      "analyzedAt": "2026-09-01T21:40:04.374Z"
     },
     "한화실손의료보험(갱신형)Ⅴ 무배당": {
       "fullName": "한화실손의료보험(갱신형)Ⅴ 무배당",
@@ -3213,13 +3288,13 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/medical(2605)_03.pdf"
       },
       "coreBenefits": [
-        "국민건강보험법에서 정한 급여 항목의 본인부담금과 비급여 의료비를 보장합니다.",
-        "입원과 통원 치료 시 발생하는 의료비용을 연간 가입금액 한도 내에서 실손 보상합니다.",
-        "상해 및 질병으로 인한 의료비 부담을 줄여주는 실손의료비 전용 보험입니다.",
-        "만기 후 재가입을 통해 최대 100세까지 보장을 이어갈 수 있습니다."
+        "국민건강보험법/의료급여법상 본인부담금 및 비급여 의료비를 보장",
+        "입원과 통원의 보상금액 합산하여 연간 보험가입금액 한도 내 보상",
+        "기본형 외 특약형 가입 시 비급여 의료비 보장 확대",
+        "매년 갱신을 통해 최대 100세까지 보장 가능"
       ],
-      "premiumRange": "약 1만 4천원 ~ 5만원 수준 (기준 40세 남자 기준)",
-      "recommendationFactor": "의료비 부담을 최소화하고 보편적인 상해 및 질병 보장을 준비하고자 하는 모든 사용자",
+      "premiumRange": "40세 남자 기준 약 1만 6천원 수준(예시 가입기준)",
+      "recommendationFactor": "의료비 발생 시 실손으로 본인부담금을 보장받고자 하는 일반 고객",
       "targetAge": {
         "minAge": 0,
         "maxAge": 99
@@ -3230,9 +3305,9 @@
       "hasPremiumWaiver": false,
       "premiumWaiverCriteria": [],
       "underwritingNotes": [
-        "피보험자의 직업, 직무, 건강상태에 따라 가입금액이 제한되거나 인수가 불가능할 수 있음.",
-        "과거 병력에 따라 특정 신체부위나 질병에 대한 보장이 제한되는 조건부 인수가 적용될 수 있음.",
-        "이륜자동차 소유·사용·관리자의 경우 사고 위험도에 따라 상해급수 적용이 제한될 수 있음."
+        "피보험자의 직업, 직무, 기타 사항에 따라 가입금액 제한 또는 인수 거절 가능",
+        "경우에 따라 건강진단 결과를 요구할 수 있음",
+        "이미 실손보험이 있는 경우 중복 가입 시 비례보상됨"
       ],
       "coverageLimits": {
         "generalCancer": "없음",
@@ -3247,41 +3322,54 @@
         "maxAge": 99,
         "isRenewal": true,
         "isSimpleScreening": false,
-        "premiumIndexKrw": 14000
+        "premiumIndexKrw": 16568
       },
       "underwritingRules": {
-        "eligibility": "가입 시 피보험자의 직업, 직무, 건강상태에 따라 인수가 제한될 수 있으며, 경우에 따라 건강진단이 요구됨.",
+        "eligibility": "피보험자의 직업, 직무, 건강상태에 따라 가입이 제한되거나 건강진단을 요구할 수 있음",
         "waiverOfPremium": []
       },
       "coverages": [
         {
-          "coverageId": "cov-injury-medical-expenses",
-          "name": "기본형 상해급여의료비",
+          "coverageId": "cov-basic-medical",
+          "name": "기본형 실손의료비(상해/질병)",
           "targetDiseases": [
-            "S00-T98"
+            "상해 및 질병 전반"
           ],
           "maxLimitByAge": {
             "0-40": 50000000,
             "41-60": 50000000,
             "61-90": 50000000
           },
-          "deductibleAndReduction": "면책기간 없음, 연간 가입금액 한도 내 보상"
+          "deductibleAndReduction": "급여 본인부담금의 80% 보상 (연간 200만원 초과시 초과분 보상), 통원은 항목별 공제금액 차감"
         },
         {
-          "coverageId": "cov-disease-medical-expenses",
-          "name": "기본형 질병급여의료비",
+          "coverageId": "cov-special-nonbenefit1",
+          "name": "특약형1(중증 비급여) 실손의료비",
           "targetDiseases": [
-            "A00-R99"
+            "산정특례 대상 질환 비급여"
           ],
           "maxLimitByAge": {
             "0-40": 50000000,
             "41-60": 50000000,
             "61-90": 50000000
           },
-          "deductibleAndReduction": "면책기간 없음, 연간 가입금액 한도 내 보상"
+          "deductibleAndReduction": "비급여 의료비의 70% 보상 (상급병실료 차액 제외), 공제금액(3만원과 보장대상의료비의 30% 중 큰 금액) 차감"
+        },
+        {
+          "coverageId": "cov-special-nonbenefit2",
+          "name": "특약형2(비중증 비급여) 실손의료비",
+          "targetDiseases": [
+            "산정특례 대상 질환 외 비급여"
+          ],
+          "maxLimitByAge": {
+            "0-40": 10000000,
+            "41-60": 10000000,
+            "61-90": 10000000
+          },
+          "deductibleAndReduction": "비급여 의료비의 50% 보상 (상급병실료 차액 제외), 공제금액(5만원과 보장대상의료비의 50% 중 큰 금액) 차감"
         }
       ],
-      "analyzedAt": "2026-08-01T20:13:51.421Z"
+      "analyzedAt": "2026-09-01T21:42:15.366Z"
     },
     "한화 100세 암치료보장보험 무배당2604": {
       "fullName": "한화 100세 암치료보장보험 무배당2604",
@@ -3295,47 +3383,47 @@
         "terms": "https://www.hwgeneralins.com/upload/hmpag_upload/product/100cancer(2604)_03.pdf"
       },
       "coreBenefits": [
-        "암 진단부터 치료비, 수술비, 입원비까지 통합적인 암 치료 보장",
-        "표적항암약물허가치료, 카티(CAR-T) 항암약물허가치료 등 최신 암 치료 기법 보장",
-        "갱신형 및 독립특별약관을 통해 100세까지 맞춤형 암 보장 설계 가능"
+        "암(4대유사암제외) 진단비 및 특정치료비를 진단 후 10년간 매년 집중 보장합니다.",
+        "표적항암제, 카티(CAR-T), 중입자 및 세기조절 방사선치료 등 고가의 신의료 암치료비를 지원합니다.",
+        "통합암 및 전이암(림프절 및 특정전이)을 단계별로 세분화하여 빈틈없이 보장합니다.",
+        "해약환급금 일부지급형 선택 시 납입기간 중 해지환급금이 없는 대신 기본형 대비 약 50% 이상 저렴한 보험료로 가입할 수 있습니다."
       ],
-      "premiumRange": "월 2만원~5만원대 수준 (가입 조건별 상이)",
-      "recommendationFactor": "암 진단 및 치료 과정의 경제적 부담을 대비하려는 사용자, 유병력자 및 고령자 포함",
+      "premiumRange": "2~5만원대 수준",
+      "recommendationFactor": "암 진단부터 최신 항암 신의료 기술 치료까지 고액의 암 치료 비용 부담을 최소화하고자 하는 고객",
       "targetAge": {
         "minAge": 15,
-        "maxAge": 90
+        "maxAge": 89
       },
-      "renewalType": "갱신형",
-      "examinationType": "간편고지(유병자)",
-      "simsaCriteria": "3.N.5",
+      "renewalType": "혼합형",
+      "examinationType": "일반고지 및 간편고지",
+      "simsaCriteria": "3.10.5, 3.5.5, 3.4.5, 3.3.5, 3.2.5, 3.1.5, 3.0.5 등 다양한 간편고지 유형 제공",
       "hasPremiumWaiver": true,
       "premiumWaiverCriteria": [
-        "납입면제보장개시일 이후 '암'으로 진단확정된 경우(기타피부암, 갑상선암, 제자리암, 경계성종양 제외)"
+        "납입면제보장개시일 이후 일반암으로 최초 진단확정 시 (기타피부암, 갑상선암, 제자리암 및 경계성종양 제외)"
       ],
       "underwritingNotes": [
-        "피보험자의 직업, 직무 등에 따라 보험가입금액이 제한되거나 인수가 거절될 수 있음.",
-        "일부 담보는 4대유사암진단비 등 의무부가 담보를 포함해야 가입 가능함.",
-        "갱신 시 연령 증가 및 경험 통계에 따라 보험료가 인상될 수 있음."
+        "피보험자의 직업, 직무 및 과거 병력에 따라 가입 한도가 제한되거나 인수가 불가능할 수 있으며, 필요시 건강진단 결과를 요구할 수 있습니다.",
+        "이륜자동차를 주기적으로 운전(직업, 직무, 출퇴근 등)하는 경우 이륜차 운전 중 발생한 사고에 대해서는 상해 관련 보장이 제한될 수 있습니다."
       ],
       "coverageLimits": {
-        "generalCancer": "1,000만원",
-        "similarCancer": "200만원",
-        "cerebrovascular": "없음",
-        "ischemicHeart": "없음",
+        "generalCancer": "최대 5,000만원 (연령 및 인수 심사에 따라 차등 적용)",
+        "similarCancer": "세부보장별 최대 200만원",
+        "cerebrovascular": "최대 2,000만원",
+        "ischemicHeart": "최대 2,000만원",
         "caregiverExpenses": "없음"
       },
       "productMetadata": {
         "targetGender": "M/F",
         "minAge": 15,
-        "maxAge": 90,
+        "maxAge": 89,
         "isRenewal": true,
         "isSimpleScreening": true,
-        "premiumIndexKrw": 30000
+        "premiumIndexKrw": 50000
       },
       "underwritingRules": {
-        "eligibility": "15세부터 90세까지 가입 가능하며, 직업/직무 등에 따라 가입 한도가 제한될 수 있음.",
+        "eligibility": "직업, 직무, 건강상태에 따라 가입이 제한되거나 가입금액이 감액될 수 있습니다.",
         "waiverOfPremium": [
-          "납입면제보장개시일 이후 '암'으로 진단확정(기타피부암, 갑상선암, 제자리암, 경계성종양 제외)"
+          "납입면제보장개시일 이후 일반암(유사암 제외) 진단확정 시 차회 이후 보장보험료 납입 면제"
         ]
       },
       "coverages": [
@@ -3346,27 +3434,30 @@
             "C00-C97"
           ],
           "maxLimitByAge": {
-            "0-40": 10000000,
-            "41-60": 10000000,
-            "61-90": 10000000
+            "15-40": 50000000,
+            "41-60": 30000000,
+            "61-89": 10000000
           },
-          "deductibleAndReduction": "보장개시일은 계약일부터 90일 지난 날의 다음날, 1년 미만 시 50% 지급"
+          "deductibleAndReduction": "보장개시일은 계약일로부터 90일이 지난 날의 다음날이며, 1년 미만 진단 시 50% 감액 지급"
         },
         {
           "coverageId": "cov-cancer-similar",
-          "name": "4대유사암진단비",
+          "name": "4대유사암진단비(갑상선암/기타피부암/제자리암/경계성종양)",
           "targetDiseases": [
-            "D00-D09"
+            "C73",
+            "C44",
+            "D00-D09",
+            "D37-D48"
           ],
           "maxLimitByAge": {
-            "0-40": 2000000,
+            "15-40": 2000000,
             "41-60": 2000000,
-            "61-90": 2000000
+            "61-89": 1000000
           },
-          "deductibleAndReduction": "1년 미만 시 50% 지급, 세부보장별 최초 1회 지급"
+          "deductibleAndReduction": "면책기간은 없으며, 계약일로부터 1년 미만 진단 시 50% 감액 지급"
         }
       ],
-      "analyzedAt": "2026-08-01T20:15:43.371Z"
+      "analyzedAt": "2026-09-01T21:43:55.311Z"
     }
   }
 }
